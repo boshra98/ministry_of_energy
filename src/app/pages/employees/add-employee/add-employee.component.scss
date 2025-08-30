@@ -1,0 +1,241 @@
+
+
+// .crest {
+//   width: 64px;
+//   height: 64px;
+//   border-radius: 40%;
+//   border: 2px solid #1d6e3e;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   background: #fff;
+//   overflow: hidden; // مهم حتى تنقص الصورة على شكل دائرة
+
+//   .logo {
+//     width: 105%;
+//     height: 105%;
+//     object-fit: contain; // أو cover حسب شكل اللوغو
+//   }
+// }
+// .gov-header {
+//   display: grid;
+//   grid-template-columns: 72px 1fr auto;
+//   gap: 12px;
+//   align-items: center;
+//   padding: 16px 18px;
+//   background: linear-gradient(135deg, #e8f3ea, #f3f8f4);
+//   border-bottom: 2px solid #1d6e3e;
+// .titles {
+//     .country { font-weight: 800; color: #0f5132; }
+//     .ministry { font-weight: 700; color: #1d6e3e; }
+//     .dept { color: #2e5d3e; }
+//   }
+ 
+
+//   .back-btn { grid-column: 1; justify-self: start; }
+
+//   .crest {
+//     width: 64px; height: 64px;
+//     border-radius: 50%;
+//     border: 2px solid #1d6e3e;
+//     display: grid; place-items: center;
+//     background: #fff;
+//     .mat-icon { font-size: 34px; color: #1d6e3e;}
+    
+//   }
+//   .doc-meta {
+//     text-align: left;
+//      margin-bottom: 6px; /* مسافة صغيرة أسفل كل سطر (الرقم + التاريخ) */
+//     font-size: 13px;
+//     color: #204d36;
+//    gap: 18px; /* المسافة العمودية بين العناصر */
+//      flex-direction: column; /* العناصر فوق بعض */
+
+
+//   }
+//   .doc-meta div:first-child {
+//   margin-bottom: 8px; /* مسافة تحت رقم السجل */
+// }
+
+
+
+// //   .doc-meta {
+// //   text-align: left;
+// //   font-size: 13px;
+// //   color: #204d36;
+
+// //   display: flex;
+// //   flex-direction: column; /* العناصر فوق بعض */
+// //   gap: 8px; /* المسافة العمودية بين العناصر */
+// // }
+
+// }
+
+// .page {
+//   padding: 16px;
+//   background: linear-gradient(145deg, #eab84e, #226128);
+// }
+
+// .card {
+//   max-width: 980px;
+//   margin: 0 auto;
+//   border-radius: 16px;
+// }
+
+// .card__header {
+//   padding: 12px 12px 0 12px;
+// }
+
+// .card__title {
+//   display: flex; align-items: center; gap: 8px;
+//   h2 { margin: 0; font-weight: 700; }
+//   mat-icon { font-size: 28px; height: 28px; width: 28px; }
+//   color:#02570b
+// }
+
+// .form {
+//   padding: 16px 12px 24px;
+// }
+
+// .grid {
+//   display: grid;
+//   grid-template-columns: 1fr 1fr;
+//   gap: 14px;
+
+//   @media (max-width: 768px) {
+//     grid-template-columns: 1fr;
+//   }
+// }
+
+// .col-span-2 {
+//   grid-column: span 2;
+
+//   @media (max-width: 768px) {
+//     grid-column: auto;
+//   }
+// }
+
+// .actions {
+//   margin-top: 12px;
+//   display: flex;
+//   justify-content: flex-end;
+//   gap: 10px;
+
+          
+//   button[mat-flat-button] {
+//     border-radius: 10px;
+//     color:#02570b;
+//     background-color: #dbc189;
+//   } 
+//   button[mat-stroked-button] {border-radius: 10px;
+//     color:#dd2f2f;
+//     background-color: #dcc48f;}
+
+// }
+// mat-form-field {
+//   width: 100%;
+// }
+
+
+
+/* الصفحة تملأ الشاشة وتوسّط البطاقة */
+.page {
+  min-height: 100vh;
+  padding: 24px;
+  background: linear-gradient(145deg, #eab84e, #226128);
+  display: flex;
+  justify-content: center;   /* توسيط أفقياً */
+  align-items: flex-start;    /* من أعلى */
+}
+
+/* بطاقتك أعرض (بدل 980px) */
+.card {
+  width: min(1200px, 96%);   /* تتمدّد حتى 1200 أو 96% من العرض */
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+
+/* هيدر البطاقة (نفس gov-header) سطر واحد */
+.card__header.gov-header {
+  display: grid;
+  grid-template-columns: 72px 1fr auto; /* شعار | عناوين | تاريخ+زر */
+  gap: 12px;
+  align-items: center;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #e8f3ea, #f3f8f4);
+  border-bottom: 2px solid #1d6e3e;
+}
+
+/* الشعار */
+.card__header .crest {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid #1d6e3e;
+  display: grid; place-items: center;
+  background: #fff; overflow: hidden;
+}
+.card__header .crest .logo { width: 105%; height: 105%; object-fit: contain; }
+
+/* عناوين الجهة */
+.card__header .titles {
+  font-size: 14px; line-height: 1.4; color: #204d36;
+}
+.card__header .titles .country  { font-weight: 800; color: #0f5132; }
+.card__header .titles .ministry { font-weight: 700; color: #1d6e3e; }
+.card__header .titles .dept     { color: #2e5d3e; }
+
+/* ميتا الهيدر: التاريخ فوق والزر تحته، بمحاذاة اليسار (في RTL هي نهاية السطر) */
+.card__header .doc-meta {
+  justify-self: end;             /* ركنها يسار الهيدر */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  font-size: 13px;
+  color: #204d36;
+  text-align: left;
+}
+.card__header .back-btn mat-icon {
+  color: #1d6e3e; transition: transform .2s, color .2s;
+}
+.card__header .back-btn:hover mat-icon {
+  color: #14532d; transform: scale(1.15);
+}
+
+/* عنوان القسم تحت الهيدر مباشرة */
+.card__title {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 18px 0;
+  color:#02570b;
+}
+.card__title h2 { margin: 0; font-weight: 700; }
+.card__title mat-icon { font-size: 28px; height: 28px; width: 28px; }
+
+/* جسم الفورم */
+.form { padding: 16px 18px 24px; }
+
+/* شبكة الحقول: تلقائي، مرن، ما ترصّ الحقول */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* ذكي */
+  gap: 14px;
+}
+.col-span-2 {
+  grid-column: 1 / -1; /* يمتد بعرض البطاقة */
+}
+
+/* أزرار الإجراءات */
+.actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+button[mat-flat-button]   { border-radius: 10px; color:#02570b; background:#dbc189; }
+button[mat-stroked-button]{ border-radius: 10px; color:#dd2f2f; background:#dcc48f; }
+
+/* الفورم في Angular Material */
+mat-form-field { width: 100%; }

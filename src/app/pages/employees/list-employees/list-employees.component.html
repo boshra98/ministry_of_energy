@@ -1,0 +1,131 @@
+<div class="gov-page" dir="rtl">
+  <mat-card class="gov-card">
+    <div class="gov-header">
+     
+        
+      <div class="crest">
+    <img src="/logo.png" class="logo" alt="شعار الوزارة" />
+      </div>
+      <div class="titles">
+        <div class="country">الجمهورية العربية السورية</div>
+        <div class="ministry">وزارة الطاقة</div>
+        <div class="dept">مديرية الموارد البشرية</div>
+      </div>
+      <div class="doc-meta">
+        <div>عدد السجلات: <strong>{{ dataSource.data.length }}</strong></div>
+        <div>التاريخ: <strong>{{ (today() | date:'yyyy/MM/dd') || '' }}</strong></div>
+
+        <button mat-icon-button class="back-btn" (click)="goHome()" aria-label="رجوع للصفحة الرئيسية">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      </div>
+    
+    </div>
+
+    <div class="doc-title">
+      <h2>سجل الموظفين</h2>
+
+      <div class="toolbar">
+        <a mat-stroked-button color="primary" [routerLink]="['/employees','new']">
+          <mat-icon>person_add</mat-icon>
+          إضافة موظف
+        </a>
+
+        <mat-form-field appearance="outline" class="search">
+          <mat-label>بحث</mat-label>
+          <input matInput (input)="applyFilter($event.target.value)" placeholder="بحث بالاسم/الوظيفة/الملف..." />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table mat-table [dataSource]="dataSource" class="mat-elevation-z2">
+
+        <!-- # -->
+        <ng-container matColumnDef="index">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index">{{ i + 1 }}</td>
+        </ng-container>
+
+        <!-- الاسم الكامل -->
+        <ng-container matColumnDef="fullName">
+          <th mat-header-cell *matHeaderCellDef>الاسم الكامل</th>
+          <td mat-cell *matCellDef="let e">
+            {{ e.firstName }} {{ e.fatherName }} {{ e.lastName }}
+          </td>
+        </ng-container>
+
+        <!-- المسمى الوظيفي -->
+        <ng-container matColumnDef="jobTitle">
+          <th mat-header-cell *matHeaderCellDef>المسمى الوظيفي</th>
+          <td mat-cell *matCellDef="let e">{{ e.jobTitle }}</td>
+        </ng-container>
+
+        <!-- الجنس -->
+        <ng-container matColumnDef="gender">
+          <th mat-header-cell *matHeaderCellDef>الجنس</th>
+          <td mat-cell *matCellDef="let e">
+            <span class="chip" [class.male]="e.gender==='male'" [class.female]="e.gender==='female'">
+              {{ e.gender === 'male' ? 'ذكر' : (e.gender === 'female' ? 'أنثى' : e.gender) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- تاريخ الولادة -->
+        <ng-container matColumnDef="birthDate">
+          <th mat-header-cell *matHeaderCellDef>تاريخ الولادة</th>
+          <td mat-cell *matCellDef="let e">{{ e.birthDate }}</td>
+        </ng-container>
+
+        <!-- رقم الملف -->
+        <ng-container matColumnDef="paperFileNumber">
+          <th mat-header-cell *matHeaderCellDef>رقم الملف</th>
+          <td mat-cell *matCellDef="let e">{{ e.paperFileNumber }}</td>
+        </ng-container>
+
+        <!-- السكن -->
+        <ng-container matColumnDef="residence">
+          <th mat-header-cell *matHeaderCellDef>مكان السكن</th>
+          <td mat-cell *matCellDef="let e">{{ e.residence }}</td>
+        </ng-container>
+
+        <!-- الإجراءات -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-h">إجراءات</th>
+          <td mat-cell *matCellDef="let e" class="actions-c">
+            <!-- <button mat-icon-button color="primary" (click)="edit(e)" aria-label="تعديل"> -->
+              <!-- <mat-icon>edit</mat-icon> -->
+<!-- ✅ التنقل مباشرة -->
+    <button
+      mat-icon-button
+      color="primary"
+      [routerLink]="['/employees/edit', e.id]"
+      aria-label="تعديل">
+      <mat-icon>edit</mat-icon>
+    </button>
+
+            
+            <button mat-icon-button color="warn" (click)="remove(e)" aria-label="حذف">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="empty" *ngIf="dataSource.data.length === 0">
+          <td [attr.colspan]="displayedColumns.length">
+            لا توجد بيانات موظفين بعد.
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="footer">
+      <div>خاتم الإدارة</div>
+      <div class="stamp"> وزارة الطاقة  </div>
+    </div>
+  </mat-card>
+</div>

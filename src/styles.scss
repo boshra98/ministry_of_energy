@@ -1,1 +1,127 @@
 /* You can add global styles to this file, and also import other style files */
+
+@import '@angular/material/prebuilt-themes/indigo-pink.css'; // ← أولاً
+
+
+html, body { height: 100%; margin: 0}
+body {
+  margin: 0;
+  direction: rtl;
+  background: #f7f8fa;
+  color: #036524;
+  -webkit-font-smoothing: antialiased;
+}
+
+// /* الحاوية الأساسية للمينيو */
+// .mat-mdc-menu-panel.menu-elegant {
+//   /* متغيرات مدمجة في Angular Material (حديثة) */
+//   --mat-menu-containercolor: #c6a664;   /* خلفية ذهبية */
+//   --mat-menu-container-shape: 14px;      /* نصف قطر الحواف */
+//   --mat-menu-item-label-text-color: #fff;
+//   --mat-menu-item-icon-color: #fff;
+
+//   /* في بعض الإصدارات نحتاج دعمًا إضافيًا للسطح */
+//   .mdc-menu-surface {
+//     background: #634407 !important;
+//     border-radius: 14px !important;
+//     border: none !important;
+//     box-shadow: 0 16px 36px rgba(0,0,0,.28) !important;
+//     backdrop-filter: none; /* يمنع الشفافية */
+//     opacity: 1 !important;
+//   }
+
+//   /* محتوى القائمة */
+//   .mat-mdc-menu-content {
+//     background: black;
+//     padding-block: 6px;
+//     min-width: 220px; /* عرض مريح */
+//   }
+
+//   /* عنصر واحد */
+//   .mat-mdc-menu-item {
+//     color: #fff !important;
+//     height: 42px;                       /* كثافة أنيقة */
+//     padding-inline: 10px 14px;          /* مسافات داخلية */
+//     border-radius: 10px;                 /* حواف للعناصر نفسها */
+//     // transition: background .18s ease;
+//   }
+
+//   /* الأيقونة + النص */
+//   .mat-mdc-menu-item .material-icons {
+//     color: #fff !important;
+//     font-size: 22px;
+//     margin-inline-end: 10px;
+//   }
+//   .mdc-list-item__primary-text {
+//     font-weight: 700;  /* نص أثقل قليلاً */
+//     letter-spacing: .2px;
+//   }
+
+//   /* تأثير التحويم والتركيز */
+//   .mat-mdc-menu-item:hover,
+//   .mat-mdc-menu-item.cdk-focused,
+//   .mat-mdc-menu-item.cdk-program-focused {
+//     background: rgba(0,0,0,0.18) !important;
+//   }
+
+//   /* فاصل رفيع اختياري بين مجموعات العناصر */
+//   .menu-divider {
+//     height: 1px;
+//     margin: 6px 8px;
+//     background: rgba(255,255,255,.35);
+//     border-radius: 1px;
+//   }
+
+//   /* ظل خفيف للحافة (اختياري) */
+//   &::ng-deep .mdc-evolution-overlay__scrim { background: transparent !important; }
+// }
+
+
+
+// /* تطابق مع تركيب الـ Overlay في جميع الإصدارات الحديثة */
+// .cdk-overlay-container .mat-mdc-menu-panel.gold-menu {
+//   /* متغيرات الثيم (يعتمدها Material إن وُجدت) */
+//   --mat-menu-container-color: #c6a664;
+//   --mat-menu-container-shape: 14px;
+//   --mat-menu-item-label-text-color: #fff;
+//   --mat-menu-item-icon-color: #fff;
+// }
+
+// /* ضمان اللون حتى لو لم تُقرأ المتغيرات */
+// .cdk-overlay-container .mat-mdc-menu-panel.gold-menu .mdc-menu-surface {
+//   background-color: #c6a664 !important;
+//   color: #fff !important;
+//   border: none !important;
+//   border-radius: 14px !important;
+//   box-shadow: 0 16px 36px rgba(0,0,0,.28) !important;
+//   opacity: 1 !important;
+//   backdrop-filter: none !important; /* يمنع الشفافية */
+// }
+
+// .cdk-overlay-container .mat-mdc-menu-panel.gold-menu .mat-mdc-menu-content {
+//   background: transparent !important;
+//   padding-block: 6px;
+//   min-width: 220px;
+// }
+
+// .cdk-overlay-container .mat-mdc-menu-panel.gold-menu .mat-mdc-menu-item {
+//   color: #fff !important;
+//   height: 42px;
+//   padding-inline: 10px 14px;
+//   border-radius: 10px;
+//   transition: background .18s ease;
+// }
+
+// .cdk-overlay-container .mat-mdc-menu-panel.gold-menu .mat-mdc-menu-item .material-icons {
+//   color: #fff !important;
+//   font-size: 22px;
+//   margin-inline-end: 10px;
+// }
+
+// .cdk-overlay-container .mat-mdc-menu-panel.gold-menu .mat-mdc-menu-item:hover,
+// .cdk-overlay-container .mat-mdc-menu-panel.gold-menu .mat-mdc-menu-item.cdk-focused,
+// .cdk-overlay-container .mat-mdc-menu-panel.gold-menu .mat-mdc-menu-item.cdk-program-focused {
+//   background: rgba(0,0,0,0.15) !important;
+// }
+// .cdk-overlay-container .mat-mdc-menu-panel.gold-menu { outline: 3px solid red !important; }
+

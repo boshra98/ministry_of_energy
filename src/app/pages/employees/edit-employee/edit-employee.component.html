@@ -1,0 +1,104 @@
+<div class="gov-page" dir="rtl">
+  <mat-card class="gov-card">
+    <div class="gov-header">
+      <div class="crest">
+    <img src="/logo.png" class="logo" alt="شعار الوزارة" />
+      </div>
+      <div class="titles">
+        <div class="country">الجمهورية العربية السورية</div>
+        <div class="ministry">وزارة الطاقة</div>
+        <div class="dept">مديرية الموارد البشرية</div>
+      </div>
+      <div class="doc-meta">
+        <div>نموذج: <strong>تعديل بيانات موظف</strong></div>
+      </div>
+    </div>
+
+    <div class="doc-title">
+      <h2>تعديل بيانات الموظف</h2>
+      <a mat-stroked-button  [routerLink]="['/employees']">
+        <mat-icon>arrow_back</mat-icon>
+        رجوع للسجل
+      </a>
+    </div>
+
+    <!-- حالات التحميل / عدم الوجود -->
+    <div class="state" *ngIf="loading">جارِ التحميل...</div>
+    <div class="state error" *ngIf="!loading && notFound">
+      لم يتم العثور على الموظف المطلوب.
+    </div>
+
+    <form *ngIf="!loading && !notFound" [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+
+      <mat-form-field appearance="outline">
+        <mat-label>الاسم</mat-label>
+        <input matInput formControlName="firstName" placeholder="مثال: خالد">
+        <mat-error *ngIf="firstNameCtrl.touched && firstNameCtrl.hasError('required')">مطلوب</mat-error>
+        <mat-error *ngIf="firstNameCtrl.hasError('minlength')">على الأقل حرفان</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>الكنية</mat-label>
+        <input matInput formControlName="lastName" placeholder="مثال: الأحمد">
+        <mat-error *ngIf="lastNameCtrl.touched && lastNameCtrl.hasError('required')">مطلوب</mat-error>
+        <mat-error *ngIf="lastNameCtrl.hasError('minlength')">على الأقل حرفان</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>اسم الأب</mat-label>
+        <input matInput formControlName="fatherName" placeholder="مثال: محمود">
+        <mat-error *ngIf="fatherNameCtrl.touched && fatherNameCtrl.hasError('required')">مطلوب</mat-error>
+        <mat-error *ngIf="fatherNameCtrl.hasError('minlength')">على الأقل حرفان</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>رقم الملف الورقي</mat-label>
+        <input matInput formControlName="paperFileNumber" inputmode="numeric" placeholder="مثال: 123456">
+        <mat-hint>حتى 10 أرقام</mat-hint>
+        <mat-error *ngIf="paperFileNumberCtrl.touched && paperFileNumberCtrl.hasError('required')">مطلوب</mat-error>
+        <mat-error *ngIf="paperFileNumberCtrl.hasError('pattern')">أرقام فقط (حتى 10)</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>الجنس</mat-label>
+        <mat-select formControlName="gender">
+          <mat-option *ngFor="let g of genders" [value]="g.value">{{ g.label }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="genderCtrl.touched && genderCtrl.hasError('required')">الرجاء الاختيار</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>تاريخ الولادة</mat-label>
+        <input matInput type="date" formControlName="birthDate">
+        <mat-error *ngIf="birthDateCtrl.touched && birthDateCtrl.hasError('required')">مطلوب</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="col-2">
+        <mat-label>مكان السكن</mat-label>
+        <textarea matInput rows="2" formControlName="residence" placeholder="المدينة / الحي / العنوان"></textarea>
+        <mat-error *ngIf="residenceCtrl.touched && residenceCtrl.hasError('required')">مطلوب</mat-error>
+        <mat-error *ngIf="residenceCtrl.hasError('minlength')">الحد الأدنى 3 أحرف</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>المسمى الوظيفي</mat-label>
+        <mat-select formControlName="jobTitle">
+          <mat-option *ngFor="let j of jobTitles" [value]="j">{{ j }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="jobTitleCtrl.touched && jobTitleCtrl.hasError('required')">مطلوب</mat-error>
+      </mat-form-field>
+
+      <div class="actions col-2">
+        <button mat-stroked-button type="button" color="primary" (click)="cancel()">
+          <mat-icon>close</mat-icon>
+          إلغاء
+        </button>
+
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+          <mat-icon>save</mat-icon>
+          حفظ التعديلات
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>

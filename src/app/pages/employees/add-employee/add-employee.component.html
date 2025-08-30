@@ -1,0 +1,218 @@
+<!-- <p>add-employee works!</p> -->
+<!-- add-employee.component.html -->
+
+<div class="page" dir="rtl">
+  <mat-card class="card">
+    <!-- <div class="card__header"> -->
+    <div class="card__header gov-header">
+
+      <div class="crest">
+    <img src="/logo.png" class="logo" alt="شعار الوزارة" />
+      </div>
+      <div class="titles">
+        <div class="country">الجمهورية العربية السورية</div>
+        <div class="ministry">وزارة الطاقة</div>
+        <div class="dept">مديرية الموارد البشرية</div>
+      </div>
+
+    <div class="doc-meta">
+        <div>التاريخ: <strong>{{ (today() | date:'yyyy/MM/dd') || '' }}</strong></div>
+        <button mat-icon-button class="back-btn" (click)="goHome()" aria-label="رجوع للصفحة الرئيسية">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      </div>
+
+          </div>
+
+
+
+      <div class="card__title">
+        <mat-icon aria-hidden="true">person_add</mat-icon>
+        <h2>إضافة موظف جديد</h2>
+      </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <div class="grid">
+
+        <!-- الاسم -->
+        <mat-form-field appearance="outline">
+          <mat-label>الاسم</mat-label>
+          <input matInput formControlName="firstName" placeholder="مثال: خالد" />
+          @if (firstNameCtrl.touched && firstNameCtrl.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (firstNameCtrl.touched && firstNameCtrl.hasError('minlength')) {
+            <mat-error>يجب ألا يقل عن حرفين</mat-error>
+          }
+
+          @if (firstNameCtrl.hasError('pattern')) {
+  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
+}
+
+        </mat-form-field>
+
+        <!-- الكنية -->
+        <mat-form-field appearance="outline">
+          <mat-label>الكنية</mat-label>
+          <input matInput formControlName="lastName" placeholder="مثال: الأحمد" />
+          @if (lastNameCtrl.touched && lastNameCtrl.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (lastNameCtrl.touched && lastNameCtrl.hasError('minlength')) {
+            <mat-error>يجب ألا يقل عن حرفين</mat-error>
+          }
+
+           @if (lastNameCtrl.hasError('pattern')) {
+  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
+}
+          
+        </mat-form-field>
+
+        <!-- اسم الأب -->
+        <mat-form-field appearance="outline">
+          <mat-label>اسم الأب</mat-label>
+          <input matInput formControlName="fatherName" placeholder="مثال: محمود" />
+          @if (fatherNameCtrl.touched && fatherNameCtrl.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (fatherNameCtrl.touched && fatherNameCtrl.hasError('minlength')) {
+            <mat-error>يجب ألا يقل عن حرفين</mat-error>
+          }
+
+           @if (fatherNameCtrl.hasError('pattern')) {
+  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
+}
+        </mat-form-field>
+
+        <!-- رقم الملف الورقي -->
+        <mat-form-field appearance="outline">
+          <mat-label>رقم الملف الورقي</mat-label>
+          <input matInput formControlName="paperFileNumber" inputmode="numeric" placeholder="مثال: 123456" />
+          <mat-hint>حتى 10 أرقام</mat-hint>
+          @if (paperFileNumberCtrl.touched && paperFileNumberCtrl.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (paperFileNumberCtrl.touched && paperFileNumberCtrl.hasError('pattern')) {
+            <mat-error>أرقام فقط (حتى 10)</mat-error>
+          }
+          @if (paperFileNumberCtrl.hasError('pattern')) {
+  <mat-error> يُسمح فقط بالأرقام (بدون حروف)</mat-error>
+}
+        </mat-form-field>
+
+        <!-- الجنس -->
+        <mat-form-field appearance="outline">
+          <mat-label>الجنس</mat-label>
+          <mat-select formControlName="gender">
+            @for (g of genders; track g.value) {
+              <mat-option [value]="g.value">{{ g.label }}</mat-option>
+            }
+          </mat-select>
+          @if (genderCtrl.touched && genderCtrl.hasError('required')) {
+            <mat-error>الرجاء اختيار الجنس</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- تاريخ الولادة (نفس نوع التحكم: string) -->
+        <mat-form-field appearance="outline">
+          <mat-label>تاريخ الولادة</mat-label>
+          <input matInput type="date" formControlName="birthDate" />
+          @if (birthDateCtrl.touched && birthDateCtrl.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- المسمى الوظيفي -->
+        <mat-form-field appearance="outline">
+          <mat-label>المسمى الوظيفي</mat-label>
+          <mat-select formControlName="jobTitle">
+            @for (j of jobTitles; track j) {
+              <mat-option [value]="j">{{ j }}</mat-option>
+            }
+          </mat-select>
+          @if (jobTitleCtrl.touched && jobTitleCtrl.hasError('required')) {
+            <mat-error>الرجاء اختيار المسمى الوظيفي</mat-error>
+          }
+        </mat-form-field>
+
+
+        <!-- الاسم -->
+        <mat-form-field appearance="outline">
+          <mat-label> الاختصاص الجامعي</mat-label>
+          <input matInput formControlName="collage" placeholder="مثال:هندسة معلوماتية" />
+          @if (collageCtrl.touched && collageCtrl.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (collageCtrl.touched && collageCtrl.hasError('minlength')) {
+            <mat-error>يجب ألا يقل عن حرفين</mat-error>
+          }
+
+          @if (collageCtrl.hasError('pattern')) {
+  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
+}
+
+        </mat-form-field>
+
+   <mat-form-field appearance="outline">
+          <mat-label>التحصيل العلمي</mat-label>
+          <mat-select formControlName="education">
+            @for (j of educations; track j) {
+              <mat-option [value]="j">{{ j }}</mat-option>
+            }
+          </mat-select>
+          @if (educationCtrl.touched && educationCtrl.hasError('required')) {
+            <mat-error>الرجاء اختيار التحصيل العلمي</mat-error>
+          }
+        </mat-form-field>
+
+      <mat-form-field appearance="outline">
+  <mat-label>تاريخ الانتساب</mat-label>
+
+  <input matInput [matDatepicker]="picker" formControlName="workDate">
+  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+
+  <mat-datepicker #picker>
+    <mat-datepicker-actions>
+      <button mat-button matDatepickerToday>اليوم</button>
+      <button mat-button matDatepickerCancel>إلغاء</button>
+    </mat-datepicker-actions>
+  </mat-datepicker>
+
+  <mat-error *ngIf="workDateCtrl.touched && workDateCtrl.hasError('required')">
+    هذا الحقل مطلوب
+  </mat-error>
+</mat-form-field>
+
+
+
+
+
+
+        <!-- مكان السكن -->
+        <mat-form-field appearance="outline" class="col-span-2">
+          <mat-label>مكان السكن</mat-label>
+          <textarea matInput formControlName="residence" rows="2" placeholder="المدينة / الحي / العنوان"></textarea>
+          @if (residenceCtrl.touched && residenceCtrl.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (residenceCtrl.touched && residenceCtrl.hasError('minlength')) {
+            <mat-error>الحد الأدنى 3 أحرف</mat-error>
+          }
+        </mat-form-field>
+
+      </div>
+
+      <div class="actions">
+        <button mat-stroked-button type="button"  (click)="form.reset()">
+          <mat-icon>refresh</mat-icon>
+          إعادة ضبط
+        </button>
+
+        <button mat-flat-button  type="submit" >
+          <mat-icon>save</mat-icon>
+          حفظ الموظف
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>

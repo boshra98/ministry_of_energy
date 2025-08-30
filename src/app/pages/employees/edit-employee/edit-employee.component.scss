@@ -1,0 +1,85 @@
+:host { display: block; }
+
+.gov-page { padding: 16px; background: #f8faf9; }
+
+.gov-card {
+  border: 1px solid #c6d7c3;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.gov-header {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #e8f3ea, #f3f8f4);
+  border-bottom: 2px solid #1d6e3e;
+
+  .crest {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 2px solid #1d6e3e;
+    display: grid; place-items: center;
+    background: #fff; overflow: hidden;
+
+    .logo { width: 105%; height: 105%; object-fit: contain; }
+  }
+
+  .titles {
+    .country { font-weight: 800; color: #0f5132; }
+    .ministry { font-weight: 700; color: #1d6e3e; }
+    .dept { color: #2e5d3e; }
+  }
+
+  .doc-meta { text-align: left; font-size: 13px; color: #204d36; }
+}
+
+.doc-title {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px 8px 18px;
+  h2 { margin: 0; color: #134e2a; font-weight: 800; }
+}
+
+.state { padding: 18px; color: #174f31; }
+.state.error { color: #b00020; }
+
+.form-grid {
+  padding: 8px 18px 18px 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  .col-2 { grid-column: span 2; }
+}
+
+.actions {
+  display: flex; gap: 10px; justify-content: flex-end;
+}
+
+/* للطباعة */
+@media print {
+  .doc-title a, .actions { display: none !important; }
+  .gov-page { padding: 0; background: #fff; }
+  .gov-card { border: none; }
+}
+
+.actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+          
+  button[mat-flat-button] {
+    border-radius: 10px;
+    color:#02570b;
+    background-color: #dbc189;
+  } 
+  button[mat-stroked-button] {border-radius: 10px;
+    color:#dd2f2f;
+    background-color: #dcc48f;}
+
+}

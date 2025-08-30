@@ -1,0 +1,421 @@
+// :root {
+//   --radius: 18px;
+//   --shadow: 0 10px 25px rgba(0,0,0,.08);
+// }
+
+// .shell {
+//   min-height: 100dvh;
+//   display: grid;
+//   grid-template-rows: auto 1fr auto;
+//   gap: 16px;
+//   padding: 16px clamp(12px, 4vw, 28px);
+//   background: #f7f8fa;
+//   font-family: 'Segoe UI', Tahoma, 'Noto Naskh Arabic', system-ui, sans-serif;
+// }
+
+// .topbar {
+//   background: #0b66c3;
+//   color: #fff;
+//   border-radius: var(--radius);
+//   box-shadow: var(--shadow);
+//   padding: 14px 18px;
+//   display: flex; align-items: center; justify-content: space-between;
+
+//   h1 { font-size: clamp(16px, 2.4vw, 20px); margin: 0; font-weight: 600; }
+//   .user { opacity: .9; }
+// }
+
+// .cards {
+//   display: grid;
+//   gap: 16px;
+//   grid-template-columns: repeat(12, 1fr);
+// }
+
+// .card {
+//   grid-column: span 12;
+//   display: grid;
+//   align-content: start;
+//   gap: 8px;
+//   padding: 18px;
+//   border-radius: var(--radius);
+//   color: #fff;
+//   text-decoration: none;
+//   background: #2d2d2d;
+//   box-shadow: var(--shadow);
+//   transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+
+//   .icon { font-size: 28px; line-height: 1; }
+//   h3 { margin: 0; font-size: 18px; }
+//   p  { margin: 0; opacity: .9; font-size: 14px; }
+
+//   &:hover { transform: translateY(-3px); filter: brightness(1.02); box-shadow: 0 16px 28px rgba(0,0,0,.12); }
+// }
+
+// /* ألوان البطاقات */
+// .accent-red    { background: #dc3545; }
+// .accent-green  { background: #198754; }
+// .accent-blue   { background: #0d6efd; }
+// .accent-purple { background: #6f42c1; }
+// .accent-orange { background: #fd7e14; }
+// .accent-gray   { background: #6c757d; }
+
+// /* استجابة الشاشة — 2 أعمدة على التابلت، 3 على الديسكتوب */
+// @media (min-width: 640px) {
+//   .card { grid-column: span 6; }
+// }
+// @media (min-width: 1024px) {
+//   .card { grid-column: span 4; }
+// }
+
+// .footer {
+//   color: #6b7280;
+//   font-size: 13px;
+//   text-align: center;
+//   padding: 8px;
+// }
+
+/* ====== الهوية البصرية (قابلة للتعديل) ====== */
+/* ====== الهوية البصرية (قابلة للتعديل) ====== */
+:root {
+  --color-primary-900: #0b5f4b; /* أخضر داكن رسمي */
+  --color-primary-700: #1c7a63;
+  --color-gold-500:    #c6a664; /* ذهبي رملي */
+  --color-gold-600:    #b6914d;
+  --color-blue-800:    #114e8a; /* أزرق رسمي */
+  --color-red-600:     #c1332b; /* أحمر هادئ */
+  --color-gray-900:    #0f172a; /* نص داكن */
+  --color-muted-100:   #f5f6f8; /* خلفية فاتحة */
+  --color-muted-200:   #eceff3;
+  --radius-xl: 18px;
+  --shadow-sm: 0 6px 18px rgba(0,0,0,.06);
+  --shadow-md: 0 12px 28px rgba(0,0,0,.10);
+}
+
+/* ====== الهيكل العام ====== */
+.shell {
+    min-height: 100vh;
+  // min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 18px;
+  padding: 18px clamp(12px, 4vw, 28px);
+  background: linear-gradient(180deg, #ffffff 0%, #f5f6f8 100%);
+  font-family: "Noto Naskh Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, #14532d, #1c7a63);
+  color: #fff;
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+
+.menu-btn {
+  color: #fff;
+  border-radius: 60%;
+  width: 55px; height: 55px;
+  display: flex; align-items: center; justify-content: center;
+}
+.menu-btn .material-icons { font-size: 28px; }
+
+// الاطار حول صورة الايقونة
+.emblem {
+  width: 55px; height: 55px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #c6a664;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  overflow: hidden;
+}
+.logo { width: 100%; height: 100%; object-fit: contain; }
+
+.actions { display: flex; gap: 8px; }
+.btn {
+  padding: 8px 12px; border-radius: 10px; text-decoration: none;
+  font-weight: 600; font-size: 14px;
+}
+.btn.ghost {
+  color: #fff; border: 1px solid #ffffff55; background: #ffffff12;
+  padding: 6px 10px; border-radius: 10px; font-weight: 700; text-decoration: none;
+}
+.btn.ghost:hover { background: #ffffff22; }
+
+/* ====== الشريط العلوي ====== */
+
+.titles h1, .titles h2 { margin: 0; line-height: 1.25; }
+.titles h1 { font-size: 18px; font-weight: 700; letter-spacing: .2px; }
+.titles h2 { font-size: 12px; font-weight: 500; opacity: .95; }
+
+
+
+
+/* ====== الشبكة والبطاقات ====== */
+.cards {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.card {
+    margin-top: 20px;
+  grid-column: span 12;
+  display: grid; align-content: start; gap: 10px;
+  padding: 18px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+  border: 1px solid #ffffff22;
+
+  .card__icon { font-size: 24px; line-height: 1; opacity: .95; }
+  .card__title { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: .2px; }
+  .card__desc { margin: 0; font-size: 13.5px; opacity: .95; }
+
+  &::after { /* لمعة قطرية خفيفة */
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #ffffff1f 0%, transparent 45%, #00000012 100%);
+    mix-blend-mode: soft-light; pointer-events: none;
+  }
+
+  &:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); filter: brightness(1.03); }
+}
+
+/* ألوان البطاقات بالهوية السورية */
+.c-add {
+  /* إضافة موظف = أخضر + ذهبي */
+  background: linear-gradient(145deg, #0f4926, #528963);
+}
+.c-list {
+  /* استعراض الموظفين = أحمر قاني + رمادي */
+  background: linear-gradient(145deg, #dda72f, #907140);
+}
+.c-search {
+  /* البحث = أزرق رسمي + رمادي */
+  background: linear-gradient(145deg, #0f4926, #528963);
+}
+.c-stats {
+  /* بيانات إحصائية = أخضر رسمي + أزرق */
+  background: linear-gradient(145deg, #0f4926, #528963);
+}
+.c-archive {
+  /* الأرشيف = ذهبي + أسود */
+  background: linear-gradient(145deg, #dda72f, #907140);
+}
+.c-admin {
+  /* لوحة التحكم = أسود + رمادي أنيق */
+  background: linear-gradient(145deg, #0f4926, #528963);
+}
+
+
+/* استجابة الشاشة */
+@media (min-width: 640px)  {  .card { grid-column: span 6; } }
+@media (min-width: 1024px) {  .card{ grid-column: span 4; } }
+
+
+
+/*لمسة ظل خفيفة للـ topbar عند المرور */
+.topbar:hover { box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+
+/* 8) أيقونة القائمة: تأكد من الحجم والتوسيط */
+.menu-btn .material-icons { font-size: 26px; }
+/* ====== الفوتر ====== */
+// .footer {
+//   color: #5b6470; font-size: 13px; text-align: center; padding: 6px;
+// }
+
+.footer {
+  color: #6b7280;
+  font-size: 13px;
+  text-align: center;
+  padding: 10px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+
+// .sidepanel {
+//  align-self: stretch; 
+
+//   width: 310px;
+//   background: linear-gradient(to right, #dda72f, #cdc18a); /* هنا تم استبدال اللون بلون متدرج */
+//   color: #125e03;
+//   padding: 8px 0 16px;
+//   border-inline-start: 1px solid #e5e7eb;
+// }
+
+// .sidepanel__header {
+//   display: flex; align-items: center; gap: 8px;
+//   padding: 12px 16px;
+//   border-bottom: 1px solid #e5e7eb;
+//   font-weight: 800;
+// }
+
+// .nav-accordion {
+//   .mat-expansion-panel-header { font-weight: 800; }
+//   .material-icons { margin-inline-end: 8px; }
+//   nav a[mat-list-item] .material-icons { color: #14532d; }
+//   nav a[mat-list-item] span + span { margin-inline-start: 8px; }
+// }
+
+/* sidepanel.scss أو styles.scss */
+// .sidepanel {
+//   background: linear-gradient(to right, #dda72f, #cdc18a);
+//   color: #125e03;
+// }
+
+// /* تأكيد لون عناصر اللست داخل السايدبنل */
+// .sidepanel nav [mat-list-item],
+// .sidepanel .mat-mdc-list-item,
+// .sidepanel .mdc-list-item__primary-text,
+// .sidepanel .mat-expansion-panel-header {
+//   color: #125e03;
+// }
+
+// /* لو أردت الأيقونات أيضاً */
+// .sidepanel .material-icons,
+// .sidepanel .mat-icon {
+//   color: #125e03;
+// }
+
+// /* حدّ علوي وإطارات */
+// .sidepanel {
+//   border-inline-start: 1px solid #e5ebe7;
+// }
+// .sidepanel__header {
+//   display: flex; align-items: center; gap: 8px;
+//   padding: 12px 16px;
+//   border-bottom: 1px solid #025f1e;
+//   font-weight: 800;
+// }
+// .sidepanel,
+// .sidepanel .mat-expansion-panel,
+// .sidepanel .mat-expansion-panel-content,
+// .sidepanel .mat-mdc-list,
+// .sidepanel .mat-mdc-list-item {
+//   background: linear-gradient(to right, #dda72f, #cdc18a); /* أو gradient لو بدك يتغطى */
+//   color: #125e03 !important;
+// }
+// /* نفس تنسيقاتك السابقة */
+// .nav-accordion {
+//   .mat-expansion-panel-header { font-weight: 800; }
+//   .material-icons { margin-inline-end: 8px; }
+//   nav a[mat-list-item] .material-icons { color: #14532d; }
+//   nav a[mat-list-item] span + span { margin-inline-start: 8px; }
+// }
+
+/* ✅ الحاوية فقط هي التي تحمل الخلفية المتدرّجة */
+.sidepanel {
+  background: linear-gradient(to right, #dda72f, #cdc18a);
+  color: #125e03;
+  border-inline-start: 1px solid #e5ebe7;
+
+  /* تعطيل طبقة الـhover/press الرمادية للـMDC داخل السايدبنل */
+  --mdc-list-list-item-hover-state-layer-color: transparent;
+  --mdc-list-list-item-focus-state-layer-color: transparent;
+  --mdc-list-list-item-press-state-layer-color: transparent;
+  --mat-expansion-header-focus-state-layer-color: transparent;
+  --mat-expansion-header-hover-state-layer-color: transparent;
+}
+
+/* الهيدر داخل السايدبنل */
+.sidepanel__header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #025f1e;
+  font-weight: 800;
+  color: #125e03;
+  background: transparent;
+}
+
+/* ✅ اجعل المكوّنات الداخلية شفّافة، لا تعطيها Gradient */
+.sidepanel .mat-expansion-panel,
+.sidepanel .mat-expansion-panel-content,
+.sidepanel .mat-expansion-panel-header,
+.sidepanel .mat-mdc-list,
+.sidepanel .mat-mdc-list-item {
+  background: transparent !important;
+  color: #125e03 !important;
+}
+
+/* لون الأيقونات */
+.sidepanel .material-icons,
+.sidepanel .mat-icon {
+  color: #125e03 !important;
+}
+
+/* تنسيقات إضافية للآكوردون */
+.nav-accordion {
+  .mat-expansion-panel-header { font-weight: 800; }
+  .material-icons { margin-inline-end: 8px; }
+  nav a[mat-list-item] .material-icons { color: #14532d; }
+  nav a[mat-list-item] span + span { margin-inline-start: 8px; }
+}
+
+/* (اختياري) إزالة خلفية hover من الهيدر تحديدًا */
+.sidepanel .mat-expansion-panel:not(.mat-expanded) .mat-expansion-panel-header:hover {
+  background: transparent !important;
+}
+
+
+
+/* اجعل الجذر يملأ الشاشة */
+:host, .shell { min-height: 100dvh; display: block; }
+
+/* sidenav container يجب أن يملأ الشاشة */
+mat-sidenav-container.layout,
+.layout {
+  height: 100dvh;           /* مفتاح الحل */
+  /* أو: min-height: 100dvh; */
+}
+
+/* محتوى الصفحة: شبكة ثلاثية الصفوف (ترويسة - محتوى يتمدد - فوتر) */
+.page {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+/* مساحة المحتوى تتمدّد وتسمح بالتمرير */
+.main {
+       min-height: 10;
+       margin-top: 20px; /* المسافة المطلوبة */
+/* مهم مع Grid لمنع تمدد زائد */
+}
+
+/* اختياري: لو ظهرت مسافة بيضاء يمين/يسار مع السايدناف */
+.content {
+  height: 100%;
+  display: block;
+}
+
+mat-list-item[routerLink] {
+  cursor: pointer;
+   font-size: 20px;
+
+
+}
+
+// mat-nav-list mat-list-item {
+//   font-size: 20px;
+// }
+
+
+/* إن كان لديك margins خارجية على .cards أو غيرها، أبقها داخل .main */
+
+
+/* تكامل مع تنسيقاتك السابقة للترويسة/البطاقات/الفوتر */
+
+
