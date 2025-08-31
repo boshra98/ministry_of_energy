@@ -36,7 +36,7 @@ import { MatCardModule } from '@angular/material/card';
 
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -45,6 +45,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatDatepickerModule, MatDatepickerActions } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+// import { AbstractControl, ValidationErrors } from '@angular/forms';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import {
   LocalEmployeesService,
@@ -84,11 +86,13 @@ type EmployeeForm = FormGroup<{
     MatDatepickerActions,
      MatDatepickerModule,
     MatNativeDateModule,
+    MatTabsModule
     
 ],
 })
 export class AddEmployeeComponent {
 dataSource: any;
+// new: Date|null;
 goHome() {
     this.router.navigate(['']);
 }
@@ -104,8 +108,8 @@ goHome() {
     gender:          new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     residence:       new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     jobTitle:        new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    birthDate:       new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-   collage:         new FormControl('', { nonNullable: true,  }),
+    birthDate:       new FormControl('', { nonNullable: true, validators: [Validators.required,strictIsoBirthdateValidator] }),
+   collage:         new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^[\p{L}\s]+$/u)]  }),
    education:       new FormControl('', { nonNullable: true,  }),
   //  workDate:       new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   workDate: new FormControl<Date | null>(null, { validators: [Validators.required] }),
@@ -135,6 +139,19 @@ goHome() {
       if (emp) this.patchForm(emp);
     });
   }
+onWorkPick(e: any) {
+  console.log('picker ->', e.value, e.value instanceof Date);
+  console.log('control ->', this.workDateCtrl.value);
+}
+
+ngAfterViewInit() {
+  // اختبار: إذا ظهر التاريخ بعد هذا، فالربط سليم وقيمة الروزنامة هي اللي ما توصل
+  setTimeout(() => this.workDateCtrl.setValue(new Date()), 0);
+}
+
+// onWorkPick(e:any){ console.log('picked', e.value); }
+
+
 
   // —— Getters للاختصارات في القالب ——
   get firstNameCtrl()       { return this.form.controls.firstName; }
@@ -164,7 +181,9 @@ goHome() {
       residence: emp.residence,
       jobTitle: emp.jobTitle,
       birthDate: emp.birthDate, 
-      workDate:emp.workDate,
+      // workDate:emp.workDate,
+      workDate: emp.workDate ? new Date(emp.workDate as any) : null,
+
       collage:emp.collage,
       education:emp.education,// 
     });
@@ -192,5 +211,55 @@ goHome() {
 
     this.router.navigate(['/employees']);
   }
+
 }
+
+// export function validDateValidator(control: AbstractControl): ValidationErrors | null {
+//   const value = control.value;
+//   if (!value) return null;
+
+//   const date = new Date(value);
+//   if (isNaN(date.getTime())) return { invalidDate: true };
+
+//   // تأكد ليس في المستقبل
+//   if (date > new Date()) return { futureDate: true };
+
+//   return null;
+// }
+
+
+export function strictIsoBirthdateValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value as string;
+  if (!value) return null; // اترك required يتكفل بالفراغ
+
+  // 1) تحقق من الصيغة YYYY-MM-DD
+  const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return { invalidDate: true };
+
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+
+  // نطاقات أولية
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return { invalidDate: true };
+
+  // 2) أنشئ التاريخ وتأكد من التطابق
+  const dt = new Date(y, mo - 1, d);
+  const same =
+    dt.getFullYear() === y &&
+    dt.getMonth() === mo - 1 &&
+    dt.getDate() === d;
+
+  if (!same) return { invalidDate: true };
+
+  // 3) ليس في المستقبل (اختياري)
+  const today = new Date();
+  // صفّر وقت اليوم للمقارنة باليوم فقط
+  today.setHours(0,0,0,0);
+  if (dt > today) return { futureDate: true };
+
+  return null;
+}
+
+
 //this file for add employee test on git

@@ -358,11 +358,38 @@
 
 /* تنسيقات إضافية للآكوردون */
 .nav-accordion {
-  .mat-expansion-panel-header { font-weight: 800; }
-  .material-icons { margin-inline-end: 8px; }
-  nav a[mat-list-item] .material-icons { color: #14532d; }
-  nav a[mat-list-item] span + span { margin-inline-start: 8px; }
+  .mat-expansion-panel-header { font-weight: 800; font-size: 20px; }
+  .material-icons { margin-inline-end: 9px; }
+  nav mat-list-item .material-icons {
+  margin-inline-end: 12px; /* مسافة على يمين الأيقونة في RTL/يسار في LTR */
+  font-size: 22px;
+  color: #0a2a17;
+  margin-top: 10px; /*  --- المسافة يلي بالطول المسا مسافة بين كل عنصر والذي بعده */
+
+
 }
+
+.item-content {
+  display: flex;
+  align-items: center;
+    color: #0a2a17;
+    font-weight: 600;
+
+  gap: 12px; // 👈 مسافة بين الأيقونة والنص
+}
+
+
+
+
+  // nav a[mat-list-item] .material-icons { color: #14532d; }
+  // nav a[mat-list-item] span + span { margin-inline-start: 20px; }
+}
+// nav mat-list-item .material-icons {
+//   margin-inline-end: 12px; /* مسافة على يمين الأيقونة في RTL/يسار في LTR */
+//   font-size: 22px;
+//   color: #14532d;
+// }
+
 
 /* (اختياري) إزالة خلفية hover من الهيدر تحديدًا */
 .sidepanel .mat-expansion-panel:not(.mat-expanded) .mat-expansion-panel-header:hover {
@@ -403,13 +430,13 @@ mat-sidenav-container.layout,
 
 mat-list-item[routerLink] {
   cursor: pointer;
-   font-size: 20px;
+   font-size: 18px;
 
 
 }
 
 // mat-nav-list mat-list-item {
-//   font-size: 20px;
+//   font-size: 14px;
 // }
 
 

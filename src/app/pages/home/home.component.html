@@ -11,11 +11,16 @@
 
       <!-- أقسام القائمة -->
       <mat-accordion class="nav-accordion" multi>
+                             <!-- <.nav-accoration>   منستدعيها كما هي بملف ال css فقط مع نقطة الاستدعاء-->
 
         <!-- الذاتية -->
         <mat-expansion-panel>
-          <mat-expansion-panel-header>
+                    <!-- <mat-expansion-panel-header>  +. منستدعيها كما هي بملف ال css فقط مع نقطة الاستدعاء-->
+
+          <mat-expansion-panel-header> 
             <mat-panel-title>
+                                  <!-- <material-icons> +.  منستدعيها كما هي بملف ال css فقط مع نقطة الاستدعاء-->
+
               <span class="material-icons" aria-hidden="true">badge</span>
               <span>الذاتية</span>
             </mat-panel-title>
@@ -23,31 +28,46 @@
 
           
           <nav mat-nav-list>
-           
+                               <!-- <nav mat-list-item .material-icons{margin,fontsize,color}>   منستدعيها كما هي بملف ال css فقط مع نقطة الاستدعاء-->
+
             <mat-list-item routerLink="employees/new">
+              <span class="item-content">
               <span class="material-icons" aria-hidden="true">person</span>
               <span>اضافة موظف</span>
+              </span>
              </mat-list-item>
-             <mat-list-item routerLink="employees/edit/id">
+             <!-- <mat-list-item routerLink="employees/edit/id">
               <span class="material-icons" aria-hidden="true">person</span>
               <span>تعديل بيانات موظف</span>
-             </mat-list-item>
+             </mat-list-item> -->
 
             <mat-list-item routerLink="/search">
+              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">search</span>
               <span>بحث</span>
+              </span>
              </mat-list-item>
             <mat-list-item routerLink="/employees">
+             <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">group</span>
               <span>استعراض</span>
+              </span>
              </mat-list-item>
 <mat-list-item routerLink="/stats">
+                <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">query_stats</span>
               <span>بيانات إحصائية</span>
+              </span>
              </mat-list-item>
             <mat-list-item routerLink="/archive">
+                <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">inventory_2</span>
               <span>أرشفة الكتب</span>
+              </span>
              </mat-list-item>
             
           </nav>
@@ -64,36 +84,60 @@
 
           <nav mat-nav-list>
             <mat-list-item routerLink="/docs/personal-statement">
+                <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">assignment_ind</span>
               <span>بيان ذاتي</span>
+              </span>
            </mat-list-item>
             <mat-list-item routerLink="/docs/direct-request">
+                              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">assignment</span>
               <span>طلب مباشرة</span>
+              </span>
              </mat-list-item>
             <mat-list-item routerLink="/docs/release">
+                              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">logout</span>
               <span>انفكاك</span>
+              </span>
              </mat-list-item>
             <mat-list-item routerLink="/docs/family-allowance/add">
+                              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">family_restroom</span>
               <span>منح تعويض عائلي</span>
+              </span>
              </mat-list-item>
             <mat-list-item routerLink="/docs/family-allowance/cut">
+                              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">do_not_disturb_on</span>
               <span>قطع تعويض عائلي</span>
+              </span>
              </mat-list-item>
             <mat-list-item routerLink="/docs/passport">
+                              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">travel_explore</span>
               <span>طلب جواز سفر</span>
+              </span>
              </mat-list-item>
             <mat-list-item routerLink="/docs/exit-visa">
+                              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">flight_takeoff</span>
               <span>تأشيرة خروج</span>
+              </span>
              </mat-list-item>
             <mat-list-item routerLink="/docs/end-of-service">
+                              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">event_available</span>
               <span>نهاية الخدمة</span>
+              </span>
              </mat-list-item>
           </nav>
         </mat-expansion-panel>
@@ -109,16 +153,25 @@
  <nav mat-nav-list>
            
             <mat-list-item routerLink="employees/new">
+                              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">person</span>
               <span>  البيانات الشخصية</span>
+              </span>
             </mat-list-item>
              <mat-list-item routerLink="employees/new">
+                              <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">password</span>
               <span>تعديل كلمة المرور</span>
+              </span>
         </mat-list-item>   
           <mat-list-item routerLink="employees/new">
+                            <span class="item-content">
+
               <span class="material-icons" aria-hidden="true">logout</span>
               <span>تسجيل الخروج</span>
+              </span>
              </mat-list-item>
               </nav>
         </mat-expansion-panel>

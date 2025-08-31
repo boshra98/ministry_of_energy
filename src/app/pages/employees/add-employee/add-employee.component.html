@@ -120,8 +120,12 @@
           @if (birthDateCtrl.touched && birthDateCtrl.hasError('required')) {
             <mat-error>هذا الحقل مطلوب</mat-error>
           }
+          @if (birthDateCtrl.touched && birthDateCtrl.hasError('invalidDate')) {
+            <mat-error>    أدخل تاريخًا صالحا</mat-error>
+          }
+          
         </mat-form-field>
-
+<!-- المشكلة هنا في تحديد التاريخ -->
         <!-- المسمى الوظيفي -->
         <mat-form-field appearance="outline">
           <mat-label>المسمى الوظيفي</mat-label>
@@ -165,7 +169,7 @@
           }
         </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <!-- <mat-form-field appearance="outline">
   <mat-label>تاريخ الانتساب</mat-label>
 
   <input matInput [matDatepicker]="picker" formControlName="workDate">
@@ -178,6 +182,36 @@
     </mat-datepicker-actions>
   </mat-datepicker>
 
+  <mat-error *ngIf="workDateCtrl.touched && workDateCtrl.hasError('required')">
+    هذا الحقل مطلوب
+  </mat-error>
+</mat-form-field> -->
+
+<mat-form-field appearance="outline">
+  <mat-label>تاريخ الانتساب</mat-label>
+  <!-- <input matInput [matDatepicker]="workPicker" formControlName="workDate"> -->
+   <!-- <input matInput [matDatepicker]="workPicker" formControlName="workDate"
+       (dateChange)="onWorkPick($event)"> -->
+
+       <input matInput
+  [matDatepicker]="workPicker"
+  formControlName="workDate"
+  (dateInput)="onWorkPick($event)"  
+/>
+
+
+  <mat-datepicker-toggle matSuffix [for]="workPicker"></mat-datepicker-toggle>
+  <mat-datepicker #workPicker>
+  <mat-datepicker-actions>
+    <!-- <button mat-button matDatepickerToday>اليوم</button> -->
+    <button mat-button (click)="workDateCtrl.setValue( today()); workPicker.close()">اليوم</button>
+
+    <span class="spacer"></span>
+    <button mat-button matDatepickerCancel>إلغاء</button>
+    <button mat-raised-button color="primary" matDatepickerApply>تأكيد</button>
+  </mat-datepicker-actions>
+
+  </mat-datepicker>
   <mat-error *ngIf="workDateCtrl.touched && workDateCtrl.hasError('required')">
     هذا الحقل مطلوب
   </mat-error>
