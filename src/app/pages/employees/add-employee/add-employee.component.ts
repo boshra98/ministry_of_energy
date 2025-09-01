@@ -47,6 +47,7 @@ import { MatDatepickerModule, MatDatepickerActions } from '@angular/material/dat
 import { MatNativeDateModule } from '@angular/material/core';
 // import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatStepperModule } from '@angular/material/stepper';
 
 import {
   LocalEmployeesService,
@@ -86,7 +87,9 @@ type EmployeeForm = FormGroup<{
     MatDatepickerActions,
      MatDatepickerModule,
     MatNativeDateModule,
-    MatTabsModule
+    MatTabsModule,
+    MatStepperModule,
+
     
 ],
 })
@@ -98,23 +101,42 @@ goHome() {
 }
   today = () => new Date();
 
-  form: EmployeeForm = new FormGroup({
-    firstName:       new FormControl('', { nonNullable: true, validators: [Validators.required , Validators.pattern(/^[\p{L}\s]+$/u) // ✅ فقط أحرف + مسافات (أي لغة)
- ]  }),
-    lastName:        new FormControl('', { nonNullable: true, validators: [Validators.required ,Validators.pattern(/^[\p{L}\s]+$/u)] }),
-    fatherName:      new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[\p{L}\s]+$/u)] }),
-    paperFileNumber: new FormControl('', { nonNullable: true, validators: [ Validators.pattern(/^[0-9]+$/)
-] }),
-    gender:          new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    residence:       new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    jobTitle:        new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    birthDate:       new FormControl('', { nonNullable: true, validators: [Validators.required,strictIsoBirthdateValidator] }),
-   collage:         new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^[\p{L}\s]+$/u)]  }),
-   education:       new FormControl('', { nonNullable: true,  }),
-  //  workDate:       new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-  workDate: new FormControl<Date | null>(null, { validators: [Validators.required] }),
+//   form: EmployeeForm = new FormGroup({
+//     firstName:       new FormControl('', { nonNullable: true, validators: [Validators.required , Validators.pattern(/^[\p{L}\s]+$/u) // ✅ فقط أحرف + مسافات (أي لغة)
+//  ]  }),
+//     lastName:        new FormControl('', { nonNullable: true, validators: [Validators.required ,Validators.pattern(/^[\p{L}\s]+$/u)] }),
+//     fatherName:      new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[\p{L}\s]+$/u)] }),
+//     paperFileNumber: new FormControl('', { nonNullable: true, validators: [ Validators.pattern(/^[0-9]+$/)
+// ] }),
+//     gender:          new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+//     residence:       new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+//     jobTitle:        new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+//     birthDate:       new FormControl('', { nonNullable: true, validators: [Validators.required,strictIsoBirthdateValidator] }),
+//    collage:         new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^[\p{L}\s]+$/u)]  }),
+//    education:       new FormControl('', { nonNullable: true,  }),
+//   //  workDate:       new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+//   workDate: new FormControl<Date | null>(null, { validators: [Validators.required] }),
 
-  });
+//   });
+
+form = new FormGroup({
+  basic: new FormGroup({
+    firstName: new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
+    lastName:  new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
+    fatherName:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
+    gender:    new FormControl('', [Validators.required]),
+    birthDate: new FormControl('', [Validators.required, strictIsoBirthdateValidator]),
+    jobTitle:  new FormControl('', [Validators.required]),
+  }),
+  details: new FormGroup({
+    paperFileNumber: new FormControl('', [Validators.pattern(/^[0-9]+$/)]),
+    collage:         new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),
+    education:       new FormControl('', []),
+    workDate:        new FormControl<Date | null>(null, [Validators.required]),
+    residence:       new FormControl('', [Validators.required]),
+  })
+});
+
 
   // إذا وُجدت قيمة هنا فالمكوّن في وضع التعديل
   editingId: string | null = null;
@@ -152,65 +174,136 @@ ngAfterViewInit() {
 // onWorkPick(e:any){ console.log('picked', e.value); }
 
 
+// get basic()   { return this.form.get('basic') as FormGroup; }
+// get details() { return this.form.get('details') as FormGroup; }
 
-  // —— Getters للاختصارات في القالب ——
-  get firstNameCtrl()       { return this.form.controls.firstName; }
-  get lastNameCtrl()        { return this.form.controls.lastName; }
-  get fatherNameCtrl()      { return this.form.controls.fatherName; }
-  get paperFileNumberCtrl() { return this.form.controls.paperFileNumber; }
-  get genderCtrl()          { return this.form.controls.gender; }
-  get residenceCtrl()       { return this.form.controls.residence; }
-  get jobTitleCtrl()        { return this.form.controls.jobTitle; }
-  get birthDateCtrl()       { return this.form.controls.birthDate; }
-  get workDateCtrl()       { return this.form.controls.workDate; }
-  get collageCtrl()       { return this.form.controls.collage; }
-  get educationCtrl()       { return this.form.controls.education; }
+//   // —— Getters للاختصارات في القالب ——
+//   get firstNameCtrl()       { return this.form.controls.firstName; }
+//   get lastNameCtrl()        { return this.form.controls.lastName; }
+//   get fatherNameCtrl()      { return this.form.controls.fatherName; }
+//   get paperFileNumberCtrl() { return this.form.controls.paperFileNumber; }
+//   get genderCtrl()          { return this.form.controls.gender; }
+//   get residenceCtrl()       { return this.form.controls.residence; }
+//   get jobTitleCtrl()        { return this.form.controls.jobTitle; }
+//   get birthDateCtrl()       { return this.form.controls.birthDate; }
+//   get workDateCtrl()       { return this.form.controls.workDate; }
+//   get collageCtrl()       { return this.form.controls.collage; }
+//   get educationCtrl()       { return this.form.controls.education; }
+
+
+// مجموعات
+get basic()   { return this.form.get('basic')   as FormGroup; }
+get details() { return this.form.get('details') as FormGroup; }
+
+// الحقول داخل basic
+get firstNameCtrl()  { return this.basic.get('firstName')  as FormControl<string>; }
+get lastNameCtrl()   { return this.basic.get('lastName')   as FormControl<string>; }
+get fatherNameCtrl() { return this.basic.get('fatherName') as FormControl<string>; }
+get genderCtrl()     { return this.basic.get('gender')     as FormControl<string>; }
+get birthDateCtrl()  { return this.basic.get('birthDate')  as FormControl<string>; }
+get jobTitleCtrl()   { return this.basic.get('jobTitle')   as FormControl<string>; }
+
+// الحقول داخل details
+get paperFileNumberCtrl() { return this.details.get('paperFileNumber') as FormControl<string>; }
+get collageCtrl()         { return this.details.get('collage')         as FormControl<string>; }
+get educationCtrl()       { return this.details.get('education')       as FormControl<string>; }
+get workDateCtrl()        { return this.details.get('workDate')        as FormControl<Date | null>; }
+get residenceCtrl()       { return this.details.get('residence')       as FormControl<string>; }
 
   // —— وظائف مساعدة ——
   private findEmployee(id: string): Employee | undefined {
     return this.store.list().find(e => e.id === id);
   }
 
-  private patchForm(emp: Employee) {
-    this.form.patchValue({
-      firstName: emp.firstName,
-      lastName: emp.lastName,
-      fatherName: emp.fatherName,
-      paperFileNumber: emp.paperFileNumber,
-      gender: emp.gender,
-      residence: emp.residence,
-      jobTitle: emp.jobTitle,
-      birthDate: emp.birthDate, 
-      // workDate:emp.workDate,
-      workDate: emp.workDate ? new Date(emp.workDate as any) : null,
+  // private patchForm(emp: Employee) {
+  //   this.form.patchValue({
+  //     firstName: emp.firstName,
+  //     lastName: emp.lastName,
+  //     fatherName: emp.fatherName,
+  //     paperFileNumber: emp.paperFileNumber,
+  //     gender: emp.gender,
+  //     residence: emp.residence,
+  //     jobTitle: emp.jobTitle,
+  //     birthDate: emp.birthDate, 
+  //     // workDate:emp.workDate,
+  //     workDate: emp.workDate ? new Date(emp.workDate as any) : null,
 
-      collage:emp.collage,
-      education:emp.education,// 
-    });
-  }
+  //     collage:emp.collage,
+  //     education:emp.education,// 
+  //   });
+  // }
+
+  private patchForm(emp: Employee) {
+  this.form.patchValue({
+    basic: {
+      firstName:  emp.firstName,
+      lastName:   emp.lastName,
+      fatherName: emp.fatherName,
+      gender:     emp.gender,
+      birthDate:  emp.birthDate, // ما زالت string مع <input type="date">
+      jobTitle:   emp.jobTitle,
+    },
+    details: {
+      paperFileNumber: emp.paperFileNumber,
+      collage:         emp.collage,
+      education:       emp.education,
+      workDate:        emp.workDate ? new Date(emp.workDate as any) : null, // Date للـ datepicker
+      residence:       emp.residence,
+    }
+  });
+}
+
 
   // —— الحفظ/التحديث ——
+  // submit() {
+  //   if (this.form.invalid) {
+  //     this.form.markAllAsTouched();
+  //     return;
+  //   }
+
+  //   if (this.editingId) {
+  //     // تحديث موجود
+  //     const patch: EmployeeUpdate = { id: this.editingId, ...this.form.getRawValue() };
+  //     const updated = this.store.update(patch);
+  //     console.log('✅ Updated:', updated);
+  //   } else {
+  //     // إضافة جديد
+  //     const payload: NewEmployee = this.form.getRawValue();
+  //     const saved = this.store.add(payload);
+  //     console.log('✅ Added:', saved);
+  //     this.editingId = saved.id; // لو احتجت تبقى على الصفحة وتحوّلها لتعديل
+  //   }
+
+  //   this.router.navigate(['/employees']);
+  // }
+
+
   submit() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    if (this.editingId) {
-      // تحديث موجود
-      const patch: EmployeeUpdate = { id: this.editingId, ...this.form.getRawValue() };
-      const updated = this.store.update(patch);
-      console.log('✅ Updated:', updated);
-    } else {
-      // إضافة جديد
-      const payload: NewEmployee = this.form.getRawValue();
-      const saved = this.store.add(payload);
-      console.log('✅ Added:', saved);
-      this.editingId = saved.id; // لو احتجت تبقى على الصفحة وتحوّلها لتعديل
-    }
-
-    this.router.navigate(['/employees']);
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
   }
+
+  const { basic, details } = this.form.getRawValue() as any;
+
+  const payload: NewEmployee = {
+    // دمج المجموعتين في جسم واحد
+    ...basic,
+    ...details,
+  };
+
+  if (this.editingId) {
+    const patch: EmployeeUpdate = { id: this.editingId, ...payload };
+    const updated = this.store.update(patch);
+    console.log('✅ Updated:', updated);
+  } else {
+    const saved = this.store.add(payload);
+    console.log('✅ Added:', saved);
+    this.editingId = saved.id;
+  }
+
+  this.router.navigate(['/employees']);
+}
 
 }
 
