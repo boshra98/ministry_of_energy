@@ -1,12 +1,18 @@
 import { Injectable } from '@angular/core';
 
 export interface Employee {
+  detailsQualification: string | null | undefined;
+  dateQualification: Date | null | undefined;
+  sourceAcadimicQualification: string | null | undefined;
+  materialStatus: string | null | undefined;
+  nationality: string | null | undefined;
   education: string | undefined;
   collage: string | undefined;
   workDate: Date | null | undefined;
   firstName: string;
   lastName: string;
   fatherName: string;
+  motherName:string;
   paperFileNumber: string;
   gender: string;
   residence: string;
