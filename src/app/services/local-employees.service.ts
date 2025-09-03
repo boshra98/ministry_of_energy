@@ -1,8 +1,32 @@
 import { Injectable } from '@angular/core';
 
 export interface Employee {
+  datecurrentDecisionAppointment: string | null | undefined;
+  currentDecisionAppointment: string | null | undefined;
+  currentJoblocation: string | null | undefined;
+  dateStatusWork: string | null | undefined;
+  statusWork: string | null | undefined;
+  currentSalary: string | null | undefined;
+  email: string | null | undefined;
+  whatsappNumber: string | null | undefined;
+  phoneNumber: string | null | undefined;
+  permenentAddress: string | null | undefined;
+  notes: string | null | undefined;
+  startingSalary: string | null | undefined;
+  jobAttribute: string | null | undefined;
+  jobCategory: string | null | undefined;
+  appointmentType: string | null | undefined;
+  dateActionWork: Date | null | undefined;
+  placeActionWork: string | null | undefined;
+  decisionStart: string | null | undefined;
+  bloodType: string | null | undefined;
+  idNumber: string | null | undefined;
+  nationalNumber: string | null | undefined;
+  familyRegistration: string | null | undefined;
+  centralSecretaion: string | null | undefined;
+  placeBirth: string | null | undefined;
   detailsQualification: string | null | undefined;
-  dateQualification: Date | null | undefined;
+  dateQualification: string | null | undefined;
   sourceAcadimicQualification: string | null | undefined;
   materialStatus: string | null | undefined;
   nationality: string | null | undefined;
@@ -20,7 +44,7 @@ export interface Employee {
   birthDate: string; // YYYY-MM-DD (من input type="date")
   id: string;        // معرّف محلي
   createdAt: string; // ISO
-updatedAt?: string; // ✅ أضِف هذا
+updatedAt?: string; //  أضِف هذا
 
 }
 export type NewEmployee = Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>;

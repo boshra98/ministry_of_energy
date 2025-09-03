@@ -155,66 +155,67 @@ goHome() {
 
 form = new FormGroup({
   basic: new FormGroup({
-    firstName: new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
+    firstName: new FormControl('', {nonNullable:true ,validators:[Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]}),
     lastName:  new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
     fatherName:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
     motherName:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
     gender:    new FormControl('', [Validators.required]),
     birthDate: new FormControl('', [Validators.required, strictIsoBirthdateValidator]),
-    nationality:new FormControl('', [Validators.required, ]),
+    nationality:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
     materialStatus: new FormControl('', [Validators.required]),
   }),
   personals: new FormGroup({
  placeBirth:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
- centralSecretaion:new FormControl('', [Validators.required]),
+ centralSecretaion:new FormControl('', [Validators.required,Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
  familyRegistration:new FormControl('', [Validators.required]),
- nationalNumber:new FormControl('', [Validators.required]),
- idNumber:new FormControl('', [Validators.required]),
+ nationalNumber:new FormControl('', [Validators.required ,Validators.pattern(/^[0-9]+$/)]),
+ idNumber:new FormControl('', [Validators.required ,Validators.pattern(/^[0-9]+$/)]),
  bloodType:new FormControl('', [Validators.required]),
   }),
 
   communication: new FormGroup({
 permenentAddress:new FormControl('', [Validators.required]),
 // currentAddress: new FormControl('', [Validators.required]),
- residence: new FormControl('', [Validators.required]),
-phoneNumber:new FormControl('', [Validators.required]),
-whatsappNumber:new FormControl('', [Validators.required]),
-email:new FormControl('', [Validators.required]),
+residence: new FormControl('', [Validators.required]),
+phoneNumber:new FormControl('', [Validators.required ,Validators.pattern(/^[0-9]+$/)]),
+whatsappNumber:new FormControl('', [Validators.required , Validators.pattern(/^[0-9]+$/)]),
+email:new FormControl('', [Validators.required , Validators.email]),
 
   }),
   details: new FormGroup({
-    paperFileNumber: new FormControl('', [Validators.pattern(/^[0-9]+$/)]),
-    collage:         new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),
+    paperFileNumber: new FormControl('', [ Validators.pattern(/^[0-9]+$/)]),
+    collage:         new FormControl('', [ Validators.pattern(/^[\p{L}\s]+$/u)]),
     education:       new FormControl('', []),
     // workDate:        new FormControl<Date | null>(null, [Validators.required]),
-    sourceAcadimicQualification:   new FormControl('', []),
-    dateQualification: new FormControl<Date | null>(null, [Validators.required]),
-    detailsQualification: new FormControl('', []),
-        jobTitle:  new FormControl('', [Validators.required]),
+    sourceAcadimicQualification:   new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u) ]),
+    // dateQualification: new FormControl<Date | null>(null, [Validators.required]),
+    dateQualification: new FormControl('', [strictIsoBirthdateValidator]),
+    detailsQualification: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),
+        jobTitle:  new FormControl('', []),
 
 
   }),
    workdetails: new FormGroup({
-    decisionStart:new FormControl<Date | null>(null, [Validators.required]),
-    workDate:        new FormControl<Date | null>(null, [Validators.required]),
-    placeActionWork: new FormControl('', []),
+    decisionStart: new FormControl('', []),
+    workDate:  new FormControl<Date | null>(null, [Validators.required]),
+    placeActionWork: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),
     dateActionWork:new FormControl<Date | null>(null, [Validators.required]), //تاريخ المباشرة
-  appointmentType: new FormControl('', []),// نوع التعيين
-  jobCategory: new FormControl('', []),// الفئة الوظيفية
-  jobAttribute: new FormControl('', []),//الصفة الوظيفية 
-  startingSalary:new FormControl('', []),//راتب بدء التعيين
+  appointmentType: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),// نوع التعيين
+  jobCategory: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),// الفئة الوظيفية
+  jobAttribute: new FormControl('',  [Validators.pattern(/^[\p{L}\s]+$/u)]),//الصفة الوظيفية 
+  startingSalary:new FormControl('', [ Validators.pattern(/^[0-9]+$/)]),//راتب بدء التعيين
   notes:new FormControl('', []),
    }) ,
 
-   currentworkdetails: new FormGroup({
-   currentSalary:new FormControl('', []),
-  statusWork:new FormControl('', []), //الحالة الوظيفية
-  dateStatusWork:new FormControl('', []),// تالايخ الحالة الوظيفية
-  currentJoblocation:new FormControl('', []),  //الموقع
-  currentDecisionAppointment:new FormControl('', []), //قرار التعيين الحالي
-  datecurrentDecisionAppointment:new FormControl('', []),
+  // currentworkdetails: new FormGroup({
+  // currentSalary:new FormControl('', []),
+  // statusWork:new FormControl('', []), //الحالة الوظيفية
+  // dateStatusWork:new FormControl('', []),// تالايخ الحالة الوظيفية
+  // currentJoblocation:new FormControl('', []),  //الموقع
+  // currentDecisionAppointment:new FormControl('', []), //قرار التعيين الحالي
+  // datecurrentDecisionAppointment:new FormControl('', []),
 
-   })
+  //  })
 
 
 });
@@ -230,7 +231,8 @@ email:new FormControl('', [Validators.required]),
   jobTitles: string[] = ['مدرّس', 'محاسب', 'سكرتير', 'مبرمج'];
   educations: string[]=['ابتدائي','اعدادي','ثانوي','بكالوريوس','ماستر','دكتوراه'];
 materialStatus:string[]=['اعزب' , ' متزوج']
-bloodTypes:string[]=['A-','A+', 'B-' ,'B+' , 'AB-' ,'AB+' , 'O+', 'O-']
+bloodTypes:string[]=['A-','A+', 'B-' ,'B+' , 'AB-' ,'AB+' , 'O+', 'O-'];
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -248,6 +250,8 @@ bloodTypes:string[]=['A-','A+', 'B-' ,'B+' , 'AB-' ,'AB+' , 'O+', 'O-']
 onWorkPick(e: any) {
   console.log('picker ->', e.value, e.value instanceof Date);
   console.log('control ->', this.workDateCtrl.value);
+    console.log('control ->', this.dateActionWorkCtrl.value);
+
 }
 
 ngAfterViewInit() {
@@ -282,7 +286,7 @@ get details() { return this.form.get('details') as FormGroup; }
 get personals(){return this.form.get('personals') as FormGroup;}
 get communication(){return this.form.get('communication') as FormGroup;}
 get workdetails(){return this.form.get('workdetails')as FormGroup;}
-get currentworkdetails(){return this .form.get('currentworkdetails')as FormGroup;}
+// get currentworkdetails(){return this .form.get('currentworkdetails')as FormGroup;}
 
 // الحقول داخل basic
 get firstNameCtrl()  { return this.basic.get('firstName')  as FormControl<string>; }
@@ -301,7 +305,7 @@ get paperFileNumberCtrl() { return this.details.get('paperFileNumber') as FormCo
 get collageCtrl()         { return this.details.get('collage')         as FormControl<string>; }
 get educationCtrl()       { return this.details.get('education')       as FormControl<string>; }
 get sourceAcadimicQualificationCtrl()       { return this.details.get('sourceAcadimicQualification')       as FormControl<string>; }
-get dateQualificationCtrl()       { return this.details.get('dateQualification')       as FormControl<Date | null>; }
+get dateQualificationCtrl()       { return this.details.get('dateQualification')      as FormControl<string>; }
 get detailsQualificationCtrl()       { return this.details.get('detailsQualification')       as FormControl<string>; }
 
 ///// حقول داخل ال workdetails
@@ -333,12 +337,12 @@ get emailCtrl()       { return this.communication.get('email')       as FormCont
 
 
 //// currentworkdetails
-get currentSalaryCtrl()       { return this.currentworkdetails.get('currentSalary')       as FormControl<string>; }
-get statusWorkCtrl()       { return this.currentworkdetails.get('statusWork')       as FormControl<string>; }
-get dateStatusWorkCtrl()       { return this.currentworkdetails.get('dateStatusWork')       as FormControl<string>; }
-get currentJoblocationCtrl()       { return this.currentworkdetails.get('currentJoblocation')       as FormControl<string>; }
-get currentDecisionAppointmentCtrl()       { return this.currentworkdetails.get('currentDecisionAppointment')       as FormControl<string>; }
-get datecurrentDecisionAppointmentCtrl()       { return this.currentworkdetails.get('datecurrentDecisionAppointment')       as FormControl<string>; }
+// get currentSalaryCtrl()       { return this.currentworkdetails.get('currentSalary')       as FormControl<string>; }
+// get statusWorkCtrl()       { return this.currentworkdetails.get('statusWork')       as FormControl<string>; }
+// get dateStatusWorkCtrl()       { return this.currentworkdetails.get('dateStatusWork')       as FormControl<string>; }
+// get currentJoblocationCtrl()       { return this.currentworkdetails.get('currentJoblocation')       as FormControl<string>; }
+// get currentDecisionAppointmentCtrl()       { return this.currentworkdetails.get('currentDecisionAppointment')       as FormControl<string>; }
+// get datecurrentDecisionAppointmentCtrl()       { return this.currentworkdetails.get('datecurrentDecisionAppointment')       as FormControl<string>; }
 
 
 
@@ -396,9 +400,57 @@ get datecurrentDecisionAppointmentCtrl()       { return this.currentworkdetails.
 sourceAcadimicQualification    :emp.sourceAcadimicQualification,
  dateQualification: emp.dateQualification,
 detailsQualification:emp.detailsQualification,
-
       // residence:       emp.residence,
-    }
+    },
+
+    personals: {
+
+ placeBirth  :emp.placeBirth    ,
+ centralSecretaion  :emp.centralSecretaion,
+ familyRegistration  :emp.familyRegistration,
+ nationalNumber  :  emp.nationalNumber,
+ idNumber :     emp.idNumber,
+ bloodType : emp.bloodType,
+      
+    },
+    workdetails:{
+  decisionStart   : emp.decisionStart,
+   workDate   :emp.workDate,
+ placeActionWork   : emp.placeActionWork, 
+ dateActionWork:emp.dateActionWork,
+  appointmentType:emp.appointmentType,
+ jobCategory: emp.jobCategory,
+ jobAttribute:emp.jobAttribute,
+ startingSalary:emp.startingSalary,
+ notes:emp.notes, 
+    },
+    communication:{
+  permenentAddress:emp.permenentAddress,
+residence   :emp.residence,
+ phoneNumber:emp.phoneNumber,
+ whatsappNumber:emp.whatsappNumber,
+email:emp.email,
+
+    },
+
+//     currentworkdetails:{
+
+//    currentSalary:emp.currentSalary,
+// statusWork:emp.statusWork,
+//  dateStatusWork:emp.dateStatusWork,
+//  currentJoblocation:emp.currentJoblocation ,
+//  currentDecisionAppointment:emp.currentDecisionAppointment,
+//  datecurrentDecisionAppointment:emp.datecurrentDecisionAppointment,
+
+
+
+//     }
+
+    //// currentworkdetails
+
+
+
+
 
           // workDate:        emp.workDate ? new Date(emp.workDate as any) : null, // Date للـ datepicker
 
@@ -436,12 +488,16 @@ detailsQualification:emp.detailsQualification,
     return;
   }
 
-  const { basic, details } = this.form.getRawValue() as any;
+  const { basic, details ,personals , workdetails,communication,} = this.form.getRawValue() as any;
 
   const payload: NewEmployee = {
     // دمج المجموعتين في جسم واحد
     ...basic,
     ...details,
+    ...personals,
+    ...workdetails,
+    ...communication,
+
   };
 
   if (this.editingId) {
