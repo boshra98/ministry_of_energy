@@ -1,45 +1,11 @@
 import { MatCardModule } from '@angular/material/card';
-// import { Component } from '@angular/core';
-
-// @Component({
-//   selector: 'app-add-employee',
-//   imports: [],
-//   templateUrl: './add-employee.component.html',
-//   styleUrl: './add-employee.component.scss'
-// })
-// export class AddEmployeeComponent {
-
-// }
-
-
-
-// 
-
-
-// import { FormControl, FormGroup, Validators } from '@angular/forms';
-
-
-// type EmployeeForm = FormGroup<{
-//   firstName: FormControl<string>;
-//   gender: FormControl<string>;
-// }>;
-
-// export class AddEmployeeComponent {
-//   form: EmployeeForm = new FormGroup({
-//     firstName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-//     gender: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-//   });
-// }
-
-
-
 
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -55,6 +21,17 @@ import {
   EmployeeUpdate,
   Employee
 } from '../../../services/local-employees.service';
+import { DEPARTMENTS, SubDept } from '../../../models/department';
+
+import { OTHER_VALUE } from '../../../shared/constants';
+
+// ===== Types =====
+
+import { startWith, distinctUntilChanged, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
+import { MatChipSet, MatChipsModule } from "@angular/material/chips";
+type ParsedPlace = { main?: string; sub?: string };
+
 
 type EmployeeForm = FormGroup<{
   residence: FormControl<string>;
@@ -63,8 +40,7 @@ type EmployeeForm = FormGroup<{
   firstName: FormControl<string>;
   lastName: FormControl<string>;
   fatherName: FormControl<string>;
-    motherName:FormControl<string>;
-
+  motherName:FormControl<string>;
   paperFileNumber: FormControl<string>;
   gender: FormControl<string>;
   collage:FormControl<string>;
@@ -100,6 +76,13 @@ type EmployeeForm = FormGroup<{
   currentJoblocation:FormControl<string>;  //الموقع
   currentDecisionAppointment:FormControl<string>; //قرار التعيين الحالي
   datecurrentDecisionAppointment:FormControl<string>; //تاريخ التعيين الحالي
+emergencyContentRelation:FormControl<string>;  //صلة القرابة
+emergencyName:FormControl<string>;   // الاسم للطوارئ
+emergencyPhone1:FormControl<string>;  // رقم الطوارئ
+emergencyPhone2: FormControl<string>; 
+dependences: FormControl<string>; 
+
+
 
 
 }>;
@@ -119,16 +102,18 @@ type EmployeeForm = FormGroup<{
     MatIconModule,
     MatCardModule,
     MatDatepickerActions,
-     MatDatepickerModule,
+    MatDatepickerModule,
     MatNativeDateModule,
     MatTabsModule,
     MatStepperModule,
-
-    
+    MatChipsModule
 ],
 })
 export class AddEmployeeComponent {
+
 dataSource: any;
+  OTHER_VALUE = OTHER_VALUE;
+
 // new: Date|null;
 goHome() {
     this.router.navigate(['']);
@@ -160,9 +145,13 @@ form = new FormGroup({
     fatherName:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
     motherName:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
     gender:    new FormControl('', [Validators.required]),
-    birthDate: new FormControl('', [Validators.required, strictIsoBirthdateValidator]),
-    nationality:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
+    birthDate: new FormControl('', [Validators.required,  strictIsoBirthdateValidator]),
+    // nationality:new FormControl('', Validators.required, ),
+     nationality: new FormControl<string[]>([], { validators: Validators.required }),
+      otherNationality: new FormControl<string>(''),
+
     materialStatus: new FormControl('', [Validators.required]),
+    dependences: new FormControl(''),
   }),
   personals: new FormGroup({
  placeBirth:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
@@ -179,7 +168,12 @@ permenentAddress:new FormControl('', [Validators.required]),
 residence: new FormControl('', [Validators.required]),
 phoneNumber:new FormControl('', [Validators.required ,Validators.pattern(/^[0-9]+$/)]),
 whatsappNumber:new FormControl('', [Validators.required , Validators.pattern(/^[0-9]+$/)]),
-email:new FormControl('', [Validators.required , Validators.email]),
+email:new FormControl('',  Validators.email),
+emergencyName:new FormControl('', []),  // الاسم للطوارئ
+emergencyContentRelation:new FormControl('', []), //صلة القرابة
+emergencyPhone1:new FormControl('', []), // رقم الطوارئ
+emergencyPhone2: new FormControl('', []),
+
 
   }),
   details: new FormGroup({
@@ -198,7 +192,14 @@ email:new FormControl('', [Validators.required , Validators.email]),
    workdetails: new FormGroup({
     decisionStart: new FormControl('', []),
     workDate:  new FormControl<Date | null>(null, [Validators.required]),
-    placeActionWork: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),
+
+     mainDeptCode: new FormControl('', [Validators.required]), // الإدارة الأساسية
+    subDeptCode:  new FormControl(''),                        // سيصبح required عند وجود فروع
+
+  // أبقِ الحقل الأصلي للـModel لكن بدون pattern لأنه سيُملأ تلقائياً:
+   placeActionWork: new FormControl(''),
+
+    // placeActionWork: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),
     dateActionWork:new FormControl<Date | null>(null, [Validators.required]), //تاريخ المباشرة
   appointmentType: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),// نوع التعيين
   jobCategory: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),// الفئة الوظيفية
@@ -230,8 +231,17 @@ email:new FormControl('', [Validators.required , Validators.email]),
   ];
   jobTitles: string[] = ['مدرّس', 'محاسب', 'سكرتير', 'مبرمج'];
   educations: string[]=['ابتدائي','اعدادي','ثانوي','بكالوريوس','ماستر','دكتوراه'];
-materialStatus:string[]=['اعزب' , ' متزوج']
+materialStatus:string[]=['اعزب' , 'متزوج']
 bloodTypes:string[]=['A-','A+', 'B-' ,'B+' , 'AB-' ,'AB+' , 'O+', 'O-'];
+
+nationalities:String[]=['سوري','فلسطيني سوري' , 'لبناني' ,   'اردني',  'فلسطيني أردني', 'مصري', 'فلسطيني لبناني','حاصل على الجنسية التركية' ,'حاصل على الجنسية الخليجية','حاصل على الجنسية الأوروبية' , 'حاصل على الجنسية الاميركية','غير ذلك' ];
+
+
+emergencyContentRelations:String[]=['أب','أخ','زوج','ابن', 'ام' ,'صديق' , 'قريب','غير ذلك'];
+
+departments = DEPARTMENTS;
+filteredSubs: SubDept[] = [];
+  showOther = false;
 
   constructor(
     private router: Router,
@@ -250,33 +260,92 @@ bloodTypes:string[]=['A-','A+', 'B-' ,'B+' , 'AB-' ,'AB+' , 'O+', 'O-'];
 onWorkPick(e: any) {
   console.log('picker ->', e.value, e.value instanceof Date);
   console.log('control ->', this.workDateCtrl.value);
-    console.log('control ->', this.dateActionWorkCtrl.value);
+  console.log('control ->', this.dateActionWorkCtrl.value);
+
 
 }
+
+private destroy$ = new Subject<void>();
+
+ngOnInit(): void {
+  this.mainDeptCodeCtrl.valueChanges
+    .pipe(
+      startWith(this.mainDeptCodeCtrl.value),   // ← مهم للتهيئة بعد patchForm
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    )
+    .subscribe((code: string | null) => {
+      const dept = this.departments.find(d => d.code === code);
+      this.filteredSubs = dept?.subs ?? [];
+
+      // لا تمسح قيمة الفرعي إذا كانت ما تزال صالحة
+      const currentSub = this.subDeptCodeCtrl.value as string | null;
+      const stillValid = !!currentSub && this.filteredSubs.some(s => s.code === currentSub);
+      if (!stillValid) {
+        this.subDeptCodeCtrl.reset('');
+      }
+
+      // subDeptCode مطلوب فقط إذا كان هناك فروع
+      if (this.filteredSubs.length) {
+        this.subDeptCodeCtrl.setValidators([Validators.required]);
+      } else {
+        this.subDeptCodeCtrl.clearValidators();
+      }
+      this.subDeptCodeCtrl.updateValueAndValidity({ emitEvent: false });
+    });
+}
+
+ngOnDestroy(): void {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
+onNationalityChange(e: MatSelectChange) {
+    const ctrl = this.basic.get('nationality') as FormControl<string[]>;
+    const values = ctrl.value ?? [];
+
+    // إذا كان "غير ذلك" ضمن الاختيارات → أظهر الحقل النصي
+    if (values.includes(OTHER_VALUE) || values.includes('غير ذلك')) {
+      this.showOther = true;
+      // الأفضل توحيد القيمة إلى OTHER_VALUE فقط
+      const normalized = values.map(v => (v === 'غير ذلك' ? OTHER_VALUE : v));
+      ctrl.setValue(normalized, { emitEvent: false });
+    } else {
+      // إخفاء الحقل النصي وتفريغ محتواه عند عدم الحاجة
+      this.showOther = false;
+      (this.basic.get('otherNationality') as FormControl<string>).setValue('');
+    }
+  }
+
+  // إدراج النص المدخل مكان OTHER_VALUE
+  addOtherNationality() {
+    const natCtrl   = this.basic.get('nationality') as FormControl<string[]>;
+    const otherCtrl = this.basic.get('otherNationality') as FormControl<string>;
+
+    const list  = natCtrl.value ?? [];
+    const other = (otherCtrl.value ?? '').trim();
+
+    if (!other) return;
+
+    // إزالة placeholder لو موجود
+    const withoutOther = list.filter(v => v !== OTHER_VALUE && v !== 'غير ذلك');
+
+    // منع التكرار
+    if (!withoutOther.includes(other)) {
+      natCtrl.setValue([...withoutOther, other]);
+    } else {
+      natCtrl.setValue(withoutOther);
+    }
+
+    // تنظيف وإخفاء الحقل
+    otherCtrl.setValue('');
+    this.showOther = false;
+  }
+
 
 ngAfterViewInit() {
   // اختبار: إذا ظهر التاريخ بعد هذا، فالربط سليم وقيمة الروزنامة هي اللي ما توصل
   setTimeout(() => this.workDateCtrl.setValue(new Date()), 0);
 }
-
-// onWorkPick(e:any){ console.log('picked', e.value); }
-
-
-// get basic()   { return this.form.get('basic') as FormGroup; }
-// get details() { return this.form.get('details') as FormGroup; }
-
-//   // —— Getters للاختصارات في القالب ——
-//   get firstNameCtrl()       { return this.form.controls.firstName; }
-//   get lastNameCtrl()        { return this.form.controls.lastName; }
-//   get fatherNameCtrl()      { return this.form.controls.fatherName; }
-//   get paperFileNumberCtrl() { return this.form.controls.paperFileNumber; }
-//   get genderCtrl()          { return this.form.controls.gender; }
-//   get residenceCtrl()       { return this.form.controls.residence; }
-//   get jobTitleCtrl()        { return this.form.controls.jobTitle; }
-//   get birthDateCtrl()       { return this.form.controls.birthDate; }
-//   get workDateCtrl()       { return this.form.controls.workDate; }
-//   get collageCtrl()       { return this.form.controls.collage; }
-//   get educationCtrl()       { return this.form.controls.education; }
 
 
 // مجموعات
@@ -292,12 +361,12 @@ get workdetails(){return this.form.get('workdetails')as FormGroup;}
 get firstNameCtrl()  { return this.basic.get('firstName')  as FormControl<string>; }
 get lastNameCtrl()   { return this.basic.get('lastName')   as FormControl<string>; }
 get fatherNameCtrl() { return this.basic.get('fatherName') as FormControl<string>; }
-get motherNameCtrl(){ return this.basic.get('motherName') as FormControl<String>;}
+get motherNameCtrl(){ return this.basic.get('motherName') as FormControl<string>;}
 get genderCtrl()     { return this.basic.get('gender')     as FormControl<string>; }
 get birthDateCtrl()  { return this.basic.get('birthDate')  as FormControl<string>; }
 get nationalityCtrl(){ return this.basic.get('nationality')  as FormControl<string>; }
 get materialStatusCtrl(){ return this.basic.get('materialStatus')  as FormControl<string>; }
-
+get dependencesCtrl(){  return this.basic.get('dependences')  as FormControl<string>; }
 // الحقول داخل details
 
 get jobTitleCtrl()   { return this.details.get('jobTitle')   as FormControl<string>; }
@@ -312,6 +381,9 @@ get detailsQualificationCtrl()       { return this.details.get('detailsQualifica
 get decisionStartCtrl()       { return this.workdetails.get('decisionStart')       as FormControl<string>; }
 get workDateCtrl()       { return this.workdetails.get('workDate')       as FormControl<Date | null>; }
 get placeActionWorkCtrl()       { return this.workdetails.get('placeActionWork')       as FormControl<string>; }
+get mainDeptCodeCtrl() { return this.workdetails.get('mainDeptCode') as FormControl<string>; }
+get subDeptCodeCtrl()  { return this.workdetails.get('subDeptCode')  as FormControl<string>; }
+
 get dateActionWorkCtrl()       { return this.workdetails.get('dateActionWork')       as FormControl<Date | null>; }
 get appointmentTypeCtrl()       { return this.workdetails.get('appointmentType')       as FormControl<string>; }
 get jobCategoryCtrl()       { return this.workdetails.get('jobCategory')       as FormControl<string>; }
@@ -334,6 +406,10 @@ get residenceCtrl()       { return this.communication.get('residence')       as 
 get phoneNumberCtrl()       { return this.communication.get('phoneNumber')       as FormControl<string>; }
 get whatsappNumberCtrl()       { return this.communication.get('whatsappNumber')       as FormControl<string>; }
 get emailCtrl()       { return this.communication.get('email')       as FormControl<string>; }
+get emergencyNameCtrl()   { return this.communication.get('emergencyName')       as FormControl<string>; } // الاسم للطوارئ
+get emergencyContentRelationCtrl(){ return this.communication.get('emergencyContentRelation')as FormControl<string>;} //صلة القرابة
+get emergencyPhone1Ctrl(){return this.communication.get('emergencyPhone1') as FormControl<string>; }
+get emergencyPhone2Ctrl(){   return this.communication.get('emergencyPhone2') as FormControl<string>; } 
 
 
 //// currentworkdetails
@@ -355,33 +431,32 @@ get emailCtrl()       { return this.communication.get('email')       as FormCont
 
     // workDate:        new FormControl<Date | null>(null, [Validators.required]),
 
-
+get nationalityDisplay(): string {
+  const ctrl = this.basic.get('nationality') as FormControl<string[]>;
+  const list = ctrl?.value ?? [];
+  const cleaned = list.filter(v => v !== OTHER_VALUE); // شِل "غير ذلك" المؤقتة
+  return cleaned.length > 0 ? cleaned.join('، ') : 'اختر جنسية واحدة أو أكثر';
+}
 
   // —— وظائف مساعدة ——
   private findEmployee(id: string): Employee | undefined {
     return this.store.list().find(e => e.id === id);
   }
 
-  // private patchForm(emp: Employee) {
-  //   this.form.patchValue({
-  //     firstName: emp.firstName,
-  //     lastName: emp.lastName,
-  //     fatherName: emp.fatherName,
-  //     paperFileNumber: emp.paperFileNumber,
-  //     gender: emp.gender,
-  //     residence: emp.residence,
-  //     jobTitle: emp.jobTitle,
-  //     birthDate: emp.birthDate, 
-  //     // workDate:emp.workDate,
-  //     workDate: emp.workDate ? new Date(emp.workDate as any) : null,
-
-  //     collage:emp.collage,
-  //     education:emp.education,// 
-  //   });
-  // }
 
   private patchForm(emp: Employee) {
+
+
+    // ✔️ فك التابع قبل patchValue
+  const parsed: ParsedPlace = this.parsePlaceActionWork(emp.placeActionWork);
+
+  // ✔️ حدّث لائحة الفروع قبل تعبئة subDeptCode
+  const dept = this.departments.find(d => d.code === parsed.main);
+  this.filteredSubs = dept?.subs ?? [];
+
+
   this.form.patchValue({
+    
     basic: {
       firstName:  emp.firstName,
       lastName:   emp.lastName,
@@ -390,7 +465,9 @@ get emailCtrl()       { return this.communication.get('email')       as FormCont
       gender:     emp.gender,
       birthDate:  emp.birthDate,
       nationality:emp.nationality,
-      materialStatus:emp.materialStatus // ما زالت string مع <input type="date">
+      materialStatus:emp.materialStatus ,
+      dependences:emp.dependences,              
+      // ما زالت string مع <input type="date">
     },
     details: {
       jobTitle:emp.jobTitle,
@@ -416,7 +493,12 @@ detailsQualification:emp.detailsQualification,
     workdetails:{
   decisionStart   : emp.decisionStart,
    workDate   :emp.workDate,
- placeActionWork   : emp.placeActionWork, 
+ 
+   mainDeptCode: parsed.main ?? '',
+      subDeptCode:  parsed.sub  ?? '',
+
+      // اختياري: احتفظ بالأصل إن أردت عرضه فقط
+      placeActionWork: emp.placeActionWork ?? '',
  dateActionWork:emp.dateActionWork,
   appointmentType:emp.appointmentType,
  jobCategory: emp.jobCategory,
@@ -430,6 +512,12 @@ residence   :emp.residence,
  phoneNumber:emp.phoneNumber,
  whatsappNumber:emp.whatsappNumber,
 email:emp.email,
+ emergencyName: emp.emergencyName,
+emergencyContentRelation: emp.emergencyContentRelation,
+ emergencyPhone1:emp.emergencyPhone1,
+ emergencyPhone2:emp.emergencyPhone2 ,
+
+
 
     },
 
@@ -458,28 +546,33 @@ email:emp.email,
 }
 
 
-  // —— الحفظ/التحديث ——
-  // submit() {
-  //   if (this.form.invalid) {
-  //     this.form.markAllAsTouched();
-  //     return;
-  //   }
 
-  //   if (this.editingId) {
-  //     // تحديث موجود
-  //     const patch: EmployeeUpdate = { id: this.editingId, ...this.form.getRawValue() };
-  //     const updated = this.store.update(patch);
-  //     console.log('✅ Updated:', updated);
-  //   } else {
-  //     // إضافة جديد
-  //     const payload: NewEmployee = this.form.getRawValue();
-  //     const saved = this.store.add(payload);
-  //     console.log('✅ Added:', saved);
-  //     this.editingId = saved.id; // لو احتجت تبقى على الصفحة وتحوّلها لتعديل
-  //   }
+private parsePlaceActionWork(value: string | null | undefined): ParsedPlace {
+  if (!value) return {};
+  const v = value.trim();
 
-  //   this.router.navigate(['/employees']);
-  // }
+  if (v.includes('|')) {
+    const [mainRaw, subRaw] = v.split('|', 2).map(s => s.trim());
+    const mainOk = DEPARTMENTS.some(d => d.code === mainRaw);
+    const subOk  = mainOk
+      ? (DEPARTMENTS.find(d => d.code === mainRaw)!.subs.some(s => s.code === subRaw))
+      : false;
+
+    return {
+      main: mainOk ? mainRaw : undefined,
+      sub:  subOk  ? subRaw  : undefined,
+    };
+  }
+
+  // حالة "MAIN" فقط
+  const mainOk = DEPARTMENTS.some(d => d.code === v);
+  return { main: mainOk ? v : undefined };
+}
+
+private composePlaceActionWork(main: string | null, sub: string | null): string {
+  return [main, sub].filter(Boolean).join('|'); // "CENTRAL|CENTRAL-IT" أو "ELECTRIC"
+}
+
 
 
   submit() {
@@ -490,6 +583,11 @@ email:emp.email,
 
   const { basic, details ,personals , workdetails,communication,} = this.form.getRawValue() as any;
 
+ const placeActionWork = this.composePlaceActionWork(
+    workdetails.mainDeptCode || null,
+    workdetails.subDeptCode  || null
+  );
+
   const payload: NewEmployee = {
     // دمج المجموعتين في جسم واحد
     ...basic,
@@ -498,7 +596,19 @@ email:emp.email,
     ...workdetails,
     ...communication,
 
+     decisionStart:   workdetails.decisionStart,
+    workDate:        workdetails.workDate,
+    dateActionWork:  workdetails.dateActionWork,
+    appointmentType: workdetails.appointmentType,
+    jobCategory:     workdetails.jobCategory,
+    jobAttribute:    workdetails.jobAttribute,
+    startingSalary:  workdetails.startingSalary,
+    notes:           workdetails.notes,
+
+    placeActionWork, // ✅ القيمة التي سيحفظها الموديل
+
   };
+  
 
   if (this.editingId) {
     const patch: EmployeeUpdate = { id: this.editingId, ...payload };
@@ -515,18 +625,7 @@ email:emp.email,
 
 }
 
-// export function validDateValidator(control: AbstractControl): ValidationErrors | null {
-//   const value = control.value;
-//   if (!value) return null;
 
-//   const date = new Date(value);
-//   if (isNaN(date.getTime())) return { invalidDate: true };
-
-//   // تأكد ليس في المستقبل
-//   if (date > new Date()) return { futureDate: true };
-
-//   return null;
-// }
 
 
 export function strictIsoBirthdateValidator(control: AbstractControl): ValidationErrors | null {
@@ -561,6 +660,8 @@ export function strictIsoBirthdateValidator(control: AbstractControl): Validatio
 
   return null;
 }
+
+
 
 
 //this file for add employee test on git

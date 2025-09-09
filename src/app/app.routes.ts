@@ -30,6 +30,7 @@ export const routes: Routes = [
         .then(m => m.ListEmployeesComponent),
     title: 'استعراض الموظفين'
   },
+
     
    {
     path: 'employees/edit/:id',
@@ -37,6 +38,14 @@ export const routes: Routes = [
       import('./pages/employees/edit-employee/edit-employee.component')
         .then(m => m.EditEmployeeComponent),
     title: 'تعديل بيانات الموظفين'
+  },
+
+  {
+    path: 'employees/browse/:id',
+    loadComponent: () =>
+      import('./pages/employees/browse-employee/browse-employee.component')
+        .then(m => m.BrowseEmployeeComponent),
+    title: '  عرض تفاصيل الموظف'
   },
 
 

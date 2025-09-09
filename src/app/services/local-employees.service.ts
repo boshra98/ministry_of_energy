@@ -1,6 +1,11 @@
 import { Injectable } from '@angular/core';
 
 export interface Employee {
+  dependences: string | null | undefined;
+  emergencyPhone2: string | null | undefined;
+  emergencyPhone1: string | null | undefined;
+  emergencyContentRelation: string | null | undefined;
+  emergencyName: string | null | undefined;
   datecurrentDecisionAppointment: string | null | undefined;
   currentDecisionAppointment: string | null | undefined;
   currentJoblocation: string | null | undefined;
@@ -29,7 +34,7 @@ export interface Employee {
   dateQualification: string | null | undefined;
   sourceAcadimicQualification: string | null | undefined;
   materialStatus: string | null | undefined;
-  nationality: string | null | undefined;
+  nationality: string[]| null | undefined;
   education: string | undefined;
   collage: string | undefined;
   workDate: Date | null | undefined;

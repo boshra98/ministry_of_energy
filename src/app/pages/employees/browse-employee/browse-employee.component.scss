@@ -1,0 +1,221 @@
+
+.crest {
+  width: 64px;
+  height: 64px;
+  border-radius: 40%;
+  border: 2px solid #1d6e3e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  overflow: hidden; // مهم حتى تنقص الصورة على شكل دائرة
+
+  .logo {
+    width: 105%;
+    height: 105%;
+    object-fit: contain; // أو cover حسب شكل اللوغو
+  }
+}
+
+.gov-page {
+  padding: 16px;
+  background: #f8faf9;
+}
+
+.gov-card {
+  border: 1px solid #c6d7c3;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.gov-header {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  margin-bottom: 8px; 
+  gap: 12px;
+  align-items: center;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #e8f3ea, #f3f8f4);
+  border-bottom: 2px solid #1d6e3e;
+
+ 
+
+  .back-btn { grid-column: 1; justify-self: start; }
+
+  .crest {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 2px solid #1d6e3e;
+    display: grid; place-items: center;
+    background: #fff;
+    .mat-icon { font-size: 34px; color: #1d6e3e;}
+    
+
+    
+  }
+
+
+
+
+  .titles {
+    .country { font-weight: 800; color: #0f5132; }
+    .ministry { font-weight: 700; color: #1d6e3e; margin-top: 10px;}
+    .dept { margin-top: 10px; color: #2e5d3e ; }
+  }
+
+  .doc-meta {
+    text-align: left;
+     margin-bottom: 6px; /* مسافة صغيرة أسفل كل سطر (الرقم + التاريخ) */
+    font-size: 13px;
+    color: #204d36;
+   gap: 18px; /* المسافة العمودية بين العناصر */
+     flex-direction: column; /* العناصر فوق بعض */
+
+
+  }
+  .doc-meta div:first-child {
+  margin-bottom: 8px; /* مسافة تحت رقم السجل */
+}
+
+
+
+//   .doc-meta {
+//   text-align: left;
+//   font-size: 13px;
+//   color: #204d36;
+
+//   display: flex;
+//   flex-direction: column; /* العناصر فوق بعض */
+//   gap: 8px; /* المسافة العمودية بين العناصر */
+// }
+
+
+
+
+
+
+}
+
+
+/* ✅ تنسيق كتلة العنوان */
+.doc-title {
+  /* مسافات أفقية كأنها padding الكرت */
+  padding-inline: 18px;
+
+  /* مسافة عمودية فوق العنوان (قبل النص) */
+  margin-block-start: 10px;
+
+  /* مسافة بسيطة تحت العنوان قبل المحتوى التالي */
+  margin-block-end: 8px;
+
+  h2 {
+    margin: 0;                 /* شطب الهامش الافتراضي للـ h2 */
+    font-size: 20px;
+    font-weight: 700;
+    color: #024f37;
+  }
+}
+
+
+
+
+
+
+.emp-card {
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  padding: 18px 18px 8px;
+  background: #fff;
+  color: #024f37;
+
+  .emp-header {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 18px;
+    align-items: center;
+    margin-bottom: 8px;
+
+    .emp-photo {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      // overflow: hidden;
+      background: #eef2ff;
+      display: grid; place-items: center;
+      border: 2px solid #e2e8f0;
+
+      &.placeholder mat-icon {
+        font-size: 30px;
+              // border-radius: 100%;
+
+        opacity: 1;
+      }
+
+      img { width: 100%; height: 100%; object-fit: cover; }
+    }
+
+    .emp-ident {
+      .name { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
+      .title { color: #475569; margin-bottom: 6px; }
+      .badges mat-chip { direction: rtl; }
+    }
+  }
+
+  .section {
+    padding: 12px 0;
+
+    h3 {
+      display: flex; align-items: center;
+      gap: 8px; margin: 0 0 12px;
+      font-size: 16px; font-weight: 700; color: #024f37;
+
+      mat-icon { font-size: 20px; height: 20px; width: 20px; }
+    }
+
+    .grid {
+      display: grid; gap: 12px;
+
+      &.grid-3 { grid-template-columns: repeat(3, 1fr); }
+      &.grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+      @media (max-width: 980px) { &.grid-3 { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 640px) { &.grid-3, &.grid-2 { grid-template-columns: 1fr; } }
+    }
+
+    .field {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 10px 12px;
+
+      &.field-span-3 { grid-column: span 3; @media (max-width: 980px){ grid-column: span 2; } @media (max-width: 640px){ grid-column: auto; } }
+
+      label {
+        display: block;
+        font-size: 12px; color: #64748b; margin-bottom: 4px;
+      }
+      .value {
+        font-size: 14px; font-weight: 600; color: #0f172a;
+        &.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.2px; }
+        &.ltr { direction: ltr; unicode-bidi: plaintext; }
+      }
+    }
+  }
+
+  .footer-actions {
+    display: flex; justify-content: flex-end; gap: 8px; padding: 10px 0 2px ;
+    button{color:#024f37}
+  }
+
+
+
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .emp-card {
+    box-shadow: none; border: none; padding: 0;
+    .field { background: white; border-color: #cbd5e1; }
+
+  }
+}

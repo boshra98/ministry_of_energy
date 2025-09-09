@@ -161,6 +161,6 @@ export class EditEmployeeComponent implements OnInit {
   }
 
   cancel() {
-    this.router.navigate(['/employees','list']);
+    this.router.navigate(['/employees']);
   }
 }

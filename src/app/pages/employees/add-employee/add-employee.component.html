@@ -123,6 +123,8 @@
 
             <mat-form-field appearance="outline">
               <mat-label>تاريخ الولادة</mat-label>
+              <!-- <input matInput type="text" formControlName="birthDate" placeholder="dd/mm/yyyy"> -->
+
               <input matInput type="date" formControlName="birthDate" />
               @if (basic.get('birthDate')?.hasError('required')) {
             <mat-error>هذا الحقل مطلوب</mat-error>
@@ -144,20 +146,73 @@
             <mat-error>الرجاء اختيار المسمى الوظيفي</mat-error>
           } -->
             <!-- </mat-form-field> -->
- <mat-form-field appearance="outline">
-              <mat-label>  الجنسية</mat-label>
+ <!-- <mat-form-field appearance="outline"> -->
+              <!-- <mat-label>  الجنسية</mat-label>
               <input matInput formControlName="nationality" />
               @if (basic.get('nationality')?.hasError('required')) {
             <mat-error>هذا الحقل مطلوب</mat-error>
-          }
-          @if (basic.get('nationality')?.hasError('minlength')) {
-            <mat-error>يجب ألا يقل عن حرفين</mat-error>
-          }
+          }  
+                <mat-option *ngFor="let e of nationalities" [value]="e">{{ e }}</mat-option>
 
-           @if (basic.get('nationality')?.hasError('pattern')) {
-  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
-}
-            </mat-form-field>
+        
+            </mat-form-field> -->
+
+
+
+   <!-- <mat-form-field appearance="outline" class="w-full">
+  <mat-label>الجنسية</mat-label>
+  <mat-select formControlName="nationality" [multiple]="true">
+    <mat-option *ngFor="let n of nationalities" [value]="n">
+      {{ n }}
+    </mat-option>
+  </mat-select>
+  <mat-error *ngIf="basic.get('nationality')?.hasError('required')">
+    هذا الحقل مطلوب
+  </mat-error>
+</mat-form-field> -->
+
+<!-- الجنسية (اختيار متعدد) -->
+<mat-form-field appearance="outline" class="w-full" dir="rtl">
+  <mat-label>الجنسية</mat-label>
+
+  <mat-select formControlName="nationality" [multiple]="true"
+              (selectionChange)="onNationalityChange($event)">
+
+    <!-- تريغر مخصص لعرض المختارات -->
+    <mat-select-trigger>
+  {{ nationalityDisplay }}
+
+      
+     
+    </mat-select-trigger>
+
+    <!-- الخيارات -->
+    <mat-option *ngFor="let n of nationalities"
+                [value]="(n === 'غير ذلك') ? OTHER_VALUE : n">
+      {{ n }}
+    </mat-option>
+  </mat-select>
+
+  <mat-error *ngIf="basic.get('nationality')?.hasError('required')">
+    هذا الحقل مطلوب
+  </mat-error>
+</mat-form-field>
+
+<!-- يظهر فقط عند اختيار "غير ذلك" -->
+<div *ngIf="showOther" class="mt-2">
+  <mat-form-field appearance="outline" class="w-full" dir="rtl">
+    <mat-label>اكتب الجنسية</mat-label>
+    <input matInput formControlName="otherNationality" (keyup.enter)="addOtherNationality()">
+    <button mat-icon-button matSuffix type="button"
+            (click)="addOtherNationality()"
+            [disabled]="!(basic.get('otherNationality')?.value || '').trim()">
+      <mat-icon>check</mat-icon>
+    </button>
+  </mat-form-field>
+  <small>سيتم إدراج ما تكتبه ضمن الجنسيات المختارة.</small>
+</div>
+
+
 
             <mat-form-field appearance="outline">
               <mat-label>الحالة الاجتماعية </mat-label>
@@ -171,6 +226,23 @@
           } 
                </mat-form-field>
 
+
+
+
+               <mat-form-field appearance="outline">
+              <mat-label>  عدد الأشخاص المعيلين</mat-label>
+              <input matInput formControlName="dependences" />
+              @if (basic.get('dependences')?.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (basic.get('dependences')?.hasError('minlength')) {
+            <mat-error>يجب ألا يقل عن حرفين</mat-error>
+          }
+
+           @if (basic.get('dependences')?.hasError('pattern')) {
+  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
+}
+            </mat-form-field>
 
 
           </div>
@@ -358,14 +430,75 @@
           @if (communication.get('email')?.hasError('minlength')) {
             <mat-error>يجب ألا يقل عن حرفين</mat-error>
           }
-          <div *ngIf="form.get('email')?.hasError('email') && form.get('email')?.touched">
+          <div If="form.get('email')?.hasError('email') && form.get('email')?.touched">
     البريد الإلكتروني غير صحيح
   </div>
 
          
             </mat-form-field>
             
-           
+            <mat-form-field appearance="outline">
+              <mat-label> رقم هاتف الطوارئ </mat-label>
+              <input matInput formControlName="emergencyPhone1" />
+                @if (communication.get('emergencyPhone1')?.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (communication.get('emergencyPhone1')?.hasError('minlength')) {
+            <mat-error>يجب ألا يقل عن  رقمين  </mat-error>
+          }
+
+           @if (communication.get('emergencyPhone1')?.hasError('pattern')) {
+  <mat-error>يُسمح فقط بالارقام  </mat-error>
+}
+            </mat-form-field>
+
+             <mat-form-field appearance="outline">
+              <mat-label> رقم واتساب الطوارئ </mat-label>
+              <input matInput formControlName="emergencyPhone2" />
+                @if (communication.get('emergencyPhone2')?.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (communication.get('emergencyPhone2')?.hasError('minlength')) {
+            <mat-error>يجب ألا يقل عن  رقمين  </mat-error>
+          }
+
+           @if (communication.get('emergencyPhone2')?.hasError('pattern')) {
+  <mat-error>يُسمح فقط بالارقام  </mat-error>
+}
+            </mat-form-field>
+  
+
+
+            <mat-form-field appearance="outline">
+              <mat-label> اسم مسؤول للطوارئ</mat-label>
+              <input matInput formControlName="emergencyName" />
+              @if (basic.get('emergencyName')?.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+          @if (basic.get('emergencyName')?.hasError('minlength')) {
+            <mat-error>يجب ألا يقل عن حرفين</mat-error>
+          }
+
+           @if (basic.get('emergencyName')?.hasError('pattern')) {
+  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
+}
+            </mat-form-field>
+
+
+            <mat-form-field appearance="outline">
+              <mat-label>  صلة القرابة</mat-label>
+              <mat-select formControlName="emergencyContentRelation">
+                <mat-option *ngFor="let e of emergencyContentRelations" [value]="e">{{ e }}</mat-option>
+              </mat-select>
+              @if (basic.get('emergencyContentRelation')?.hasError('required')) {
+            <mat-error>هذا الحقل مطلوب</mat-error>
+          }
+       
+            </mat-form-field>
+
+
+            
+
 </div>
 </div>
            
@@ -562,7 +695,7 @@
   </mat-error>
 </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <!-- <mat-form-field appearance="outline">
               <mat-label>مكان المباشرة </mat-label>
               <input matInput formControlName="placeActionWork" />
               @if (workdetails.get('placeActionWork')?.hasError('required')) {
@@ -575,7 +708,30 @@
            @if (workdetails.get('placeActionWork')?.hasError('pattern')) {
   <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
 }
-            </mat-form-field>
+            </mat-form-field> -->
+
+            <mat-form-field appearance="outline" class="w-100">
+    <mat-label>الإدارة الأساسية</mat-label>
+    <mat-select formControlName="mainDeptCode">
+      <mat-option *ngFor="let d of departments" [value]="d.code">{{ d.name }}</mat-option>
+    </mat-select>
+    @if (mainDeptCodeCtrl.hasError('required') && mainDeptCodeCtrl.touched) {
+      <mat-error>اختر الإدارة الأساسية</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>القسم الفرعي</mat-label>
+    <mat-select formControlName="subDeptCode" [disabled]="!filteredSubs.length">
+      <mat-option *ngIf="!filteredSubs.length" [disabled]="true">لا توجد أقسام فرعية</mat-option>
+      <mat-option *ngFor="let s of filteredSubs" [value]="s.code">{{ s.name }}</mat-option>
+    </mat-select>
+    @if (subDeptCodeCtrl.hasError('required') && subDeptCodeCtrl.touched) {
+      <mat-error>اختر القسم الفرعي</mat-error>
+    }
+  </mat-form-field>
+
+
 
             <mat-form-field appearance="outline">
               <mat-label> تاريخ المباشرة </mat-label>
