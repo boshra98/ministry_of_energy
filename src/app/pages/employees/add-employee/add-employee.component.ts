@@ -21,7 +21,7 @@ import {
   EmployeeUpdate,
   Employee
 } from '../../../services/local-employees.service';
-import { DEPARTMENTS, SubDept } from '../../../models/department';
+import { DEPARTMENTS } from '../../../models/department';
 
 import { OTHER_VALUE } from '../../../shared/constants';
 
@@ -30,7 +30,23 @@ import { OTHER_VALUE } from '../../../shared/constants';
 import { startWith, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Subject } from 'rxjs';
 import { MatChipSet, MatChipsModule } from "@angular/material/chips";
-type ParsedPlace = { main?: string; sub?: string };
+// types.ts أو أعلى الملف نفسه
+export interface ParsedPlace {
+  /** الأكواد على الترتيب: ['CENTRAL','CENTRAL-OFFICE','CENTRAL-OFFICE-DAM','CENTRAL-OFFICE-DAM-F5'] */
+  codes?: string[];
+  /** الأسماء على الترتيب (مقابل الشجرة) */
+  names?: string[];
+  /** آخر عقدة (اسم/كود) مريحة للاستخدام السريع */
+  lastCode?: string;
+  lastName?: string;
+  /** العمق الفعلي الذي تم التحقق منه بنجاح */
+  depth?: number;
+}
+
+interface OrgNode { code: string; name: string; subs?: OrgNode[]; }
+
+
+// type ParsedPlace = { main?: string; sub?: string };
 
 
 type EmployeeForm = FormGroup<{
@@ -111,7 +127,8 @@ dependences: FormControl<string>;
 })
 export class AddEmployeeComponent {
 
-dataSource: any;
+// dataSource: any;
+
   OTHER_VALUE = OTHER_VALUE;
 
 // new: Date|null;
@@ -192,9 +209,12 @@ emergencyPhone2: new FormControl('', []),
    workdetails: new FormGroup({
     decisionStart: new FormControl('', []),
     workDate:  new FormControl<Date | null>(null, [Validators.required]),
-
-     mainDeptCode: new FormControl('', [Validators.required]), // الإدارة الأساسية
-    subDeptCode:  new FormControl(''),                        // سيصبح required عند وجود فروع
+level1Code: new FormControl('', [Validators.required]),
+  level2Code:new FormControl('', [Validators.required]),
+  level3Code: new FormControl('', ),
+  level4Code:new FormControl('',),
+    //  mainDeptCode: new FormControl('', [Validators.required]), // الإدارة الأساسية
+    // subDeptCode:  new FormControl('',[Validators.required]),                        // سيصبح required عند وجود فروع
 
   // أبقِ الحقل الأصلي للـModel لكن بدون pattern لأنه سيُملأ تلقائياً:
    placeActionWork: new FormControl(''),
@@ -239,8 +259,21 @@ nationalities:String[]=['سوري','فلسطيني سوري' , 'لبناني' , 
 
 emergencyContentRelations:String[]=['أب','أخ','زوج','ابن', 'ام' ,'صديق' , 'قريب','غير ذلك'];
 
-departments = DEPARTMENTS;
-filteredSubs: SubDept[] = [];
+// departments = DEPARTMENTS;
+departments: OrgNode[] = DEPARTMENTS; 
+
+
+private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
+  if (!code) return null;
+  return list.find(n => n.code === code) ?? null;
+};
+
+// المستوى 1
+// level2List: OrgNode[] = [];            // المستوى 2
+// level3List: OrgNode[] = [];            // المستوى 3
+// level4List: OrgNode[] = [];            // المستوى 4 (اختياري)
+
+// filteredSubs: SubDept[] = [];
   showOther = false;
 
   constructor(
@@ -267,33 +300,74 @@ onWorkPick(e: any) {
 
 private destroy$ = new Subject<void>();
 
-ngOnInit(): void {
-  this.mainDeptCodeCtrl.valueChanges
-    .pipe(
-      startWith(this.mainDeptCodeCtrl.value),   // ← مهم للتهيئة بعد patchForm
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    )
-    .subscribe((code: string | null) => {
-      const dept = this.departments.find(d => d.code === code);
-      this.filteredSubs = dept?.subs ?? [];
 
-      // لا تمسح قيمة الفرعي إذا كانت ما تزال صالحة
-      const currentSub = this.subDeptCodeCtrl.value as string | null;
-      const stillValid = !!currentSub && this.filteredSubs.some(s => s.code === currentSub);
-      if (!stillValid) {
-        this.subDeptCodeCtrl.reset('');
-      }
 
-      // subDeptCode مطلوب فقط إذا كان هناك فروع
-      if (this.filteredSubs.length) {
-        this.subDeptCodeCtrl.setValidators([Validators.required]);
-      } else {
-        this.subDeptCodeCtrl.clearValidators();
-      }
-      this.subDeptCodeCtrl.updateValueAndValidity({ emitEvent: false });
-    });
+get level1Code(): string | null {
+  return this.workdetails.get('level1Code')?.value ?? null;
 }
+get level2Code(): string | null {
+  return this.workdetails.get('level2Code')?.value ?? null;
+}
+get level3Code(): string | null {
+  return this.workdetails.get('level3Code')?.value ?? null;
+}
+
+// اللوائح المتسلسلة
+get level2List(): OrgNode[] {
+  const n1 = this.findByCode(this.departments, this.level1Code);
+  return n1?.subs ?? [];
+}
+
+get level3List(): OrgNode[] {
+  const n2 = this.findByCode(this.level2List, this.level2Code);
+  return n2?.subs ?? [];
+}
+
+get level4List(): OrgNode[] {
+  const n3 = this.findByCode(this.level3List, this.level3Code);
+  return n3?.subs ?? [];
+}
+
+// عند تغيير المستوى الأعلى، نظّف الأدنى (اختياري لتحسين UX)
+ngOnInit(): void {
+  this.workdetails.get('level1Code')?.valueChanges.subscribe(() => {
+    this.workdetails.patchValue({ level2Code: '', level3Code: '', level4Code: '' }, { emitEvent: false });
+  });
+  this.workdetails.get('level2Code')?.valueChanges.subscribe(() => {
+    this.workdetails.patchValue({ level3Code: '', level4Code: '' }, { emitEvent: false });
+  });
+  this.workdetails.get('level3Code')?.valueChanges.subscribe(() => {
+    this.workdetails.patchValue({ level4Code: '' }, { emitEvent: false });
+  });
+}
+
+// ngOnInit(): void {
+//   this.mainDeptCodeCtrl.valueChanges
+//     .pipe(
+//       startWith(this.mainDeptCodeCtrl.value),   // ← مهم للتهيئة بعد patchForm
+//       distinctUntilChanged(),
+//       takeUntil(this.destroy$)
+//     )
+//     .subscribe((code: string | null) => {
+//       const dept = this.departments.find(d => d.code === code);
+//       this.filteredSubs = dept?.subs ?? [];
+
+//       // لا تمسح قيمة الفرعي إذا كانت ما تزال صالحة
+//       const currentSub = this.subDeptCodeCtrl.value as string | null;
+//       const stillValid = !!currentSub && this.filteredSubs.some(s => s.code === currentSub);
+//       if (!stillValid) {
+//         this.subDeptCodeCtrl.reset('');
+//       }
+
+//       // subDeptCode مطلوب فقط إذا كان هناك فروع
+//       if (this.filteredSubs.length) {
+//         this.subDeptCodeCtrl.setValidators([Validators.required]);
+//       } else {
+//         this.subDeptCodeCtrl.clearValidators();
+//       }
+//       this.subDeptCodeCtrl.updateValueAndValidity({ emitEvent: false });
+//     });
+// }
 
 ngOnDestroy(): void {
   this.destroy$.next();
@@ -364,7 +438,9 @@ get fatherNameCtrl() { return this.basic.get('fatherName') as FormControl<string
 get motherNameCtrl(){ return this.basic.get('motherName') as FormControl<string>;}
 get genderCtrl()     { return this.basic.get('gender')     as FormControl<string>; }
 get birthDateCtrl()  { return this.basic.get('birthDate')  as FormControl<string>; }
-get nationalityCtrl(){ return this.basic.get('nationality')  as FormControl<string>; }
+// get nationalityCtrl(){ return this.basic.get('nationality')  as FormControl<string>; }
+get nationalityCtrl(){ return this.basic.get('nationality') as FormControl<string[]>; } // ✅
+
 get materialStatusCtrl(){ return this.basic.get('materialStatus')  as FormControl<string>; }
 get dependencesCtrl(){  return this.basic.get('dependences')  as FormControl<string>; }
 // الحقول داخل details
@@ -381,8 +457,8 @@ get detailsQualificationCtrl()       { return this.details.get('detailsQualifica
 get decisionStartCtrl()       { return this.workdetails.get('decisionStart')       as FormControl<string>; }
 get workDateCtrl()       { return this.workdetails.get('workDate')       as FormControl<Date | null>; }
 get placeActionWorkCtrl()       { return this.workdetails.get('placeActionWork')       as FormControl<string>; }
-get mainDeptCodeCtrl() { return this.workdetails.get('mainDeptCode') as FormControl<string>; }
-get subDeptCodeCtrl()  { return this.workdetails.get('subDeptCode')  as FormControl<string>; }
+// get mainDeptCodeCtrl() { return this.workdetails.get('mainDeptCode') as FormControl<string>; }
+// get subDeptCodeCtrl()  { return this.workdetails.get('subDeptCode')  as FormControl<string>; }
 
 get dateActionWorkCtrl()       { return this.workdetails.get('dateActionWork')       as FormControl<Date | null>; }
 get appointmentTypeCtrl()       { return this.workdetails.get('appointmentType')       as FormControl<string>; }
@@ -446,13 +522,13 @@ get nationalityDisplay(): string {
 
   private patchForm(emp: Employee) {
 
+   // 1) حلّل المسار
+  const parsed = this.parsePlaceActionWork(emp.placeActionWork); // الآن ترجع { codes, names, ... }
+  const [lvl1, lvl2, lvl3, lvl4] = parsed.codes ?? [];
+const natClean = normalizeNationalities(emp.nationality, (emp as any)?.otherNationality);
 
-    // ✔️ فك التابع قبل patchValue
-  const parsed: ParsedPlace = this.parsePlaceActionWork(emp.placeActionWork);
-
-  // ✔️ حدّث لائحة الفروع قبل تعبئة subDeptCode
-  const dept = this.departments.find(d => d.code === parsed.main);
-  this.filteredSubs = dept?.subs ?? [];
+  
+  // this.filteredSubs = dept?.subs ?? [];
 
 
   this.form.patchValue({
@@ -464,7 +540,8 @@ get nationalityDisplay(): string {
       motherName: emp.motherName,
       gender:     emp.gender,
       birthDate:  emp.birthDate,
-      nationality:emp.nationality,
+      // nationality:emp.nationality,
+      nationality: natClean,
       materialStatus:emp.materialStatus ,
       dependences:emp.dependences,              
       // ما زالت string مع <input type="date">
@@ -493,12 +570,16 @@ detailsQualification:emp.detailsQualification,
     workdetails:{
   decisionStart   : emp.decisionStart,
    workDate   :emp.workDate,
- 
-   mainDeptCode: parsed.main ?? '',
-      subDeptCode:  parsed.sub  ?? '',
+ level1Code: lvl1 ?? '',
+    level2Code: lvl2 ?? '',
+    level3Code: lvl3 ?? '',
+    level4Code: lvl4 ?? '',
+    placeActionWork: (parsed.codes?.length ? parsed.codes.join('|') : (emp.placeActionWork ?? '')),
+      //  mainDeptCode: parsed.main ?? '',
+      // subDeptCode:  parsed.sub  ?? '',
 
       // اختياري: احتفظ بالأصل إن أردت عرضه فقط
-      placeActionWork: emp.placeActionWork ?? '',
+      // placeActionWork: emp.placeActionWork ?? '',
  dateActionWork:emp.dateActionWork,
   appointmentType:emp.appointmentType,
  jobCategory: emp.jobCategory,
@@ -549,67 +630,145 @@ emergencyContentRelation: emp.emergencyContentRelation,
 
 private parsePlaceActionWork(value: string | null | undefined): ParsedPlace {
   if (!value) return {};
-  const v = value.trim();
 
-  if (v.includes('|')) {
-    const [mainRaw, subRaw] = v.split('|', 2).map(s => s.trim());
-    const mainOk = DEPARTMENTS.some(d => d.code === mainRaw);
-    const subOk  = mainOk
-      ? (DEPARTMENTS.find(d => d.code === mainRaw)!.subs.some(s => s.code === subRaw))
-      : false;
+  // حوّل القيمة لمسار أكواد: يفصل بـ | أو / أو >
+  const codes = String(value)
+    .split(/[|/>]/)
+    .map(s => s.trim())
+    .filter(Boolean);
 
-    return {
-      main: mainOk ? mainRaw : undefined,
-      sub:  subOk  ? subRaw  : undefined,
-    };
+  if (!codes.length) return {};
+
+  // طابق المسار على الشجرة، واحصل على ما تم التحقق منه فعليًا
+  const { names, matchedCodes } = matchPathOnTree(codes, DEPARTMENTS);
+
+  if (!matchedCodes.length) {
+    // لم يطابق أي مستوى: نرجّع المسار كما هو كأكواد فقط (للخلفية/التصحيح)
+    return { codes, names: [], lastCode: codes.at(-1), depth: 0 };
   }
 
-  // حالة "MAIN" فقط
-  const mainOk = DEPARTMENTS.some(d => d.code === v);
-  return { main: mainOk ? v : undefined };
+  return {
+    codes: matchedCodes,
+    names,
+    lastCode: matchedCodes.at(-1),
+    lastName: names.at(-1),
+    depth: matchedCodes.length,
+  };
 }
 
-private composePlaceActionWork(main: string | null, sub: string | null): string {
-  return [main, sub].filter(Boolean).join('|'); // "CENTRAL|CENTRAL-IT" أو "ELECTRIC"
-}
+
+// private composePlaceActionWork(main: string | null, sub: string | null): string {
+//   return [main, sub].filter(Boolean).join('|'); // "CENTRAL|CENTRAL-IT" أو "ELECTRIC"
+// }
 
 
 
-  submit() {
+//   submit() {
+//   if (this.form.invalid) {
+//     this.form.markAllAsTouched();
+//     return;
+//   }
+
+//   const { basic, details ,personals , workdetails,communication,} = this.form.getRawValue() as any;
+
+
+
+
+// const wd = this.form.value.workdetails as any;
+// payload.placeActionWork = buildWorkplacePath(
+//   wd.level1Code, wd.level2Code, wd.level3Code, wd.level4Code
+// );
+
+
+//   const payload: NewEmployee = {
+//     // دمج المجموعتين في جسم واحد
+//     ...basic,
+//     ...details,
+//     ...personals,
+//     ...workdetails,
+//     ...communication,
+
+//      decisionStart:   workdetails.decisionStart,
+//     workDate:        workdetails.workDate,
+//     dateActionWork:  workdetails.dateActionWork,
+//     appointmentType: workdetails.appointmentType,
+//     jobCategory:     workdetails.jobCategory,
+//     jobAttribute:    workdetails.jobAttribute,
+//     startingSalary:  workdetails.startingSalary,
+//     notes:           workdetails.notes,
+
+//     placeActionWork, // ✅ القيمة التي سيحفظها الموديل
+
+//   };
+  
+
+//   if (this.editingId) {
+//     const patch: EmployeeUpdate = { id: this.editingId, ...payload };
+//     const updated = this.store.update(patch);
+//     console.log('✅ Updated:', updated);
+//   } else {
+//     const saved = this.store.add(payload);
+//     console.log('✅ Added:', saved);
+//     this.editingId = saved.id;
+//   }
+
+// const cleaned = (basic.nationality ?? [])
+//   .filter((v: string) => v && v !== OTHER_VALUE && v !== 'غير ذلك')
+//   .map((v: string) => v.trim());
+
+// const other = (basic.otherNationality ?? '').trim();
+// if (other && !cleaned.includes(other)) cleaned.push(other);
+
+// payload.nationality = cleaned;
+
+
+//   this.router.navigate(['/employees']);
+// }
+
+submit() {
   if (this.form.invalid) {
     this.form.markAllAsTouched();
     return;
   }
 
-  const { basic, details ,personals , workdetails,communication,} = this.form.getRawValue() as any;
+  // خُذ القيم (حتى المعطّلة) بشكل نظيف
+  const { basic, details, personals, workdetails, communication } = this.form.getRawValue() as any;
 
- const placeActionWork = this.composePlaceActionWork(
-    workdetails.mainDeptCode || null,
-    workdetails.subDeptCode  || null
+  // 1) ابنِ المسار الموحّد لمكان العمل من المستويات
+  const placeActionWork = buildWorkplacePath(
+    workdetails?.level1Code,
+    workdetails?.level2Code,
+    workdetails?.level3Code,
+    workdetails?.level4Code
   );
 
+  // 2) نظّف الجنسيات واكتب الناتج فقط
+  const nationality = normalizeNationalities(basic?.nationality, basic?.otherNationality);
+
+  // 3) ابنِ الـ payload (بدون نشر workdetails لتجنب تسريب level1..level4)
   const payload: NewEmployee = {
-    // دمج المجموعتين في جسم واحد
+    // دمج المجموعات المفيدة فقط
     ...basic,
     ...details,
     ...personals,
-    ...workdetails,
     ...communication,
 
-     decisionStart:   workdetails.decisionStart,
-    workDate:        workdetails.workDate,
-    dateActionWork:  workdetails.dateActionWork,
-    appointmentType: workdetails.appointmentType,
-    jobCategory:     workdetails.jobCategory,
-    jobAttribute:    workdetails.jobAttribute,
-    startingSalary:  workdetails.startingSalary,
-    notes:           workdetails.notes,
+    // حقول العمل المطلوبة
+    decisionStart:   workdetails?.decisionStart ?? null,
+    workDate:        workdetails?.workDate ?? null,
+    dateActionWork:  workdetails?.dateActionWork ?? null,
+    appointmentType: workdetails?.appointmentType ?? null,
+    jobCategory:     workdetails?.jobCategory ?? null,
+    jobAttribute:    workdetails?.jobAttribute ?? null,
+    startingSalary:  workdetails?.startingSalary ?? null,
+    notes:           workdetails?.notes ?? null,
 
-    placeActionWork, // ✅ القيمة التي سيحفظها الموديل
-
+    // الحقول المنسّقة
+    placeActionWork,           // مثال: CENTRAL|CENTRAL-OFFICE|... (قد تكون null)
+    nationality,               // مصفوفة نظيفة فقط
   };
-  
 
+  // 4) حفظ
   if (this.editingId) {
     const patch: EmployeeUpdate = { id: this.editingId, ...payload };
     const updated = this.store.update(patch);
@@ -620,25 +779,54 @@ private composePlaceActionWork(main: string | null, sub: string | null): string 
     this.editingId = saved.id;
   }
 
-  // عند submit في صفحة الإضافة
-const cleaned = (basic.nationality ?? [])
-  .filter((v: string) => v && v !== OTHER_VALUE && v !== 'غير ذلك')
-  .map((v: string) => v.trim());
-
-const other = (basic.otherNationality ?? '').trim();
-if (other && !cleaned.includes(other)) cleaned.push(other);
-
-payload.nationality = cleaned;
-payload.nationality = null; // اختياري
-
-
   this.router.navigate(['/employees']);
 }
 
+
 }
 
 
+// ابحث عن عقدة حسب الكود ضمن قائمة عقد.
 
+
+function findByCode(list: OrgNode[], code?: string): OrgNode | null {
+  if (!code) return null;
+  return list.find(n => n.code === code) ?? null;
+}
+
+function buildWorkplacePath(...levels: (string | null | undefined)[]): string | null {
+  const arr = levels.map(v => (v ?? '').trim()).filter(Boolean);
+  return arr.length ? arr.join('|') : null;
+}
+
+
+// تابع يختبر مسار الأكواد على الشجرة ويُرجع أسماء مطابقة لما تم التحقق منه فعليًا.
+function matchPathOnTree(codes: string[], tree: OrgNode[]): { names: string[]; matchedCodes: string[] } {
+  const names: string[] = [];
+  const matchedCodes: string[] = [];
+  let current: OrgNode[] = tree;
+
+  for (const code of codes) {
+    const hit = findByCode(current, code);
+    if (!hit) break;
+    names.push(hit.name);
+    matchedCodes.push(hit.code);
+    current = hit.subs ?? [];
+  }
+  return { names, matchedCodes };
+}
+
+function normalizeNationalities(nats: unknown, other: unknown): string[] {
+  const list = Array.isArray(nats)
+    ? (nats as string[])
+    : (typeof nats === 'string' ? nats.split(/[,\u060C]/) : []);
+  const cleaned = list
+    .map(v => (typeof v === 'string' ? v.trim() : ''))
+    .filter(v => v && v !== OTHER_VALUE && v !== 'غير ذلك');
+  const otherClean = (typeof other === 'string' ? other.trim() : '');
+  if (otherClean && !cleaned.includes(otherClean)) cleaned.push(otherClean);
+  return cleaned;
+}
 
 export function strictIsoBirthdateValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value as string;

@@ -181,9 +181,6 @@
     <!-- تريغر مخصص لعرض المختارات -->
     <mat-select-trigger>
   {{ nationalityDisplay }}
-
-      
-     
     </mat-select-trigger>
 
     <!-- الخيارات -->
@@ -421,20 +418,16 @@
             </mat-form-field>
 
 
+<mat-form-field appearance="outline">
+  <mat-label>الايميل</mat-label>
+  <input matInput formControlName="email" />
 
-            <mat-form-field appearance="outline">
-              <mat-label> الايميل </mat-label>
-              <input matInput formControlName="email" />
-  
-          @if (communication.get('email')?.hasError('minlength')) {
-            <mat-error>يجب ألا يقل عن حرفين</mat-error>
-          }
-          @if (communication.get('email')?.hasError('email') && form.get('email')?.touched  ){
-            <mat-error> البريد الاكتروني غير صحيح</mat-error>
-          }
+  @if (communication.get('email')?.hasError('email') 
+       && communication.get('email')?.touched) {
+    <mat-error>البريد الإلكتروني غير صحيح</mat-error>
+  }
+</mat-form-field>
 
-         
-            </mat-form-field>
             
             <mat-form-field appearance="outline">
               <mat-label> رقم هاتف الطوارئ </mat-label>
@@ -708,7 +701,7 @@
   <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
 }
             </mat-form-field> -->
-
+<!-- 
             <mat-form-field appearance="outline" class="w-100">
     <mat-label>الإدارة الأساسية</mat-label>
     <mat-select formControlName="mainDeptCode">
@@ -728,7 +721,57 @@
     @if (subDeptCodeCtrl.hasError('required') && subDeptCodeCtrl.touched) {
       <mat-error>اختر القسم الفرعي</mat-error>
     }
-  </mat-form-field>
+  </mat-form-field> -->
+
+  <!-- المستوى 1 -->
+<mat-form-field appearance="outline" class="w-100">
+  <mat-label>الإدارة الأساسية</mat-label>
+  <mat-select formControlName="level1Code" required>
+    <mat-option *ngFor="let n of departments" [value]="n.code">
+      {{ n.name }}
+    </mat-option>
+  </mat-select>
+  @if (workdetails.get('level1Code')?.hasError('required') && workdetails.get('level1Code')?.touched) {
+    <mat-error>اختر الإدارة الأساسية</mat-error>
+  }
+</mat-form-field>
+
+<!-- المستوى 2 -->
+<mat-form-field appearance="outline" class="w-100">
+  <mat-label>القسم الفرعي</mat-label>
+  <mat-select formControlName="level2Code" [disabled]="!level2List.length" required>
+    <mat-option *ngIf="!level2List.length" [disabled]="true">لا توجد أقسام فرعية</mat-option>
+    <mat-option *ngFor="let n of level2List" [value]="n.code">
+      {{ n.name }}
+    </mat-option>
+  </mat-select>
+  @if (workdetails.get('level2Code')?.hasError('required') && workdetails.get('level2Code')?.touched) {
+    <mat-error>اختر القسم الفرعي</mat-error>
+  }
+</mat-form-field>
+
+<!-- المستوى 3 (اختياري) -->
+<mat-form-field appearance="outline" class="w-100">
+  <mat-label>شعبة </mat-label>
+  <mat-select formControlName="level3Code" [disabled]="!level3List.length">
+    <mat-option *ngIf="!level3List.length" [disabled]="true">لا توجد شعب</mat-option>
+    <mat-option *ngFor="let n of level3List" [value]="n.code">
+      {{ n.name }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+<!-- المستوى 4 (اختياري) -->
+<mat-form-field appearance="outline" class="w-100">
+  <mat-label>  (الطابق)</mat-label>
+  <mat-select formControlName="level4Code" [disabled]="!level4List.length">
+    <mat-option *ngIf="!level4List.length" [disabled]="true">لا يوجد مستوى أدق</mat-option>
+    <mat-option *ngFor="let n of level4List" [value]="n.code">
+      {{ n.name }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
 
 
 

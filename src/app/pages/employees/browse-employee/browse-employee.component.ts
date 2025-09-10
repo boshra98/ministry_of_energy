@@ -73,8 +73,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LocalEmployeesService, Employee } from '../../../services/local-employees.service';
 import { OrgNamePipe } from '../../../pipes/org-name.pipe';
-import { DEPARTMENTS, Dept } from '../../../models/department';
+import { DEPARTMENTS  } from '../../../models/department';
 import { OTHER_VALUE } from '../../../shared/constants';
+interface OrgNode { code: string; name: string; subs?: OrgNode[]; }
 
 @Component({
   selector: 'app-browse-employee',
@@ -88,9 +89,11 @@ goHome() {
 throw new Error('Method not implemented.');
 }
 
-
-orgTree: Dept[] = DEPARTMENTS;
+orgTree: OrgNode[] = DEPARTMENTS;
 orgOpts = { tree: this.orgTree, mode: 'path' as const, sep: ' | ' };
+
+// orgTree: Dept[] = DEPARTMENTS;
+// orgOpts = { tree: this.orgTree, mode: 'path' as const, sep: ' | ' };
 
 
 

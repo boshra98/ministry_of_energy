@@ -415,14 +415,17 @@
               <label>مكان مباشرة العمل</label>
               <!-- <div class="value">{{ placeActionWork | orgName: orgTree  }}</div> -->
 <!-- <div class="value">{{ placeActionWork }} → {{ placeActionWork | orgName: orgTree }}</div> -->
-<div class="value">
+<!-- <div class="value"> -->
   <!-- {{ placeActionWork | orgName:{ tree: orgTree, mode: 'path', sep: ' | ' } }} -->
     
   <!-- {{ placeActionWork }} → {{ placeActionWork | orgName:{ tree: orgTree, mode: 'path', sep: ' | ' } }} -->
-  {{ placeActionWork | orgName: orgOpts }}
+  <!-- {{ placeActionWork | orgName: orgOpts }} -->
 
 
-</div>
+<!-- </div> -->
+
+<div class="value">{{ placeActionWork | orgName:{ tree: orgTree, mode:'path', sep:' | ' } }}</div>
+
 
               <!-- <div class="value">{{ employee.placeActionWork || '—' }}</div> -->
             </div>
