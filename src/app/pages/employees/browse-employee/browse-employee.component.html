@@ -246,14 +246,24 @@
             </h2>
             <div class="title">{{ employee.jobTitle || '—' }}</div>
 
+            <!-- تشخيص مؤقت: يجب أن تراها كنص -->
+<!-- <div style="padding:4px 0;color:#111">
+  Debug nationality: {{ nationalityListClean | json }}
+</div> -->
+
             <mat-chip-set class="badges">
+              
               <mat-chip>{{ employee.gender || '—' }}</mat-chip>
               <!-- <mat-chip>{{ employee.nationality || '—' }}</mat-chip> -->
                  <!-- <mat-chip *ngFor="let nat of employee.nationality">{{ nat }}</mat-chip> -->
  <ng-container *ngIf="nationalityListClean.length; else noNat">
+ 
+
     <mat-chip *ngFor="let nat of nationalityListClean">{{ nat }}</mat-chip>
   </ng-container>
   <ng-template #noNat><mat-chip>—</mat-chip></ng-template>
+
+
               <mat-chip>{{ employee.materialStatus || '—' }}</mat-chip>
             </mat-chip-set>
           </div>

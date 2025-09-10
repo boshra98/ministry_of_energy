@@ -620,6 +620,18 @@ private composePlaceActionWork(main: string | null, sub: string | null): string 
     this.editingId = saved.id;
   }
 
+  // عند submit في صفحة الإضافة
+const cleaned = (basic.nationality ?? [])
+  .filter((v: string) => v && v !== OTHER_VALUE && v !== 'غير ذلك')
+  .map((v: string) => v.trim());
+
+const other = (basic.otherNationality ?? '').trim();
+if (other && !cleaned.includes(other)) cleaned.push(other);
+
+payload.nationality = cleaned;
+payload.nationality = null; // اختياري
+
+
   this.router.navigate(['/employees']);
 }
 

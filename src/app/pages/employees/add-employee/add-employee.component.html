@@ -368,7 +368,7 @@
             <mat-form-field appearance="outline">
               <mat-label>  مكان السكن  الدائم </mat-label>
               <input matInput formControlName="permenentAddress" />
-                 <textarea matInput formControlName="permenentAddress" rows="2"></textarea>
+                 <!-- <textarea matInput formControlName="permenentAddress" ></textarea> -->
                   <!-- <mat-error *ngIf="personals.get('permenentAddress')?.hasError('required')">هذا الحقل مطلوب</mat-error>
                @if (personals.get('permenentAddress')?.hasError('minlength')) {
             <mat-error>يجب ألا يقل عن حرفين</mat-error>
@@ -380,7 +380,8 @@
                <mat-form-field appearance="outline">
               <mat-label>مكان السكن الحالي </mat-label>
               <input matInput formControlName="residence" />
-                 <textarea matInput formControlName="residence" rows="2"></textarea>
+                 <!-- <textarea matInput formControlName="residence" ></textarea> -->
+
             </mat-form-field>
 
              <!-- <mat-form-field appearance="outline" class="col-span-2">
@@ -424,15 +425,13 @@
             <mat-form-field appearance="outline">
               <mat-label> الايميل </mat-label>
               <input matInput formControlName="email" />
-                @if (communication.get('email')?.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
+  
           @if (communication.get('email')?.hasError('minlength')) {
             <mat-error>يجب ألا يقل عن حرفين</mat-error>
           }
-          <div If="form.get('email')?.hasError('email') && form.get('email')?.touched">
-    البريد الإلكتروني غير صحيح
-  </div>
+          @if (communication.get('email')?.hasError('email') && form.get('email')?.touched  ){
+            <mat-error> البريد الاكتروني غير صحيح</mat-error>
+          }
 
          
             </mat-form-field>

@@ -115,14 +115,55 @@ window: any;
     this.notFound = !this.employee;
     this.loading = false;
     console.log('placeActionWork =', this.placeActionWork);
-  console.log('orgTree length =', this.orgTree?.length);
+    console.log('orgTree length =', this.orgTree?.length);
+
+  console.log('employee.nationality =', this.employee?.nationality);
+  console.log('employee.otherNationality =', (this.employee as any)?.otherNationality);
+  console.log('basic.otherNationality =', (this.employee as any)?.basic?.otherNationality);
+
+  // اطبع القيمة النظيفة (التي كتبها المستخدم)
+  const otherNat = this.getOtherNationality(this.employee);
+  console.log('otherNationality (clean) =', otherNat ?? '∅'); // ∅ يعني مافي قيمة
+}
+
+  private getOtherNationality(e: any): string | null {
+  if (!e) return null;
+
+  // أولاً: لو محفوظة مباشرة
+  const direct = (e.otherNationality ?? e.basic?.otherNationality ?? '').trim();
+  if (direct) return direct;
+
+  // ثانياً: لو عندك nationality = ["__OTHER__"] ولم تدمجها بعد
+  // (ما في نص آخر، بس نطبع إشعار يفيد بضرورة الدمج عند الحفظ)
+  const nat = e.nationality ?? e.basic?.nationality;
+  if (Array.isArray(nat) && nat.includes(OTHER_VALUE)) {
+    // هنا المستخدم اختار "غير ذلك" لكنه لم يُسجل النص أو لم يُدمج بعد
+    return null;
   }
 
+  return null;
+}
+
   get nationalityListClean(): string[] {
-  const list = (this.employee?.nationality ?? []) as string[];
-  return list
+  const e: any = this.employee ?? null;
+  if (!e) return [];
+
+  // 1) اقرأ nationality سواء كانت array أو string بفواصل
+  const raw = e.nationality ?? e.basic?.nationality ?? [];
+  let list: string[] = Array.isArray(raw)
+    ? raw
+    : (typeof raw === 'string' ? raw.split(/[,\u060C]/) : []);
+
+  // 2) نظّف القيم
+  list = list
     .map(v => (typeof v === 'string' ? v.trim() : ''))
-    .filter(v => v && v !== OTHER_VALUE);
+    .filter(v => v && v !== OTHER_VALUE && v !== 'غير ذلك');
+
+  // 3) أضِف النص المكتوب في حقل otherNationality إن وُجد
+  const other = (e.otherNationality ?? e.basic?.otherNationality ?? '').trim();
+  if (other && !list.includes(other)) list.push(other);
+
+  return list;
 }
 
   // تنسيق تاريخ آمن لحقول التاريخ النصية (YYYY-MM-DD أو ISO)
