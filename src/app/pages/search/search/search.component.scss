@@ -50,7 +50,20 @@
     border: 2px solid #1d6e3e;
     display: grid; place-items: center;
     background: #fff;
-    .mat-icon { font-size: 34px; color: #1d6e3e;}
+    .mat-icon { font-size: 34px; color: #1d6e3e;
+    
+    }
+ 
+//    .back-btn {
+//   display: flex;
+//   align-items: center;
+//   gap: 4px; /* مسافة صغيرة بين الأيقونة والنص */
+// }
+
+// .back-text {
+//   font-size: 14px;
+// }
+    
     
   }
 
@@ -77,6 +90,7 @@
 }
 
 
+
 //   .doc-meta {
 //   text-align: left;
 //   font-size: 13px;
@@ -88,19 +102,152 @@
 // }
 
 }
+/* ✳️ تخلّص من أي تعريف مكرر لـ .toolbar أسفل الملف */
 
+/* رأس القسم + شريط الأدوات */
 .doc-title {
-  display: flex; align-items: center; justify-content: space-evenly;
-  padding: 20px 18px 18px 18px;
+  display: grid;
+  grid-template-columns: 1fr auto; /* العنوان يمين، الأدوات يسار في RTL */
+  align-items: center;
+  gap: 16px;
+  padding: 18px 18px 10px;
+
   h2 {
-    margin: 0; color: #134e2a; font-weight: 800;
+    margin: 0;
+    color: #134e2a;
+    font-weight: 800;
     letter-spacing: .2px;
+    justify-self: start; /* يلتصق باليمين في RTL */
+    line-height: 1.1;
   }
+
+
+
   .toolbar {
-    display: flex; gap: 0px; align-items: center; 
-    .search { width: 400px; max-height: 10; line-height-step: 1; }
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-self: start; /* جهة اليسار في RTL */
+
+    /* مجموعة الأزرار بجانب بعض */
+    .actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+
+    /* حقل البحث: مرن وأنيق */
+    .search {
+      width: clamp(260px, 40vw, 480px);
+      /* ظل خفيف مع حدود ناعمة */
+      ::ng-deep .mat-mdc-text-field-wrapper {
+        border-radius: 20px ;
+        min-height: 40px;      /* نفس ارتفاع الزر */
+      padding: 0 8px;        /* تقليل الحشوات الداخلية */
+        box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 1px 6px rgba(0,0,0,.06);
+      }
+    }
+
+    /* توحيد ارتفاع الحقل والأزرار */
+    ::ng-deep .mat-mdc-form-field-infix { padding-top: 6px; padding-bottom: 6px; }
+    ::ng-deep .mat-mdc-form-field-flex  { min-height: 40px; }
+    button[mat-stroked-button],
+    button[mat-button],
+    button[mat-icon-button] {
+      height: 40px;
+      border-radius: 12px;
+    }
+
+    /* زر الخيارات المتقدمة */
+    button[mat-stroked-button] {
+      border-color: #1d6e3e;
+    }
+
+    /* زر مسح التصفية كشبه-رابط مع محاذاة مناسبة */
+    .reset-link {
+      color: #c62828; /* أحمر رسمي */
+      font-weight: 600;
+      text-decoration: none;
+      line-height: 40px; /* يوازي ارتفاع الحقل */
+      margin-inline-start: 4px;
+    }
+
+    /* أيقونة العدسة داخل الحقل */
+    ::ng-deep .mat-mdc-form-field-icon-suffix .mat-icon  {
+      color: #1d6e3e;
+      opacity: .9;
+    }
   }
 }
+/* 1) اسمح بالعرض الكامل عبر سلسلة الآباء */
+:host, .gov-page, .gov-card, .filters {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;     /* لا توسيط */
+  box-sizing: border-box;
+}
+
+/* 2) لو الصفحة نفسها Grid وفيها أعمدة (مثلاً sidebar + content)،
+   اجعل بطاقة الصفحة/الفلاتر تمتد على كل الأعمدة */
+.gov-card, .filters {
+  grid-column: 1 / -1;   /* مهم إذا كان الأب display:grid */
+  flex: 1 1 auto;        /* مهم إذا كان الأب display:flex */
+}
+
+/* 3) شبكة عناصر الفلاتر: متجاوبة تملأ الصفوف بدون فراغات */
+.filters .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 16px;
+  grid-auto-flow: dense;
+}
+
+@media (max-width: 900px) {
+  .filters .grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+
+/* صندوق الفلاتر */
+.filters {
+  padding: 14px 18px 8px;
+  background: #f7fbf8;
+  border-top: 1px dashed #c6d7c3;
+  border-bottom: 1px dashed #c6d7c3;
+  border-radius: 12px;
+
+  .grid {
+    display: grid;
+      // grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
+    grid-template-columns: repeat(12, 1fr);
+    gap: 12px 16px;
+
+    > * { grid-column: span 2; } /* الافتراضي نصف عرض */
+    .short { grid-column: span 2; }  /* الجنس/زمرة الدم */
+    .long  { grid-column: span 12; } /* الجنسية المتعددة */
+  }
+
+  ::ng-deep .mat-mdc-form-field { width: 100%; }
+  ::ng-deep .mat-mdc-form-field-infix { padding-top: 6px; padding-bottom: 6px; }
+}
+
+/* استجابة */
+@media (max-width: 1200px) {
+  .filters .grid > * { grid-column: span 4; }
+}
+@media (max-width: 900px) {
+  .doc-title { grid-template-columns: 1fr; }
+  .doc-title h2 { justify-self: start; margin-bottom: 6px; }
+  .doc-title .toolbar { justify-self: stretch; }
+  .doc-title .toolbar .search { width: 100%; }
+  .filters .grid > * { grid-column: span 6; }
+}
+
+
 
 .table-wrap {
   padding: 0 12px 18px 12px;

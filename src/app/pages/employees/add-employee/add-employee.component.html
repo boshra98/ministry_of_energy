@@ -202,7 +202,8 @@
     <input matInput formControlName="otherNationality" (keyup.enter)="addOtherNationality()">
     <button mat-icon-button matSuffix type="button"
             (click)="addOtherNationality()"
-            [disabled]="!(basic.get('otherNationality')?.value || '').trim()">
+            [disabled]="!(basic.get('otherNationality')?.value || '').trim()"
+            >
       <mat-icon>check</mat-icon>
     </button>
   </mat-form-field>

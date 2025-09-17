@@ -56,8 +56,35 @@ export type NewEmployee = Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>;
 export type EmployeeUpdate = Partial<Omit<Employee, 'id' | 'createdAt'>> & { id: string };
 const STORAGE_KEY = 'employees';
 
+
+
+
 @Injectable({ providedIn: 'root' })
 export class LocalEmployeesService {
+  private readonly CUSTOM_NATS_KEY = 'customNationalities_v1';
+
+  getCustomNationalities(): string[] {
+    try {
+      const raw = localStorage.getItem(this.CUSTOM_NATS_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr.filter((x: any) => typeof x === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  addCustomNationality(label: string): void {
+    const clean = (label || '').trim();
+    if (!clean) return;
+
+    const current = this.getCustomNationalities();
+    const exists = current.some(x => x.toLowerCase() === clean.toLowerCase());
+    if (!exists) {
+      localStorage.setItem(this.CUSTOM_NATS_KEY, JSON.stringify([...current, clean]));
+    }
+  }
+
+
   private readAll(): Employee[] {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);

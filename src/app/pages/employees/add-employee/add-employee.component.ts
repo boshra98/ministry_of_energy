@@ -1,6 +1,5 @@
 import { MatCardModule } from '@angular/material/card';
-
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,14 +24,11 @@ import { DEPARTMENTS } from '../../../models/department';
 
 import { OTHER_VALUE } from '../../../shared/constants';
 
-// ===== Types =====
 
 import { startWith, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Subject } from 'rxjs';
 import { MatChipSet, MatChipsModule } from "@angular/material/chips";
-// types.ts أو أعلى الملف نفسه
 export interface ParsedPlace {
-  /** الأكواد على الترتيب: ['CENTRAL','CENTRAL-OFFICE','CENTRAL-OFFICE-DAM','CENTRAL-OFFICE-DAM-F5'] */
   codes?: string[];
   /** الأسماء على الترتيب (مقابل الشجرة) */
   names?: string[];
@@ -279,8 +275,10 @@ private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private store: LocalEmployeesService
-  ) {
+    private store: LocalEmployeesService,
+    private cdr: ChangeDetectorRef ,
+  )
+   {
     // قراءة :id إن وُجد لتفعيل وضع التعديل
     this.route.params.subscribe(params => {
       const id = params['id'];
@@ -289,7 +287,10 @@ private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
       const emp = this.findEmployee(id);
       if (emp) this.patchForm(emp);
     });
+
+
   }
+
 onWorkPick(e: any) {
   console.log('picker ->', e.value, e.value instanceof Date);
   console.log('control ->', this.workDateCtrl.value);
@@ -328,7 +329,42 @@ get level4List(): OrgNode[] {
   return n3?.subs ?? [];
 }
 
-// عند تغيير المستوى الأعلى، نظّف الأدنى (اختياري لتحسين UX)
+
+
+/// في حقل الجنسية من اجل اضافة غير ذلك
+private baseNationalities = this.nationalities
+  .map(String)
+  .filter(v => v !== 'غير ذلك');
+
+// private refreshNationalities() {
+//   const customs = this.store.getCustomNationalities(); // من الخدمة
+//   // دمج + منع تكرار (case-insensitive بسيط)
+//   const merged = [...this.baseNationalities];
+//   for (const c of customs) {
+//     const exists = merged.some(x => x.toLowerCase() === c.toLowerCase());
+//     if (!exists) merged.push(c);
+//   }
+//   // أعِد بناء اللائحة المعروضة واجعل "غير ذلك" آخر خيار
+//   this.nationalities = merged.sort((a, b) => a.localeCompare(b, 'ar'));
+//   this.nationalities.push('غير ذلك');
+// }
+
+private refreshNationalities() {
+  const customs = this.store.getCustomNationalities();
+  const merged = [...this.baseNationalities];
+
+  for (const c of customs) {
+    if (!merged.some(x => x.toLowerCase() === c.toLowerCase())) merged.push(c);
+  }
+
+  // ⚠️ مهم: مصفوفة جديدة (مرجع جديد) + إضافة "غير ذلك" دائمًا في النهاية
+  this.nationalities = merged
+    .sort((a, b) => a.localeCompare(b, 'ar'));
+  this.nationalities = [...this.nationalities, 'غير ذلك'];
+}
+
+
+
 ngOnInit(): void {
   this.workdetails.get('level1Code')?.valueChanges.subscribe(() => {
     this.workdetails.patchValue({ level2Code: '', level3Code: '', level4Code: '' }, { emitEvent: false });
@@ -339,6 +375,9 @@ ngOnInit(): void {
   this.workdetails.get('level3Code')?.valueChanges.subscribe(() => {
     this.workdetails.patchValue({ level4Code: '' }, { emitEvent: false });
   });
+
+    this.refreshNationalities();
+
 }
 
 // ngOnInit(): void {
@@ -391,29 +430,34 @@ onNationalityChange(e: MatSelectChange) {
   }
 
   // إدراج النص المدخل مكان OTHER_VALUE
-  addOtherNationality() {
-    const natCtrl   = this.basic.get('nationality') as FormControl<string[]>;
-    const otherCtrl = this.basic.get('otherNationality') as FormControl<string>;
+ addOtherNationality() {
+  const natCtrl   = this.basic.get('nationality') as FormControl<string[]>;
+  const otherCtrl = this.basic.get('otherNationality') as FormControl<string>;
 
-    const list  = natCtrl.value ?? [];
-    const other = (otherCtrl.value ?? '').trim();
+  const typed = (otherCtrl?.value ?? '').trim();   // ← اسم متغيّر واضح
+  if (!typed) return;
 
-    if (!other) return;
+  // خزّن في الخدمة
+  this.store.addCustomNationality(typed);
 
-    // إزالة placeholder لو موجود
-    const withoutOther = list.filter(v => v !== OTHER_VALUE && v !== 'غير ذلك');
+  // حدّث قائمة الخيارات في الواجهة
+  this.refreshNationalities();
 
-    // منع التكرار
-    if (!withoutOther.includes(other)) {
-      natCtrl.setValue([...withoutOther, other]);
-    } else {
-      natCtrl.setValue(withoutOther);
-    }
+  // استبدل Placeholder في قيمة الفورم
+  const current = natCtrl.value ?? [];
+  const cleaned = current.filter(v => v !== OTHER_VALUE && v !== 'غير ذلك');
 
-    // تنظيف وإخفاء الحقل
-    otherCtrl.setValue('');
-    this.showOther = false;
+  if (!cleaned.some(v => v.toLowerCase() === typed.toLowerCase())) {
+    natCtrl.setValue([...cleaned, typed]);
+  } else {
+    natCtrl.setValue(cleaned);
   }
+
+  // تنظيف الحقل وإخفاء الإدخال
+  otherCtrl.setValue('');
+  this.showOther = false;
+}
+
 
 
 ngAfterViewInit() {
@@ -731,6 +775,29 @@ submit() {
     return;
   }
 
+  
+  // شبكة أمان: لو في OTHER_VALUE بدون ما يضغط إضافة
+  const natsCtrl  = this.basic.get('nationality') as FormControl<string[]>;
+  const otherCtrl = this.basic.get('otherNationality') as FormControl<string>;
+  const list      = natsCtrl.value ?? [];
+  const typed     = (otherCtrl.value ?? '').trim();
+
+  if (list.includes(OTHER_VALUE) && typed) {
+    // خزّن في الخدمة (حتى تبقى ضمن القائمة لاحقًا)
+    this.store.addCustomNationality(typed);
+
+    // استبدل OTHER بالقيمة الحقيقية في الفورم قبل البناء
+    const cleaned = list.filter(v => v !== OTHER_VALUE && v !== 'غير ذلك');
+    if (!cleaned.some(v => v.toLowerCase() === typed.toLowerCase())) {
+      natsCtrl.setValue([...cleaned, typed], { emitEvent: false });
+    } else {
+      natsCtrl.setValue(cleaned, { emitEvent: false });
+    }
+
+    // حدّث قائمة الخيارات المعروضة فورًا
+    this.refreshNationalities();
+  }
+
   // خُذ القيم (حتى المعطّلة) بشكل نظيف
   const { basic, details, personals, workdetails, communication } = this.form.getRawValue() as any;
 
@@ -768,6 +835,8 @@ submit() {
     nationality,               // مصفوفة نظيفة فقط
   };
 
+
+
   // 4) حفظ
   if (this.editingId) {
     const patch: EmployeeUpdate = { id: this.editingId, ...payload };
@@ -776,11 +845,14 @@ submit() {
   } else {
     const saved = this.store.add(payload);
     console.log('✅ Added:', saved);
+    console.log('customs after', this.store.getCustomNationalities()); // لازم تبين فيها القيمة الآن
     this.editingId = saved.id;
+   
   }
 
   this.router.navigate(['/employees']);
 }
+
 
 
 }
