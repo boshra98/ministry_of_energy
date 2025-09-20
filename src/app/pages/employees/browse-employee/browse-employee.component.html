@@ -257,8 +257,6 @@
               <!-- <mat-chip>{{ employee.nationality || '—' }}</mat-chip> -->
                  <!-- <mat-chip *ngFor="let nat of employee.nationality">{{ nat }}</mat-chip> -->
  <ng-container *ngIf="nationalityListClean.length; else noNat">
- 
-
     <mat-chip *ngFor="let nat of nationalityListClean">{{ nat }}</mat-chip>
   </ng-container>
   <ng-template #noNat><mat-chip>—</mat-chip></ng-template>

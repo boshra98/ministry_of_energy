@@ -35,6 +35,7 @@ export interface Employee {
   sourceAcadimicQualification: string | null | undefined;
   materialStatus: string | null | undefined;
   nationality: string[]| null | undefined;
+   otherNationality?: string | null | undefined; //  جنسية اخرى
   education: string | undefined;
   collage: string | undefined;
   workDate: Date | null | undefined;
@@ -54,8 +55,47 @@ updatedAt?: string; //  أضِف هذا
 }
 export type NewEmployee = Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>;
 export type EmployeeUpdate = Partial<Omit<Employee, 'id' | 'createdAt'>> & { id: string };
+export const OTHER_VALUE = '__OTHER__';
+
+
 const STORAGE_KEY = 'employees';
 
+function normalizeNationalities(emp: Partial<Employee>): {
+  nationality: string[];
+  otherNationality: string | null;
+} 
+{
+  // 1) اقرأ الـ nationality بأي شكل محتمل
+  const raw = (emp.nationality as any) ?? [];
+  let list: string[] = Array.isArray(raw)
+    ? raw.slice()
+    : (typeof raw === 'string' ? raw.split(/[,\u060C]/) : []);
+
+  // 2) نظّف القيم: قص المسافات، احذف القيم الوهمية
+  list = list
+    .map(v => (typeof v === 'string' ? v.trim() : ''))
+    .filter(v => v && v !== OTHER_VALUE && v !== 'غير ذلك');
+
+  // 3) أضف otherNationality (إن وُجدت) بدل "__OTHER__"
+  const other = (emp.otherNationality ?? '').trim();
+  if (other) {
+    const lower = other.toLowerCase();
+    if (!list.some(x => x.toLowerCase() === lower)) {
+      list.push(other);
+    }
+  }
+
+  // 4) امنع التكرار (case-insensitive)
+  const seen = new Set<string>();
+  list = list.filter(v => {
+    const k = v.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+
+  return { nationality: list, otherNationality: other || null };
+}
 
 
 
@@ -74,15 +114,17 @@ export class LocalEmployeesService {
   }
 
   addCustomNationality(label: string): void {
-    const clean = (label || '').trim();
-    if (!clean) return;
+  const clean = (label || '').trim();
+  if (!clean) return;
 
-    const current = this.getCustomNationalities();
-    const exists = current.some(x => x.toLowerCase() === clean.toLowerCase());
-    if (!exists) {
-      localStorage.setItem(this.CUSTOM_NATS_KEY, JSON.stringify([...current, clean]));
-    }
+  const current = this.getCustomNationalities();
+  const exists = current.some(x => x.toLowerCase() === clean.toLowerCase());
+  if (!exists) {
+    const next = [...current, clean].sort((a,b) => a.localeCompare(b, 'ar'));
+    localStorage.setItem(this.CUSTOM_NATS_KEY, JSON.stringify(next));
   }
+}
+
 
 
   private readAll(): Employee[] {
@@ -98,17 +140,26 @@ export class LocalEmployeesService {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   }
 
+  
+
   add(emp: Omit<Employee, 'id' | 'createdAt'>): Employee {
-    const list = this.readAll();
-    const newEmp: Employee = {
-      ...emp,
-      id: crypto.randomUUID?.() ?? `emp_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
-    list.push(newEmp);
-    this.writeAll(list);
-    return newEmp;
-  }
+  const list = this.readAll();
+
+  const norm = normalizeNationalities(emp);
+
+  const newEmp: Employee = {
+    ...emp,
+    nationality: norm.nationality,
+    otherNationality: norm.otherNationality,
+    id: crypto.randomUUID?.() ?? `emp_${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  list.push(newEmp);
+  this.writeAll(list);
+  return newEmp;
+}
+
 
   list(): Employee[] {
     return this.readAll();
@@ -123,9 +174,14 @@ export class LocalEmployeesService {
   const i = list.findIndex(e => e.id === patch.id);
   if (i === -1) return null;
 
+  // ادمج ثم طبِّع
+  const merged: Employee = { ...list[i], ...patch };
+  const norm = normalizeNationalities(merged);
+
   const updated: Employee = {
-    ...list[i],              // فيه createdAt والحقول الأخرى
-    ...patch,                // يكتب القيم المعدلة فقط
+    ...merged,
+    nationality: norm.nationality,
+    otherNationality: norm.otherNationality,
     updatedAt: new Date().toISOString(),
   };
 

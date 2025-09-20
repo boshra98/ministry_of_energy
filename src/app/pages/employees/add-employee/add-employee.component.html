@@ -170,45 +170,35 @@
     هذا الحقل مطلوب
   </mat-error>
 </mat-form-field> -->
-
 <!-- الجنسية (اختيار متعدد) -->
 <mat-form-field appearance="outline" class="w-full" dir="rtl">
   <mat-label>الجنسية</mat-label>
 
-  <mat-select formControlName="nationality" [multiple]="true"
-              (selectionChange)="onNationalityChange($event)">
+  <mat-select formControlName="nationality" [multiple]="true">
 
     <!-- تريغر مخصص لعرض المختارات -->
     <mat-select-trigger>
-  {{ nationalityDisplay }}
+      {{ nationalityDisplay }}
     </mat-select-trigger>
 
-    <!-- الخيارات -->
-    <mat-option *ngFor="let n of nationalities"
-                [value]="(n === 'غير ذلك') ? OTHER_VALUE : n">
+    <!-- الخيارات الثابتة + الديناميكية -->
+    <mat-option *ngFor="let n of nationalities" [value]="n">
       {{ n }}
     </mat-option>
+
+    <!-- خيار خاص لفتح مربع الحوار -->
+    <mat-option class="text-primary" (click)="onAddOtherClick($event)" [disabled]="false">
+      <mat-icon class="me-2">add</mat-icon>
+      إضافة جنسية أخرى…
+    </mat-option>
+    
+
   </mat-select>
 
   <mat-error *ngIf="basic.get('nationality')?.hasError('required')">
     هذا الحقل مطلوب
   </mat-error>
 </mat-form-field>
-
-<!-- يظهر فقط عند اختيار "غير ذلك" -->
-<div *ngIf="showOther" class="mt-2">
-  <mat-form-field appearance="outline" class="w-full" dir="rtl">
-    <mat-label>اكتب الجنسية</mat-label>
-    <input matInput formControlName="otherNationality" (keyup.enter)="addOtherNationality()">
-    <button mat-icon-button matSuffix type="button"
-            (click)="addOtherNationality()"
-            [disabled]="!(basic.get('otherNationality')?.value || '').trim()"
-            >
-      <mat-icon>check</mat-icon>
-    </button>
-  </mat-form-field>
-  <small>سيتم إدراج ما تكتبه ضمن الجنسيات المختارة.</small>
-</div>
 
 
 

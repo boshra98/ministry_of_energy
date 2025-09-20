@@ -1,7 +1,7 @@
 
 
 
-import { Component, inject, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -21,6 +21,8 @@ import { MatChipsModule } from "@angular/material/chips";          // ✅
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MatOptionSelectionChange } from '@angular/material/core';
 import { OrgNamePipe } from "../../../pipes/org-name.pipe";
+import { NationalityService } from '../../../services/nationality.services';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-search',
@@ -47,6 +49,10 @@ import { OrgNamePipe } from "../../../pipes/org-name.pipe";
 })
 
 export class SearchComponent {
+
+    nationalities: string[] = [];
+      private sub?: Subscription;
+
 
 columnLabel(col: ColId): string {
   return this.allColumns.find(c => c.id === col)?.label ?? col;
@@ -96,11 +102,11 @@ goHome() {
   jobTitles: string[] = ['مدرّس', 'محاسب', 'سكرتير', 'مبرمج' ,'مدير'];
   educations: string[] = ['ابتدائي','اعدادي','ثانوي','بكالوريوس','ماستر','دكتوراه'];
   bloodTypes: string[] = ['A-','A+','B-','B+','AB-','AB+','O+','O-'];
-  nationalities: string[] = [
-  'سوري','فلسطيني سوري','لبناني','اردني','فلسطيني أردني','مصري',
-  'فلسطيني لبناني','حاصل على الجنسية التركية','حاصل على الجنسية الخليجية',
-  'حاصل على الجنسية الأوروبية','حاصل على الجنسية الاميركية'
-];
+//   nationalities: string[] = [
+//   'سوري','فلسطيني سوري','لبناني','اردني','فلسطيني أردني','مصري',
+//   'فلسطيني لبناني','حاصل على الجنسية التركية','حاصل على الجنسية الخليجية',
+//   'حاصل على الجنسية الأوروبية','حاصل على الجنسية الاميركية'
+// ];
 private OPTIONS: Record<string, string[]> = {
   jobTitle: this.jobTitles,
   education: this.educations,
@@ -120,7 +126,9 @@ filtersForm!: FormGroup;
 
   constructor(
   private fb: FormBuilder,
+    private cdr: ChangeDetectorRef ,
 
+private nationalityService: NationalityService,
   private store: LocalEmployeesService,
   private router: Router
 ) {}
@@ -224,8 +232,27 @@ this.columnPicker.valueChanges.subscribe(cols => {
   localStorage.setItem(this.TABLE_STATE_KEY, JSON.stringify(cols ?? []));
 });
 
+//ليجيب الجنسيات من الليست المحدثة
+this.nationalityService.nationalities$.subscribe(list => {
+      this.nationalities = list;
+    });
+
+    this.sub = this.nationalityService.nationalities$
+      .subscribe(list => {
+        this.nationalities = list;
+        this.cdr.markForCheck(); // لو عندك OnPush
+      });
+
+      
 
 }
+
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
+  }
+
+
+
    
   
 private saveFilters() {
