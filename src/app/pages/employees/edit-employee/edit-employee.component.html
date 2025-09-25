@@ -1,102 +1,454 @@
 <div class="gov-page" dir="rtl">
   <mat-card class="gov-card">
     <div class="gov-header">
-      <div class="crest">
-    <img src="/logo.png" class="logo" alt="شعار الوزارة" />
-      </div>
+      <div class="crest"><img src="/logo.png" class="logo" alt="شعار الوزارة" /></div>
       <div class="titles">
         <div class="country">الجمهورية العربية السورية</div>
         <div class="ministry">وزارة الطاقة</div>
         <div class="dept">مديرية الموارد البشرية</div>
       </div>
-      <div class="doc-meta">
-        <div>نموذج: <strong>تعديل بيانات موظف</strong></div>
-      </div>
+      <div class="doc-meta"><div>نموذج: <strong>تعديل بيانات موظف</strong></div></div>
     </div>
 
     <div class="doc-title">
       <h2>تعديل بيانات الموظف</h2>
-      <a mat-stroked-button  [routerLink]="['/employees']">
-        <mat-icon>arrow_back</mat-icon>
-        رجوع للسجل
+      <a mat-stroked-button [routerLink]="['/employees']">
+        <mat-icon>arrow_back</mat-icon> رجوع للسجل
       </a>
     </div>
 
-    <!-- حالات التحميل / عدم الوجود -->
+    <!-- حالات -->
     <div class="state" *ngIf="loading">جارِ التحميل...</div>
-    <div class="state error" *ngIf="!loading && notFound">
-      لم يتم العثور على الموظف المطلوب.
-    </div>
+    <div class="state error" *ngIf="!loading && notFound">لم يتم العثور على الموظف المطلوب.</div>
 
     <form *ngIf="!loading && !notFound" [formGroup]="form" (ngSubmit)="save()" class="form-grid">
 
-      <mat-form-field appearance="outline">
-        <mat-label>الاسم</mat-label>
-        <input matInput formControlName="firstName" placeholder="مثال: خالد">
-        <mat-error *ngIf="firstNameCtrl.touched && firstNameCtrl.hasError('required')">مطلوب</mat-error>
-        <mat-error *ngIf="firstNameCtrl.hasError('minlength')">على الأقل حرفان</mat-error>
-      </mat-form-field>
+      <!-- ========== المجموعة الأساسية ========== -->
+      <fieldset formGroupName="basic" class="section">
+        <legend>المعلومات الأساسية</legend>
 
-      <mat-form-field appearance="outline">
-        <mat-label>الكنية</mat-label>
-        <input matInput formControlName="lastName" placeholder="مثال: الأحمد">
-        <mat-error *ngIf="lastNameCtrl.touched && lastNameCtrl.hasError('required')">مطلوب</mat-error>
-        <mat-error *ngIf="lastNameCtrl.hasError('minlength')">على الأقل حرفان</mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>الاسم</mat-label>
+          <input matInput formControlName="firstName" />
+          <mat-error *ngIf="basic.get('firstName')?.hasError('required')">مطلوب</mat-error>
+          <mat-error *ngIf="basic.get('firstName')?.hasError('minlength')">على الأقل حرفان</mat-error>
+          <mat-error *ngIf="basic.get('firstName')?.hasError('pattern')">أحرف ومسافات فقط</mat-error>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>اسم الأب</mat-label>
-        <input matInput formControlName="fatherName" placeholder="مثال: محمود">
-        <mat-error *ngIf="fatherNameCtrl.touched && fatherNameCtrl.hasError('required')">مطلوب</mat-error>
-        <mat-error *ngIf="fatherNameCtrl.hasError('minlength')">على الأقل حرفان</mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>الكنية</mat-label>
+          <input matInput formControlName="lastName" />
+          <mat-error *ngIf="basic.get('lastName')?.hasError('required')">مطلوب</mat-error>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>رقم الملف الورقي</mat-label>
-        <input matInput formControlName="paperFileNumber" inputmode="numeric" placeholder="مثال: 123456">
-        <mat-hint>حتى 10 أرقام</mat-hint>
-        <mat-error *ngIf="paperFileNumberCtrl.touched && paperFileNumberCtrl.hasError('required')">مطلوب</mat-error>
-        <mat-error *ngIf="paperFileNumberCtrl.hasError('pattern')">أرقام فقط (حتى 10)</mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>اسم الأب</mat-label>
+          <input matInput formControlName="fatherName" />
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>الجنس</mat-label>
-        <mat-select formControlName="gender">
-          <mat-option *ngFor="let g of genders" [value]="g.value">{{ g.label }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="genderCtrl.touched && genderCtrl.hasError('required')">الرجاء الاختيار</mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>اسم الأم</mat-label>
+          <input matInput formControlName="motherName" />
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>تاريخ الولادة</mat-label>
-        <input matInput type="date" formControlName="birthDate">
-        <mat-error *ngIf="birthDateCtrl.touched && birthDateCtrl.hasError('required')">مطلوب</mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>الجنس</mat-label>
+          <mat-select formControlName="gender">
+            <mat-option *ngFor="let g of (genders$ | async)" [value]="g.value">{{ g.label }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="basic.get('gender')?.hasError('required')">الرجاء الاختيار</mat-error>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="col-2">
-        <mat-label>مكان السكن</mat-label>
-        <textarea matInput rows="2" formControlName="residence" placeholder="المدينة / الحي / العنوان"></textarea>
-        <mat-error *ngIf="residenceCtrl.touched && residenceCtrl.hasError('required')">مطلوب</mat-error>
-        <mat-error *ngIf="residenceCtrl.hasError('minlength')">الحد الأدنى 3 أحرف</mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>تاريخ الولادة</mat-label>
+          <input matInput [matDatepicker]="bdp" formControlName="birthDate" [max]="today()" />
+          <mat-datepicker-toggle matSuffix [for]="bdp"></mat-datepicker-toggle>
+          <mat-datepicker #bdp></mat-datepicker>
+          <mat-error *ngIf="basic.get('birthDate')?.hasError('required')">مطلوب</mat-error>
+          <mat-error *ngIf="basic.get('birthDate')?.hasError('futureDate')">لا يمكن أن يكون في المستقبل</mat-error>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>المسمى الوظيفي</mat-label>
-        <mat-select formControlName="jobTitle">
-          <mat-option *ngFor="let j of jobTitles" [value]="j">{{ j }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="jobTitleCtrl.touched && jobTitleCtrl.hasError('required')">مطلوب</mat-error>
-      </mat-form-field>
+        <mat-form-field appearance="outline" >
+          <mat-label>الجنسية</mat-label>
+          <mat-select formControlName="nationality" multiple>
+            <mat-option *ngFor="let n of nationalities" [value]="n">{{ n }}</mat-option>
+            <mat-option [value]="OTHER_VALUE" (onSelectionChange)="onAddOtherNationality()">غير ذلك…</mat-option>
+          </mat-select>
+          <!-- <mat-hint>{{ nationalities }}</mat-hint> -->
+          <mat-error *ngIf="basic.get('nationality')?.hasError('required')">اختر جنسية واحدة أو أكثر</mat-error>
+        </mat-form-field>
 
+        <mat-form-field appearance="outline">
+          <mat-label>الحالة الاجتماعية</mat-label>
+          <mat-select formControlName="materialStatus">
+            <mat-option *ngFor="let m of (maritalStatus$ | async)" [value]="m.value">{{ m.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>عدد الأشخاص المعيلين</mat-label>
+          <input matInput formControlName="dependences" />
+        </mat-form-field>
+      </fieldset>
+
+      <!-- ========== البيانات الشخصية ========== -->
+      <fieldset formGroupName="personals" class="section">
+        <legend>البيانات الشخصية</legend>
+
+        <mat-form-field appearance="outline">
+          <mat-label>مكان الولادة</mat-label>
+          <input matInput formControlName="placeBirth" />
+        <mat-error *ngIf="personals.get('placeBirth')?.hasError('required')">مطلوب</mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>الأمانة المركزية</mat-label>
+          <input matInput formControlName="centralSecretaion" />
+                  <mat-error *ngIf="personals.get('centralSecretaion')?.hasError('required')">مطلوب</mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>القيد ورقمه</mat-label>
+          <input matInput formControlName="familyRegistration" />
+                            <mat-error *ngIf="personals.get('familyRegistration')?.hasError('required')">مطلوب</mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>الرقم الوطني</mat-label>
+          <input matInput formControlName="nationalNumber" inputmode="numeric" />
+          <mat-error *ngIf="personals.get('nationalNumber')?.hasError('required')">مطلوب</mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>رقم الهوية</mat-label>
+          <input matInput formControlName="idNumber" inputmode="numeric" />
+                    <mat-error *ngIf="personals.get('idNumber')?.hasError('required')">مطلوب</mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>زمرة الدم</mat-label>
+          <mat-select formControlName="bloodType">
+            <mat-option *ngFor="let b of (bloodTypes$ | async)" [value]="b.value">{{ b.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </fieldset>
+
+      <!-- ========== التواصل ========== -->
+      <fieldset formGroupName="communication" class="section">
+        <legend>التواصل</legend>
+
+        <mat-form-field appearance="outline" >
+          <mat-label>العنوان الدائم</mat-label>
+          <textarea matInput rows="2" formControlName="permenentAddress"></textarea>
+           <mat-error *ngIf="communication.get('permenentAddress')?.hasError('required')">مطلوب</mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" >
+          <mat-label>مكان السكن الحالي</mat-label>
+          <textarea matInput rows="2" formControlName="residence"></textarea>
+                     <mat-error *ngIf="communication.get('residence')?.hasError('required')">مطلوب</mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>رقم الهاتف</mat-label>
+          <input matInput formControlName="phoneNumber" inputmode="numeric" />
+             <mat-error *ngIf="communication.get('phoneNumber')?.hasError('required')">مطلوب</mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>واتساب</mat-label>
+          <input matInput formControlName="whatsappNumber" inputmode="numeric" />
+          <mat-error *ngIf="communication.get('whatsappNumber')?.hasError('required')">مطلوب</mat-error>
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>البريد الإلكتروني</mat-label>
+          <input matInput formControlName="email" />
+          <mat-error *ngIf="communication.get('email')?.hasError('email')">صيغة غير صحيحة</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>اسم للطوارئ</mat-label>
+          <input matInput formControlName="emergencyName" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>صلة القرابة</mat-label>
+          <mat-select formControlName="emergencyContentRelation">
+            <mat-option *ngFor="let r of (emergencyRelations$ | async)" [value]="r.value">{{ r.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>هاتف طوارئ 1</mat-label>
+          <input matInput formControlName="emergencyPhone1" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>هاتف طوارئ 2</mat-label>
+          <input matInput formControlName="emergencyPhone2" />
+        </mat-form-field>
+      </fieldset>
+
+      <!-- ========== تفاصيل إضافية ========== -->
+      <fieldset formGroupName="details" class="section">
+        <legend>تفاصيل إضافية</legend>
+
+        <mat-form-field appearance="outline">
+          <mat-label>رقم الملف الورقي</mat-label>
+          <input matInput formControlName="paperFileNumber" inputmode="numeric" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>الكلية/المؤسسة التعليمية</mat-label>
+          <input matInput formControlName="collage" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>المؤهل التعليمي</mat-label>
+          <mat-select formControlName="education">
+            <mat-option *ngFor="let e of (educations$ | async)" [value]="e.value">{{ e.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>مصدر المؤهل العلمي</mat-label>
+          <input matInput formControlName="sourceAcadimicQualification" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>تاريخ إصدار الشهادة</mat-label>
+          <input matInput [matDatepicker]="dq" formControlName="dateQualification" [max]="today()" />
+          <mat-datepicker-toggle matSuffix [for]="dq"></mat-datepicker-toggle>
+          <mat-datepicker #dq></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" >
+          <mat-label>تفاصيل المؤهل</mat-label>
+          <textarea matInput rows="2" formControlName="detailsQualification"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>المسمى الوظيفي</mat-label>
+          <mat-select formControlName="jobTitle">
+            <mat-option *ngFor="let j of (jobTitles$ | async)" [value]="j.value">{{ j.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </fieldset>
+
+      <!-- ========== تفاصيل العمل ========== -->
+      <fieldset formGroupName="workdetails" class="section">
+        <legend>تفاصيل العمل</legend>
+
+        <mat-form-field appearance="outline">
+          <mat-label>قرار بدء التعيين</mat-label>
+          <input matInput formControlName="decisionStart" />
+
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>تاريخ بدء التعيين</mat-label>
+          <input matInput [matDatepicker]="wd" formControlName="workDate" />
+          <mat-datepicker-toggle matSuffix [for]="wd"></mat-datepicker-toggle>
+          <mat-datepicker #wd>
+            <mat-datepicker-actions>
+              <button mat-button (click)="workDateCtrl.setValue(today()); wd.close()">اليوم</button>
+              <span class="spacer"></span>
+              <button mat-button matDatepickerCancel>إلغاء</button>
+              <button mat-raised-button color="primary" matDatepickerApply>تأكيد</button>
+            </mat-datepicker-actions>
+          </mat-datepicker>
+          <mat-error *ngIf="workdetails.get('workDate')?.hasError('required')">مطلوب</mat-error>
+        </mat-form-field>
+
+        <!-- مستويات الأقسام -->
+        <mat-form-field appearance="outline">
+          <mat-label>المستوى 1</mat-label>
+          <mat-select formControlName="level1Code">
+            <mat-option *ngFor="let n of departments" [value]="n.code">{{ n.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>المستوى 2</mat-label>
+          <mat-select formControlName="level2Code">
+            <mat-option *ngFor="let n of level2List" [value]="n.code">{{ n.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>المستوى 3</mat-label>
+          <mat-select formControlName="level3Code">
+            <mat-option *ngFor="let n of level3List" [value]="n.code">{{ n.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>المستوى 4 (اختياري)</mat-label>
+          <mat-select formControlName="level4Code">
+            <mat-option *ngFor="let n of level4List" [value]="n.code">{{ n.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>تاريخ المباشرة</mat-label>
+          <input
+            matInput
+            [matDatepicker]="aw"
+            formControlName="dateActionWork"
+            [min]="workDateCtrl.value || null"
+          />
+          <mat-datepicker-toggle matSuffix [for]="aw"></mat-datepicker-toggle>
+          <mat-datepicker #aw></mat-datepicker>
+          <mat-error *ngIf="workdetails.get('dateActionWork')?.hasError('required')">مطلوب</mat-error>
+        </mat-form-field>
+
+   
+
+        <mat-form-field appearance="outline">
+          <mat-label>الفئة الوظيفية</mat-label>
+          <!-- <input matInput formControlName="jobCategory" /> -->
+           <mat-select [formControl]="jobCategoryCtrl">
+    <mat-option [value]="''">— اختر —</mat-option>
+
+    <ng-container *ngIf="jobCategories$ | async as opts">
+      <mat-option
+        *ngFor="let o of opts; trackBy: trackByValue"
+        [value]="o.value">
+        {{ o.label }}
+      </mat-option>
+
+    </ng-container>
+  </mat-select>
+        </mat-form-field>
+
+        <!-- <mat-form-field appearance="outline">
+          <mat-label>الصفة الوظيفية</mat-label>
+          <input matInput formControlName="jobAttribute" />
+        </mat-form-field> -->
+
+    <mat-form-field appearance="outline" class="w-full" dir="rtl">
+  <mat-label>الصفة الوظيفية</mat-label>
+
+  <!-- اربط الـ mat-select بالكنترول -->
+  <mat-select [formControl]="jobAttributeCtrl">
+    <mat-option [value]="''">— اختر —</mat-option>
+
+    <!-- اجلب الخيارات من السيرفس -->
+    <ng-container *ngIf="jobAttributes$ | async as opts">
+      <mat-option
+        *ngFor="let o of opts; trackBy: trackByValue"
+        [value]="o.value">
+        {{ o.label }}
+      </mat-option>
+    </ng-container>
+  </mat-select>
+</mat-form-field>
+
+       
+ <mat-form-field appearance="outline" class="w-full" dir="rtl">
+  <mat-label> صفة التعيين</mat-label>
+
+  <!-- اربط الـ mat-select بالكنترول -->
+  <mat-select [formControl]="decisionAttributeCtrl">
+    <mat-option [value]="''">— اختر —</mat-option>
+
+    <!-- اجلب الخيارات من السيرفس -->
+    <ng-container *ngIf="decisionAttribute$ | async as opts">
+      <mat-option
+        *ngFor="let o of opts; trackBy: trackByValue"
+        [value]="o.value">
+        {{ o.label }}
+      </mat-option>
+    </ng-container>
+  </mat-select>
+</mat-form-field>
+
+
+      
+ <mat-form-field appearance="outline" class="w-full" dir="rtl">
+  <mat-label> نوع التعيين</mat-label>
+
+  <!-- اربط الـ mat-select بالكنترول -->
+  <mat-select [formControl]="appointmentTypeCtrl">
+    <mat-option [value]="''">— اختر —</mat-option>
+
+    <!-- اجلب الخيارات من السيرفس -->
+    <ng-container *ngIf="appointmentTypes$ | async as opts">
+      <mat-option
+        *ngFor="let o of opts; trackBy: trackByValue"
+        [value]="o.value">
+        {{ o.label }}
+      </mat-option>
+    </ng-container>
+  </mat-select>
+</mat-form-field>
+
+
+
+        <mat-form-field appearance="outline">
+          <mat-label>راتب بدء التعيين</mat-label>
+          <input matInput formControlName="startingSalary" inputmode="numeric" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="col-2">
+          <mat-label>ملاحظات</mat-label>
+          <textarea matInput rows="2" formControlName="notes"></textarea>
+        </mat-form-field>
+
+        <!-- الحالة الحالية -->
+        <mat-form-field appearance="outline">
+          <mat-label>الحالة الوظيفية الحالية</mat-label>
+          <input matInput formControlName="statusWork" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>تاريخ الحالة الحالية</mat-label>
+          <input matInput [matDatepicker]="sw" formControlName="dateStatusWork" />
+          <mat-datepicker-toggle matSuffix [for]="sw"></mat-datepicker-toggle>
+          <mat-datepicker #sw></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>الموقع الحالي</mat-label>
+          <input matInput formControlName="currentJoblocation" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>قرار التعيين الحالي</mat-label>
+          <input matInput formControlName="currentDecisionAppointment" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>تاريخ التعيين الحالي</mat-label>
+          <input matInput [matDatepicker]="cd" formControlName="datecurrentDecisionAppointment" />
+          <mat-datepicker-toggle matSuffix [for]="cd"></mat-datepicker-toggle>
+          <mat-datepicker #cd></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>الراتب الحالي</mat-label>
+          <input matInput formControlName="currentSalary" inputmode="numeric" />
+        </mat-form-field>
+      </fieldset>
+
+      <!-- أزرار -->
       <div class="actions col-2">
         <button mat-stroked-button type="button" color="primary" (click)="cancel()">
-          <mat-icon>close</mat-icon>
-          إلغاء
+          <mat-icon>close</mat-icon> إلغاء
         </button>
 
         <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
-          <mat-icon>save</mat-icon>
-          حفظ التعديلات
+          <mat-icon>save</mat-icon> حفظ التعديلات
         </button>
       </div>
     </form>

@@ -6,10 +6,10 @@ export interface Employee {
   emergencyPhone1: string | null | undefined;
   emergencyContentRelation: string | null | undefined;
   emergencyName: string | null | undefined;
-  datecurrentDecisionAppointment: string | null | undefined;
+  datecurrentDecisionAppointment: Date | null | undefined;
   currentDecisionAppointment: string | null | undefined;
   currentJoblocation: string | null | undefined;
-  dateStatusWork: string | null | undefined;
+  dateStatusWork: Date | null | undefined;
   statusWork: string | null | undefined;
   currentSalary: string | null | undefined;
   email: string | null | undefined;
@@ -24,6 +24,7 @@ export interface Employee {
   dateActionWork: Date | null | undefined;
   placeActionWork: string | null | undefined;
   decisionStart: string | null | undefined;
+  decisionAttribute: string | null | undefined;
   bloodType: string | null | undefined;
   idNumber: string | null | undefined;
   nationalNumber: string | null | undefined;
@@ -31,11 +32,11 @@ export interface Employee {
   centralSecretaion: string | null | undefined;
   placeBirth: string | null | undefined;
   detailsQualification: string | null | undefined;
-  dateQualification: string | null | undefined;
+  dateQualification: Date | null | undefined;
   sourceAcadimicQualification: string | null | undefined;
   materialStatus: string | null | undefined;
   nationality: string[]| null | undefined;
-   otherNationality?: string | null | undefined; //  جنسية اخرى
+  otherNationality?: string | null | undefined; //  جنسية اخرى
   education: string | undefined;
   collage: string | undefined;
   workDate: Date | null | undefined;
@@ -47,10 +48,10 @@ export interface Employee {
   gender: string;
   residence: string;
   jobTitle: string;
-  birthDate: string; // YYYY-MM-DD (من input type="date")
+  birthDate: Date | null ;// YYYY-MM-DD (من input type="date")
   id: string;        // معرّف محلي
-  createdAt: string; // ISO
-updatedAt?: string; //  أضِف هذا
+  createdAt: Date; // ISO
+updatedAt?: Date; //  أضِف هذا
 
 }
 export type NewEmployee = Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>;
@@ -59,6 +60,25 @@ export const OTHER_VALUE = '__OTHER__';
 
 
 const STORAGE_KEY = 'employees';
+
+const DATE_KEYS = new Set<string>([
+  'birthDate',
+  'workDate',
+  'dateActionWork',
+  'dateQualification',
+  'dateStatusWork',
+  'datecurrentDecisionAppointment',
+  'createdAt',
+  'updatedAt',
+]);
+
+function reviveDates(key: string, value: any) {
+  if (value && typeof value === 'string' && DATE_KEYS.has(key)) {
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return value;
+}
 
 function normalizeNationalities(emp: Partial<Employee>): {
   nationality: string[];
@@ -125,12 +145,18 @@ export class LocalEmployeesService {
   }
 }
 
+remove(id: string): void {
+  const list = this.readAll().filter(e => e.id !== id);
+  this.writeAll(list);
+}
+
 
 
   private readAll(): Employee[] {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) as Employee[] : [];
+      return raw ? (JSON.parse(raw, reviveDates) as Employee[]) : [];
+      // return raw ? JSON.parse(raw) as Employee[] : [];
     } catch {
       return [];
     }
@@ -142,7 +168,7 @@ export class LocalEmployeesService {
 
   
 
-  add(emp: Omit<Employee, 'id' | 'createdAt'>): Employee {
+  add(emp: NewEmployee): Employee {
   const list = this.readAll();
 
   const norm = normalizeNationalities(emp);
@@ -152,7 +178,7 @@ export class LocalEmployeesService {
     nationality: norm.nationality,
     otherNationality: norm.otherNationality,
     id: crypto.randomUUID?.() ?? `emp_${Date.now()}`,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(),
   };
 
   list.push(newEmp);
@@ -182,7 +208,7 @@ export class LocalEmployeesService {
     ...merged,
     nationality: norm.nationality,
     otherNationality: norm.otherNationality,
-    updatedAt: new Date().toISOString(),
+    updatedAt: new Date(),
   };
 
   list[i] = updated;

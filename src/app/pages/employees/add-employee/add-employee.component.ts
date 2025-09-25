@@ -1,7 +1,8 @@
+import { JOBCATEGORY_DEFAULT } from './../../../shared/lookups/lookups.constants';
 import { MatCardModule } from '@angular/material/card';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormControl, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, FormGroup, Validators, AbstractControl, ValidationErrors, NonNullableFormBuilder } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
@@ -33,6 +34,12 @@ import { Subject } from 'rxjs';
 import { MatChipSet, MatChipsModule } from "@angular/material/chips";
 import { MatDialog } from '@angular/material/dialog';
 import { NationalityService } from '../../../services/nationality.services';
+import { LookupService } from '../../../services/lookup.service';
+import {
+  GENDERS, BLOOD_TYPES, MARITAL_STATUS, EMERGENCY_RELATIONS
+} from '../../../../../src/app/shared/lookups/lookups.constants';
+import { createEmployeeForm, EmployeeForm } from '../../../shared/types/employee-form.type';
+import { employeeToForm, fillWorkplaceLevelsFromPath, formToNewEmployee } from '../../../shared/mappers/employee.mapper';
 export interface ParsedPlace {
   codes?: string[];
   /** الأسماء على الترتيب (مقابل الشجرة) */
@@ -50,59 +57,7 @@ interface OrgNode { code: string; name: string; subs?: OrgNode[]; }
 // type ParsedPlace = { main?: string; sub?: string };
 
 
-type EmployeeForm = FormGroup<{
-  residence: FormControl<string>;
-  jobTitle: FormControl<string>;
-  birthDate: FormControl<string>;
-  firstName: FormControl<string>;
-  lastName: FormControl<string>;
-  fatherName: FormControl<string>;
-  motherName:FormControl<string>;
-  paperFileNumber: FormControl<string>;
-  gender: FormControl<string>;
-  collage:FormControl<string>;
-  education:FormControl<string>;
-  workDate: FormControl<Date | null>;
-  nationalNumber: FormControl<string>;  //الرقم الوطني
-  idNumber:FormControl<string>;     //رقم الهوية
-  placeBirth:FormControl<string>;   //مكان الولادة
-  centralSecretaion:FormControl<string>; //الامانة المركزية
-  familyRegistration:FormControl<string>; //القيد ورقمه
-  materialStatus:FormControl<string>;  //الحالة الاجتماعية
-  nationality:FormControl<string>;
-  bloodType:FormControl<string>;
-  permenentAddress:FormControl<string>;  
-  currentAddress:FormControl<string>;
-  phoneNumber:FormControl<string>;
-  whatsappNumber:FormControl<string>;
-  email:FormControl<string>;
-  sourceAcadimicQualification:FormControl<string>; //مصدر المؤهل العلمي
-  dateQualification:FormControl<string>; //تاريخ المؤهل
-  detailsQualification:FormControl<string>;
-  decisionStart:FormControl<string>;  //قرار  بدء التعيين
-  placeActionWork:FormControl<string>; //  مكان مباشرة العمل
-  dateActionWork:FormControl<string>;  //تاريخ المباشرة
-  appointmentType:FormControl<string>; // نوع التعيين
-  jobCategory:FormControl<string>; // الفئة الوظيفية
-  jobAttribute:FormControl<string>; //الصفة الوظيفية 
-  startingSalary:FormControl<string>; //راتب بدء التعيين
-  notes:FormControl<string>;
-    currentSalary:FormControl<string>;
-  statusWork:FormControl<string>; //الحالة الوظيفية
-  dateStatusWork:FormControl<string>;// تالايخ الحالة الوظيفية
-  currentJoblocation:FormControl<string>;  //الموقع
-  currentDecisionAppointment:FormControl<string>; //قرار التعيين الحالي
-  datecurrentDecisionAppointment:FormControl<string>; //تاريخ التعيين الحالي
-emergencyContentRelation:FormControl<string>;  //صلة القرابة
-emergencyName:FormControl<string>;   // الاسم للطوارئ
-emergencyPhone1:FormControl<string>;  // رقم الطوارئ
-emergencyPhone2: FormControl<string>; 
-dependences: FormControl<string>; 
 
-
-
-
-}>;
 
 @Component({
   standalone: true,
@@ -127,11 +82,14 @@ dependences: FormControl<string>;
 ],
 })
 export class AddEmployeeComponent {
+    private fb = inject(NonNullableFormBuilder);
+      form: EmployeeForm = createEmployeeForm(this.fb);
+
+
 
     nationalities: string[] = [];
          private sub?: Subscription;
   
-// dataSource: any;
 
   OTHER_VALUE = OTHER_VALUE;
 
@@ -141,139 +99,13 @@ goHome() {
 }
   today = () => new Date();
 
-//   form: EmployeeForm = new FormGroup({
-//     firstName:       new FormControl('', { nonNullable: true, validators: [Validators.required , Validators.pattern(/^[\p{L}\s]+$/u) // ✅ فقط أحرف + مسافات (أي لغة)
-//  ]  }),
-//     lastName:        new FormControl('', { nonNullable: true, validators: [Validators.required ,Validators.pattern(/^[\p{L}\s]+$/u)] }),
-//     fatherName:      new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[\p{L}\s]+$/u)] }),
-//     paperFileNumber: new FormControl('', { nonNullable: true, validators: [ Validators.pattern(/^[0-9]+$/)
-// ] }),
-//     gender:          new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-//     residence:       new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-//     jobTitle:        new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-//     birthDate:       new FormControl('', { nonNullable: true, validators: [Validators.required,strictIsoBirthdateValidator] }),
-//    collage:         new FormControl('', { nonNullable: true, validators: [Validators.pattern(/^[\p{L}\s]+$/u)]  }),
-//    education:       new FormControl('', { nonNullable: true,  }),
-//   //  workDate:       new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-//   workDate: new FormControl<Date | null>(null, { validators: [Validators.required] }),
 
-//   });
-
-form = new FormGroup({
-  basic: new FormGroup({
-    firstName: new FormControl('', {nonNullable:true ,validators:[Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]}),
-    lastName:  new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
-    fatherName:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
-    motherName:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
-    gender:    new FormControl('', [Validators.required]),
-    birthDate: new FormControl('', [Validators.required,  strictIsoBirthdateValidator]),
-    // nationality:new FormControl('', Validators.required, ),
-     nationality: new FormControl<string[]>([], { validators: Validators.required }),
-      // otherNationality: new FormControl<string>(''),
-
-    materialStatus: new FormControl('', [Validators.required]),
-    dependences: new FormControl(''),
-  }),
-  personals: new FormGroup({
- placeBirth:new FormControl('', [Validators.required, Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
- centralSecretaion:new FormControl('', [Validators.required,Validators.minLength(2), Validators.pattern(/^[\p{L}\s]+$/u)]),
- familyRegistration:new FormControl('', [Validators.required]),
- nationalNumber:new FormControl('', [Validators.required ,Validators.pattern(/^[0-9]+$/)]),
- idNumber:new FormControl('', [Validators.required ,Validators.pattern(/^[0-9]+$/)]),
- bloodType:new FormControl('', [Validators.required]),
-  }),
-
-  communication: new FormGroup({
-permenentAddress:new FormControl('', [Validators.required]),
-// currentAddress: new FormControl('', [Validators.required]),
-residence: new FormControl('', [Validators.required]),
-phoneNumber:new FormControl('', [Validators.required ,Validators.pattern(/^[0-9]+$/)]),
-whatsappNumber:new FormControl('', [Validators.required , Validators.pattern(/^[0-9]+$/)]),
-email:new FormControl('',  Validators.email),
-emergencyName:new FormControl('', []),  // الاسم للطوارئ
-emergencyContentRelation:new FormControl('', []), //صلة القرابة
-emergencyPhone1:new FormControl('', []), // رقم الطوارئ
-emergencyPhone2: new FormControl('', []),
-
-
-  }),
-  details: new FormGroup({
-    paperFileNumber: new FormControl('', [ Validators.pattern(/^[0-9]+$/)]),
-    collage:         new FormControl('', [ Validators.pattern(/^[\p{L}\s]+$/u)]),
-    education:       new FormControl('', []),
-    // workDate:        new FormControl<Date | null>(null, [Validators.required]),
-    sourceAcadimicQualification:   new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u) ]),
-    // dateQualification: new FormControl<Date | null>(null, [Validators.required]),
-    dateQualification: new FormControl('', [strictIsoBirthdateValidator]),
-    detailsQualification: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),
-        jobTitle:  new FormControl('', []),
-
-
-  }),
-   workdetails: new FormGroup({
-    decisionStart: new FormControl('', []),
-    workDate:  new FormControl<Date | null>(null, [Validators.required]),
-level1Code: new FormControl('', [Validators.required]),
-  level2Code:new FormControl('', [Validators.required]),
-  level3Code: new FormControl('', ),
-  level4Code:new FormControl('',),
-    //  mainDeptCode: new FormControl('', [Validators.required]), // الإدارة الأساسية
-    // subDeptCode:  new FormControl('',[Validators.required]),                        // سيصبح required عند وجود فروع
-
-  // أبقِ الحقل الأصلي للـModel لكن بدون pattern لأنه سيُملأ تلقائياً:
-   placeActionWork: new FormControl(''),
-
-    // placeActionWork: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),
-    dateActionWork:new FormControl<Date | null>(null, [Validators.required]), //تاريخ المباشرة
-  appointmentType: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),// نوع التعيين
-  jobCategory: new FormControl('', [Validators.pattern(/^[\p{L}\s]+$/u)]),// الفئة الوظيفية
-  jobAttribute: new FormControl('',  [Validators.pattern(/^[\p{L}\s]+$/u)]),//الصفة الوظيفية 
-  startingSalary:new FormControl('', [ Validators.pattern(/^[0-9]+$/)]),//راتب بدء التعيين
-  notes:new FormControl('', []),
-   }) ,
-
-  // currentworkdetails: new FormGroup({
-  // currentSalary:new FormControl('', []),
-  // statusWork:new FormControl('', []), //الحالة الوظيفية
-  // dateStatusWork:new FormControl('', []),// تالايخ الحالة الوظيفية
-  // currentJoblocation:new FormControl('', []),  //الموقع
-  // currentDecisionAppointment:new FormControl('', []), //قرار التعيين الحالي
-  // datecurrentDecisionAppointment:new FormControl('', []),
-
-  //  })
-
-
-});
 
 
   // إذا وُجدت قيمة هنا فالمكوّن في وضع التعديل
   editingId: string | null = null;
 
-  genders: Array<{ value: string; label: string }> = [
-    { value: 'male', label: 'ذكر' },
-    { value: 'female', label: 'أنثى' },
-  ];
-  jobTitles: string[] = ['مدرّس', 'محاسب', 'سكرتير', 'مبرمج'];
-  educations: string[]=['ابتدائي','اعدادي','ثانوي','بكالوريوس','ماستر','دكتوراه'];
-materialStatus:string[]=['اعزب' , 'متزوج']
-bloodTypes:string[]=['A-','A+', 'B-' ,'B+' , 'AB-' ,'AB+' , 'O+', 'O-'];
 
-// nationalities:String[]=['سوري','فلسطيني سوري' , 'لبناني' ,   'اردني',  'فلسطيني أردني', 'مصري', 'فلسطيني لبناني','حاصل على الجنسية التركية' ,'حاصل على الجنسية الخليجية','حاصل على الجنسية الأوروبية' , 'حاصل على الجنسية الاميركية','غير ذلك' ];
-
-// قاعدة ثابتة (بدون "غير ذلك")
-// private baseNationalities: string[] = [
-//   'سوري', 'فلسطيني سوري', 'لبناني', 'اردني', 'فلسطيني أردني',
-//   'مصري', 'فلسطيني لبناني', 'حاصل على الجنسية التركية', 'حاصل على الجنسية الخليجية',
-//   'حاصل على الجنسية الأوروبية', 'حاصل على الجنسية الاميركية'
-// ];
-
-// المعروضة في الـ <mat-select>
-// nationalities: string[] = [];
-
-
-emergencyContentRelations:String[]=['أب','أخ','زوج','ابن', 'ام' ,'صديق' , 'قريب','غير ذلك'];
-
-// departments = DEPARTMENTS;
 departments: OrgNode[] = DEPARTMENTS; 
 
 
@@ -282,13 +114,6 @@ private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
   return list.find(n => n.code === code) ?? null;
 };
 
-// المستوى 1
-// level2List: OrgNode[] = [];            // المستوى 2
-// level3List: OrgNode[] = [];            // المستوى 3
-// level4List: OrgNode[] = [];            // المستوى 4 (اختياري)
-
-// filteredSubs: SubDept[] = [];
-  // showOther = false;
 
   constructor(
     private router: Router,
@@ -296,7 +121,8 @@ private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
     private store: LocalEmployeesService,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef ,
-    private nat: NationalityService
+    private nat: NationalityService ,
+    private lookup: LookupService
   )
    {
     // قراءة :id إن وُجد لتفعيل وضع التعديل
@@ -307,9 +133,23 @@ private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
       const emp = this.findEmployee(id);
       if (emp) this.patchForm(emp);
     });
+    
 
 
-  }
+  } 
+
+
+get genders$()              { return this.lookup.genders$; }
+get bloodTypes$()           { return this.lookup.bloodTypes$; }
+get maritalStatus$()        { return this.lookup.maritalStatus$; }
+get emergencyRelations$()   { return this.lookup.emergencyRelations$; }
+get jobTitles$()            { return this.lookup.jobTitles$; }
+get educations$()           { return this.lookup.educations$; }
+get jobAttributes$() { return this.lookup.JOBATTRIBUTE_DEFAULTES$; }
+get jobCategories$(){ return this.lookup.JOBCATEGORY_DEFAULTES$;}
+get decisionAttribute$(){return this.lookup.decisionAttribute_DEFAULTES$}
+get appointmentTypes$(){return this.lookup.appointmentTypes_DEFAULTES$;}
+  
 
 onWorkPick(e: any) {
   console.log('picker ->', e.value, e.value instanceof Date);
@@ -349,40 +189,7 @@ get level4List(): OrgNode[] {
   return n3?.subs ?? [];
 }
 
-
-
-/// في حقل الجنسية من اجل اضافة غير ذلك
-
-
-
-// private refreshNationalities() {
-//   const customs = this.store.getCustomNationalities();
-//   const merged = [...this.baseNationalities];
-
-//   for (const c of customs) {
-//     if (!merged.some(x => x.toLowerCase() === c.toLowerCase())) merged.push(c);
-//   }
-
-//   // ⚠️ مهم: مصفوفة جديدة (مرجع جديد) + إضافة "غير ذلك" دائمًا في النهاية
-//   this.nationalities = merged
-//     .sort((a, b) => a.localeCompare(b, 'ar'));
-//   this.nationalities = [...this.nationalities, 'غير ذلك'];
-// }
-
- 
-
-
-// private refreshNationalities() {
-//   const customs = this.store.getCustomNationalities();
-//   const merged = [...this.baseNationalities];
-
-//   for (const c of customs) {
-//     if (!merged.some(x => x.toLowerCase() === c.toLowerCase())) merged.push(c);
-//   }
-
-//   this.nationalities = merged.sort((a, b) => a.localeCompare(b, 'ar'));
-// }
-
+trackByValue = (_: number, it: { value: string }) => it.value;
 
 
 ngOnInit(): void {
@@ -407,36 +214,6 @@ ngOnInit(): void {
 
 }
 
-
-
-// ngOnInit(): void {
-//   this.mainDeptCodeCtrl.valueChanges
-//     .pipe(
-//       startWith(this.mainDeptCodeCtrl.value),   // ← مهم للتهيئة بعد patchForm
-//       distinctUntilChanged(),
-//       takeUntil(this.destroy$)
-//     )
-//     .subscribe((code: string | null) => {
-//       const dept = this.departments.find(d => d.code === code);
-//       this.filteredSubs = dept?.subs ?? [];
-
-//       // لا تمسح قيمة الفرعي إذا كانت ما تزال صالحة
-//       const currentSub = this.subDeptCodeCtrl.value as string | null;
-//       const stillValid = !!currentSub && this.filteredSubs.some(s => s.code === currentSub);
-//       if (!stillValid) {
-//         this.subDeptCodeCtrl.reset('');
-//       }
-
-//       // subDeptCode مطلوب فقط إذا كان هناك فروع
-//       if (this.filteredSubs.length) {
-//         this.subDeptCodeCtrl.setValidators([Validators.required]);
-//       } else {
-//         this.subDeptCodeCtrl.clearValidators();
-//       }
-//       this.subDeptCodeCtrl.updateValueAndValidity({ emitEvent: false });
-//     });
-// }
-
 ngOnDestroy(): void {
   this.destroy$.next();
   this.destroy$.complete();
@@ -451,16 +228,6 @@ ngOnDestroy(): void {
     data: { existing: this.nationalities.filter(n => n !== OTHER_VALUE) }
   });
   return firstValueFrom(ref.afterClosed());
-}
-
-  // إدراج النص المدخل مكان OTHER_VALUE
- 
-
-
-
-ngAfterViewInit() {
-  // اختبار: إذا ظهر التاريخ بعد هذا، فالربط سليم وقيمة الروزنامة هي اللي ما توصل
-  setTimeout(() => this.workDateCtrl.setValue(new Date()), 0);
 }
 
 
@@ -479,7 +246,7 @@ get lastNameCtrl()   { return this.basic.get('lastName')   as FormControl<string
 get fatherNameCtrl() { return this.basic.get('fatherName') as FormControl<string>; }
 get motherNameCtrl(){ return this.basic.get('motherName') as FormControl<string>;}
 get genderCtrl()     { return this.basic.get('gender')     as FormControl<string>; }
-get birthDateCtrl()  { return this.basic.get('birthDate')  as FormControl<string>; }
+get birthDateCtrl()       { return this.basic.get('birthDate')        as FormControl<Date | null>; }
 // get nationalityCtrl(){ return this.basic.get('nationality')  as FormControl<string>; }
 get nationalityCtrl(){ return this.basic.get('nationality') as FormControl<string[]>; } // ✅
 
@@ -492,19 +259,25 @@ get paperFileNumberCtrl() { return this.details.get('paperFileNumber') as FormCo
 get collageCtrl()         { return this.details.get('collage')         as FormControl<string>; }
 get educationCtrl()       { return this.details.get('education')       as FormControl<string>; }
 get sourceAcadimicQualificationCtrl()       { return this.details.get('sourceAcadimicQualification')       as FormControl<string>; }
-get dateQualificationCtrl()       { return this.details.get('dateQualification')      as FormControl<string>; }
+get dateQualificationCtrl(){ return this.details.get('dateQualification') as FormControl<Date | null>; }
 get detailsQualificationCtrl()       { return this.details.get('detailsQualification')       as FormControl<string>; }
 
 ///// حقول داخل ال workdetails
 get decisionStartCtrl()       { return this.workdetails.get('decisionStart')       as FormControl<string>; }
-get workDateCtrl()       { return this.workdetails.get('workDate')       as FormControl<Date | null>; }
+// get workDateCtrl()       { return this.workdetails.get('workDate')       as FormControl<Date | null>; }
+get workDateCtrl()        { return this.workdetails.get('workDate')   as FormControl<Date | null>; }
+
 get placeActionWorkCtrl()       { return this.workdetails.get('placeActionWork')       as FormControl<string>; }
 // get mainDeptCodeCtrl() { return this.workdetails.get('mainDeptCode') as FormControl<string>; }
 // get subDeptCodeCtrl()  { return this.workdetails.get('subDeptCode')  as FormControl<string>; }
 
-get dateActionWorkCtrl()       { return this.workdetails.get('dateActionWork')       as FormControl<Date | null>; }
+// get dateActionWorkCtrl()       { return this.workdetails.get('dateActionWork')       as FormControl<Date | null>; }
+get dateActionWorkCtrl()  { return this.workdetails.get('dateActionWork') as FormControl<Date | null>; }
+
 get appointmentTypeCtrl()       { return this.workdetails.get('appointmentType')       as FormControl<string>; }
 get jobCategoryCtrl()       { return this.workdetails.get('jobCategory')       as FormControl<string>; }
+get decisionAttributeCtrl()       { return this.workdetails.get('decisionAttribute')       as FormControl<string>; }
+
 get jobAttributeCtrl()       { return this.workdetails.get('jobAttribute')       as FormControl<string>; }
 get startingSalaryCtrl()       { return this.workdetails.get('startingSalary')       as FormControl<string>; }
 get notesCtrl()       { return this.workdetails.get('notes')       as FormControl<string>; }
@@ -528,27 +301,6 @@ get emergencyNameCtrl()   { return this.communication.get('emergencyName')      
 get emergencyContentRelationCtrl(){ return this.communication.get('emergencyContentRelation')as FormControl<string>;} //صلة القرابة
 get emergencyPhone1Ctrl(){return this.communication.get('emergencyPhone1') as FormControl<string>; }
 get emergencyPhone2Ctrl(){   return this.communication.get('emergencyPhone2') as FormControl<string>; } 
-
-
-//// currentworkdetails
-// get currentSalaryCtrl()       { return this.currentworkdetails.get('currentSalary')       as FormControl<string>; }
-// get statusWorkCtrl()       { return this.currentworkdetails.get('statusWork')       as FormControl<string>; }
-// get dateStatusWorkCtrl()       { return this.currentworkdetails.get('dateStatusWork')       as FormControl<string>; }
-// get currentJoblocationCtrl()       { return this.currentworkdetails.get('currentJoblocation')       as FormControl<string>; }
-// get currentDecisionAppointmentCtrl()       { return this.currentworkdetails.get('currentDecisionAppointment')       as FormControl<string>; }
-// get datecurrentDecisionAppointmentCtrl()       { return this.currentworkdetails.get('datecurrentDecisionAppointment')       as FormControl<string>; }
-
-
-
-
-
-
-
-
-
-
-    // workDate:        new FormControl<Date | null>(null, [Validators.required]),
-
 get nationalityDisplay(): string {
   const ctrl = this.basic.get('nationality') as FormControl<string[]>;
   const list = ctrl?.value ?? [];
@@ -562,111 +314,19 @@ get nationalityDisplay(): string {
   }
 
 
-  private patchForm(emp: Employee) {
+private patchForm(emp: Employee): void {
+  // يملأ كل الحقول من الموديل (بما فيها التواريخ كـ Date|null)
+  employeeToForm(emp, this.form);
 
-   // 1) حلّل المسار
-  const parsed = this.parsePlaceActionWork(emp.placeActionWork); // الآن ترجع { codes, names, ... }
-  const [lvl1, lvl2, lvl3, lvl4] = parsed.codes ?? [];
-const natClean = normalizeNationalities(emp.nationality, (emp as any)?.otherNationality);
+  // يملأ مستويات المكان من المسار المخزّن بدون إطلاق valueChanges
+  fillWorkplaceLevelsFromPath(this.form, emp.placeActionWork);
 
-  
-  // this.filteredSubs = dept?.subs ?? [];
-
-
-  this.form.patchValue({
-    
-    basic: {
-      firstName:  emp.firstName,
-      lastName:   emp.lastName,
-      fatherName: emp.fatherName,
-      motherName: emp.motherName,
-      gender:     emp.gender,
-      birthDate:  emp.birthDate,
-      // nationality:emp.nationality,
-      nationality: natClean,
-      materialStatus:emp.materialStatus ,
-      dependences:emp.dependences,              
-      // ما زالت string مع <input type="date">
-    },
-    details: {
-      jobTitle:emp.jobTitle,
-      paperFileNumber: emp.paperFileNumber,
-      collage:         emp.collage,
-      education:       emp.education,
-sourceAcadimicQualification    :emp.sourceAcadimicQualification,
- dateQualification: emp.dateQualification,
-detailsQualification:emp.detailsQualification,
-      // residence:       emp.residence,
-    },
-
-    personals: {
-
- placeBirth  :emp.placeBirth    ,
- centralSecretaion  :emp.centralSecretaion,
- familyRegistration  :emp.familyRegistration,
- nationalNumber  :  emp.nationalNumber,
- idNumber :     emp.idNumber,
- bloodType : emp.bloodType,
-      
-    },
-    workdetails:{
-  decisionStart   : emp.decisionStart,
-   workDate   :emp.workDate,
- level1Code: lvl1 ?? '',
-    level2Code: lvl2 ?? '',
-    level3Code: lvl3 ?? '',
-    level4Code: lvl4 ?? '',
-    placeActionWork: (parsed.codes?.length ? parsed.codes.join('|') : (emp.placeActionWork ?? '')),
-      //  mainDeptCode: parsed.main ?? '',
-      // subDeptCode:  parsed.sub  ?? '',
-
-      // اختياري: احتفظ بالأصل إن أردت عرضه فقط
-      // placeActionWork: emp.placeActionWork ?? '',
- dateActionWork:emp.dateActionWork,
-  appointmentType:emp.appointmentType,
- jobCategory: emp.jobCategory,
- jobAttribute:emp.jobAttribute,
- startingSalary:emp.startingSalary,
- notes:emp.notes, 
-    },
-    communication:{
-  permenentAddress:emp.permenentAddress,
-residence   :emp.residence,
- phoneNumber:emp.phoneNumber,
- whatsappNumber:emp.whatsappNumber,
-email:emp.email,
- emergencyName: emp.emergencyName,
-emergencyContentRelation: emp.emergencyContentRelation,
- emergencyPhone1:emp.emergencyPhone1,
- emergencyPhone2:emp.emergencyPhone2 ,
-
-
-
-    },
-
-//     currentworkdetails:{
-
-//    currentSalary:emp.currentSalary,
-// statusWork:emp.statusWork,
-//  dateStatusWork:emp.dateStatusWork,
-//  currentJoblocation:emp.currentJoblocation ,
-//  currentDecisionAppointment:emp.currentDecisionAppointment,
-//  datecurrentDecisionAppointment:emp.datecurrentDecisionAppointment,
-
-
-
-//     }
-
-    //// currentworkdetails
-
-
-
-
-
-          // workDate:        emp.workDate ? new Date(emp.workDate as any) : null, // Date للـ datepicker
-
-  });
+  // نظافة حالة النموذج
+  this.form.markAsPristine();
+  this.form.markAsUntouched();
+  this.form.updateValueAndValidity({ emitEvent: false });
 }
+
 
 
 
@@ -711,14 +371,9 @@ onAddOtherClick(e: MouseEvent) {
 
         this.nat.addNationality(added);
 
-    // this.store.addCustomNationality(added);
-    // this.refreshNationalities();
-
     const ctrl = this.basic.get('nationality') as FormControl<string[]>;
     const now = ctrl.value ?? [];
-    // if (!now.some(v => v.toLowerCase() === added.toLowerCase())) {
-    //   ctrl.setValue([...now, added]);
-    // }
+    
     const exists = now.some(v => v?.toLowerCase() === added.toLowerCase());
 
     if (!exists) {
@@ -730,65 +385,19 @@ onAddOtherClick(e: MouseEvent) {
 
 
 submit() {
-  if (this.form.invalid) {
-    this.form.markAllAsTouched();
-    return;
-  }
+  if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
-  // خُذ القيم (حتى المعطّلة) بشكل نظيف
-  const { basic, details, personals, workdetails, communication } = this.form.getRawValue() as any;
+  const payload: NewEmployee = formToNewEmployee(this.form);
 
-  // 1) ابنِ مسار مكان العمل من المستويات المختارة
-  const placeActionWork = buildWorkplacePath(
-    workdetails?.level1Code,
-    workdetails?.level2Code,
-    workdetails?.level3Code,
-    workdetails?.level4Code
-  );
-
-  // 2) الجنسيات: بما أننا نضيفها عبر الـ Dialog فهي جاهزة.
-  // فقط ننظّف احتياطًا من أي قيمة OTHER_VALUE إن وُجدت بالخطأ.
-  const nationality: string[] = (basic?.nationality ?? [])
-    .filter((v: string) => v && v !== OTHER_VALUE && v !== 'غير ذلك');
-
-  // 3) ابنِ الـ payload (بدون نشر level1..level4)
-  const payload: NewEmployee = {
-    // دمج المجموعات
-    ...basic,
-    ...details,
-    ...personals,
-    ...communication,
-
-    // حقول العمل المطلوبة
-    decisionStart:   workdetails?.decisionStart ?? null,
-    workDate:        workdetails?.workDate ?? null,
-    dateActionWork:  workdetails?.dateActionWork ?? null,
-    appointmentType: workdetails?.appointmentType ?? null,
-    jobCategory:     workdetails?.jobCategory ?? null,
-    jobAttribute:    workdetails?.jobAttribute ?? null,
-    startingSalary:  workdetails?.startingSalary ?? null,
-    notes:           workdetails?.notes ?? null,
-
-    // الحقول المنسّقة
-    placeActionWork,   // مثال: CENTRAL|CENTRAL-OFFICE|...
-    nationality,       // مصفوفة جاهزة ونظيفة
-  };
-
-  // 4) حفظ
   if (this.editingId) {
-    const patch: EmployeeUpdate = { id: this.editingId, ...payload };
-    const updated = this.store.update(patch);
-    console.log('✅ Updated:', updated);
+    this.store.update({ id: this.editingId, ...payload });
+
   } else {
     const saved = this.store.add(payload);
-    console.log('✅ Added:', saved);
     this.editingId = saved.id;
   }
-
   this.router.navigate(['/employees']);
 }
-
-
 
 
 }
@@ -836,38 +445,7 @@ function normalizeNationalities(nats: unknown, other: unknown): string[] {
   return cleaned;
 }
 
-export function strictIsoBirthdateValidator(control: AbstractControl): ValidationErrors | null {
-  const value = control.value as string;
-  if (!value) return null; // اترك required يتكفل بالفراغ
 
-  // 1) تحقق من الصيغة YYYY-MM-DD
-  const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return { invalidDate: true };
-
-  const y = Number(m[1]);
-  const mo = Number(m[2]);
-  const d = Number(m[3]);
-
-  // نطاقات أولية
-  if (mo < 1 || mo > 12 || d < 1 || d > 31) return { invalidDate: true };
-
-  // 2) أنشئ التاريخ وتأكد من التطابق
-  const dt = new Date(y, mo - 1, d);
-  const same =
-    dt.getFullYear() === y &&
-    dt.getMonth() === mo - 1 &&
-    dt.getDate() === d;
-
-  if (!same) return { invalidDate: true };
-
-  // 3) ليس في المستقبل (اختياري)
-  const today = new Date();
-  // صفّر وقت اليوم للمقارنة باليوم فقط
-  today.setHours(0,0,0,0);
-  if (dt > today) return { futureDate: true };
-
-  return null;
-}
 
 
 

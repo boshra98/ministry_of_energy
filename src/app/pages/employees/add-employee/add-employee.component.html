@@ -112,28 +112,40 @@
             
             <mat-form-field appearance="outline">
               <mat-label>الجنس</mat-label>
-              <mat-select formControlName="gender">
+              <!-- <mat-select formControlName="gender">
                 <mat-option value="male">ذكر</mat-option>
                 <mat-option value="female">أنثى</mat-option>
-              </mat-select>
+              </mat-select> -->
+              <mat-select formControlName="gender">
+  <mat-option *ngFor="let g of (genders$ | async)" [value]="g.value">
+    {{ g.label }}
+  </mat-option>
+</mat-select>
               @if (genderCtrl.touched && genderCtrl.hasError('required')) {
             <mat-error>الرجاء اختيار الجنس</mat-error>
           }
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>تاريخ الولادة</mat-label>
-              <!-- <input matInput type="text" formControlName="birthDate" placeholder="dd/mm/yyyy"> -->
 
-              <input matInput type="date" formControlName="birthDate" />
-              @if (basic.get('birthDate')?.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
- @if (basic.get('birthDate')?.hasError('invalidDate')) {
-            <mat-error>    أدخل تاريخًا صالحا</mat-error>
-          }
-      
-            </mat-form-field>
+
+      <mat-form-field appearance="outline">
+  <mat-label>تاريخ الولادة</mat-label>
+
+  <!-- مهم: بدون type="date" -->
+  <input matInput [matDatepicker]="bdPicker" formControlName="birthDate" />
+
+  <mat-datepicker-toggle matSuffix [for]="bdPicker"></mat-datepicker-toggle>
+  <mat-datepicker #bdPicker></mat-datepicker>
+
+  @if (basic.get('birthDate')?.hasError('required')) {
+    <mat-error>هذا الحقل مطلوب</mat-error>
+  }
+  @if (basic.get('birthDate')?.hasError('futureDate')) {
+    <mat-error>لا يمكن أن يكون التاريخ في المستقبل</mat-error>
+  }
+</mat-form-field>
+
+
 
             <!-- <mat-form-field appearance="outline">
               <mat-label>المسمى الوظيفي</mat-label>
@@ -204,11 +216,17 @@
 
             <mat-form-field appearance="outline">
               <mat-label>الحالة الاجتماعية </mat-label>
-              <mat-select formControlName="materialStatus">
+              <!-- <mat-select formControlName="materialStatus">
                @for (m of materialStatus; track m) {
               <mat-option [value]="m">{{ m }}</mat-option>
             }
-          </mat-select> 
+          </mat-select>  -->
+          <mat-select formControlName="materialStatus">
+  <mat-option *ngFor="let m of (maritalStatus$ | async)" [value]="m.value">
+    {{ m.label }}
+  </mat-option>
+</mat-select>
+
           @if ( materialStatusCtrl.hasError('required')) {
             <mat-error>الرجاء اختيار الحالة الاجتماعية</mat-error>
           } 
@@ -322,10 +340,16 @@
 
             <mat-form-field appearance="outline">
               <mat-label>زمرة الدم </mat-label>
-              <mat-select formControlName="bloodType">
+              <!-- <mat-select formControlName="bloodType">
                <mat-option *ngFor="let e of bloodTypes" [value]="e">{{ e }}</mat-option>
 
-              </mat-select>
+              </mat-select> -->
+              <mat-select formControlName="bloodType">
+  <mat-option *ngFor="let b of (bloodTypes$ | async)" [value]="b.value">
+    {{ b.label }}
+  </mat-option>
+</mat-select>
+
               @if (genderCtrl.touched && genderCtrl.hasError('required')) {
             <mat-error>الرجاء اختيار زمرة الدم</mat-error>
           }
@@ -470,9 +494,15 @@
 
             <mat-form-field appearance="outline">
               <mat-label>  صلة القرابة</mat-label>
-              <mat-select formControlName="emergencyContentRelation">
+              <!-- <mat-select formControlName="emergencyContentRelation">
                 <mat-option *ngFor="let e of emergencyContentRelations" [value]="e">{{ e }}</mat-option>
-              </mat-select>
+              </mat-select> -->
+              <mat-select formControlName="emergencyContentRelation">
+  <mat-option *ngFor="let e of (emergencyRelations$ | async)" [value]="e.value">
+    {{ e.label }}
+  </mat-option>
+</mat-select>
+
               @if (basic.get('emergencyContentRelation')?.hasError('required')) {
             <mat-error>هذا الحقل مطلوب</mat-error>
           }
@@ -543,9 +573,16 @@
 
             <mat-form-field appearance="outline">
               <mat-label>التحصيل العلمي</mat-label>
-              <mat-select formControlName="education">
+              <!-- <mat-select formControlName="education">
                 <mat-option *ngFor="let e of educations" [value]="e">{{ e }}</mat-option>
-              </mat-select>
+              </mat-select> -->
+
+              <mat-select formControlName="education">
+  <mat-option *ngFor="let e of (educations$ | async)" [value]="e.value">
+    {{ e.label }}
+  </mat-option>
+</mat-select>
+
             </mat-form-field>
 
 
@@ -564,7 +601,7 @@
   <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
 }
             </mat-form-field>
-
+<!-- 
   <mat-form-field appearance="outline">
               <mat-label>تاريخ اصدار  الشهادة</mat-label>
               <input matInput type="date" formControlName="dateQualification" />
@@ -577,7 +614,28 @@
              
       
         
-            </mat-form-field>
+            </mat-form-field> -->
+
+            <mat-form-field appearance="outline">
+  <mat-label>تاريخ إصدار الشهادة</mat-label>
+
+  <input
+    matInput
+    [matDatepicker]="dqPicker"
+    formControlName="dateQualification"
+    [max]="today()"  
+  />
+  <mat-datepicker-toggle matSuffix [for]="dqPicker"></mat-datepicker-toggle>
+  <mat-datepicker #dqPicker></mat-datepicker>
+
+  @if (details.get('dateQualification')?.hasError('required')) {
+    <mat-error>هذا الحقل مطلوب</mat-error>
+  }
+  @if (details.get('dateQualification')?.hasError('futureDate')) {
+    <mat-error>لا يمكن أن يكون التاريخ في المستقبل</mat-error>
+  }
+</mat-form-field>
+
 
               <mat-form-field appearance="outline">
               <mat-label>تفاصيل الشهادة</mat-label>
@@ -599,11 +657,16 @@
 
   <mat-form-field appearance="outline">
               <mat-label>المسمى الوظيفي</mat-label>
-              <mat-select formControlName="jobTitle">
+              <!-- <mat-select formControlName="jobTitle">
                @for (j of jobTitles; track j) {
               <mat-option [value]="j">{{ j }}</mat-option>
             }
-          </mat-select>
+          </mat-select> -->
+          <mat-select formControlName="jobTitle">
+  <mat-option *ngFor="let j of (jobTitles$ | async)" [value]="j.value">
+    {{ j.label }}
+  </mat-option>
+</mat-select>
           @if (jobTitleCtrl.touched && jobTitleCtrl.hasError('required')) {
             <mat-error>الرجاء اختيار المسمى الوظيفي</mat-error>
           } 
@@ -645,38 +708,32 @@
             </mat-form-field>
 
 
-            
-<mat-form-field appearance="outline">
-  <mat-label>تاريخ بدءالتعيين</mat-label>
-  
-       <input matInput
-  [matDatepicker]="workPicker"
-  formControlName="workDate"
-  (dateInput)="onWorkPick($event)"  
-/>
+  <mat-form-field appearance="outline">
+    <mat-label>تاريخ بدء التعيين</mat-label>
+
+    <input matInput
+           [matDatepicker]="workPicker"
+           [formControl]="workDateCtrl"
+           (dateChange)="onWorkPick($event)"
+            [max]="today()" 
+    />
+
+    <mat-datepicker-toggle matSuffix [for]="workPicker"></mat-datepicker-toggle>
+    <mat-datepicker #workPicker>
+      <mat-datepicker-actions>
+        <button mat-button (click)="workDateCtrl.setValue(today()); workPicker.close()">اليوم</button>
+        <span class="spacer"></span>
+        <button mat-button matDatepickerCancel>إلغاء</button>
+        <button mat-raised-button color="primary" matDatepickerApply>تأكيد</button>
+      </mat-datepicker-actions>
+    </mat-datepicker>
+
+    <mat-error *ngIf="workDateCtrl.touched && workDateCtrl.hasError('required')">
+      هذا الحقل مطلوب
+    </mat-error>
+  </mat-form-field>
 
 
-  <mat-datepicker-toggle matSuffix [for]="workPicker"></mat-datepicker-toggle>
-  <mat-datepicker #workPicker>
-  <mat-datepicker-actions>
-    <!-- <button mat-button matDatepickerToday>اليوم</button> -->
-    <!-- <button mat-button (click)="workDateCtrl.setValue( today()); workPicker.close()">اليوم</button> -->
-<button mat-button (click)="workdetails.get('workDate')?.setValue(today()); workPicker.close()">
-        اليوم
-      </button>
-    <span class="spacer"></span>
-    <button mat-button matDatepickerCancel>إلغاء</button>
-    <button mat-raised-button color="primary" matDatepickerApply>تأكيد</button>
-  </mat-datepicker-actions>
-
-  </mat-datepicker>
-  <!-- <mat-error *ngIf="workDateCtrl.touched && workDateCtrl.hasError('required')">
-    هذا الحقل مطلوب
-  </mat-error> -->
-  <mat-error *ngIf="workdetails.get('workDate')?.touched && workdetails.get('workDate')?.hasError('required')">
-    هذا الحقل مطلوب
-  </mat-error>
-</mat-form-field>
 
             <!-- <mat-form-field appearance="outline">
               <mat-label>مكان المباشرة </mat-label>
@@ -766,58 +823,58 @@
 
 
 
-            <mat-form-field appearance="outline">
-              <mat-label> تاريخ المباشرة </mat-label>
-              <!-- <input matInput formControlName="dateActionWork" />
-                @if (workdetails.get('dateActionWork')?.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          } -->
+         <mat-form-field appearance="outline">
+  <mat-label>تاريخ المباشرة</mat-label>
 
-              <input matInput
-  [matDatepicker]="dateActionWorkPicker"
-  formControlName="dateActionWork"
-  (dateInput)="onWorkPick($event)"  
-/>
-
+  <input
+    matInput
+    [matDatepicker]="dateActionWorkPicker"
+    [formControl]="dateActionWorkCtrl"
+    (dateChange)="onWorkPick($event)" 
+    [min]="workDateCtrl.value || null" 
+     [max]="today()"   
+  />
 
   <mat-datepicker-toggle matSuffix [for]="dateActionWorkPicker"></mat-datepicker-toggle>
   <mat-datepicker #dateActionWorkPicker>
-  <mat-datepicker-actions>
-    <!-- <button mat-button matDatepickerToday>اليوم</button> -->
-    <!-- <button mat-button (click)="dateActionWorkCtrl.setValue( today()); dateActionWorkPicker.close()">اليوم</button> -->
- <button mat-button (click)="workdetails.get('dateActionWork')?.setValue(today()); dateActionWorkPicker.close()">
+    <mat-datepicker-actions>
+      <button mat-button (click)="dateActionWorkCtrl.setValue(today()); dateActionWorkPicker.close()">
         اليوم
       </button>
-    <span class="spacer"></span>
-    <button mat-button matDatepickerCancel>إلغاء</button>
-    <button mat-raised-button color="primary" matDatepickerApply>تأكيد</button>
-  </mat-datepicker-actions>
-
+      <span class="spacer"></span>
+      <button mat-button matDatepickerCancel>إلغاء</button>
+      <button mat-raised-button color="primary" matDatepickerApply>تأكيد</button>
+    </mat-datepicker-actions>
   </mat-datepicker>
 
-  <!-- <mat-error *ngIf="workdetails.get('dateActionWork')?.touched && workdetails.get('dateActionWork')?.hasError('required')">
+  <mat-error *ngIf="dateActionWorkCtrl.touched && dateActionWorkCtrl.hasError('required')">
     هذا الحقل مطلوب
-  </mat-error> -->
+  </mat-error>
+  <mat-error *ngIf="dateActionWorkCtrl.hasError('matDatepickerMin')">
+    لا يمكن أن يكون قبل تاريخ بدء التعيين
+  </mat-error>
+</mat-form-field>
 
-
-         
-            </mat-form-field>
 
 
 
             <mat-form-field appearance="outline">
-              <mat-label> نوع المباشرة </mat-label>
-              <input matInput formControlName="appointmentType" />
-                @if (workdetails.get('appointmentType')?.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
-          @if (workdetails.get('appointmentType')?.hasError('minlength')) {
-            <mat-error>يجب ألا يقل عن حرفين</mat-error>
-          }
+              <mat-label> نوع التعيين</mat-label>
 
-           @if (workdetails.get('appointmentType')?.hasError('pattern')) {
-  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
-}
+  <!-- اربط الـ mat-select بالكنترول -->
+  <mat-select [formControl]="appointmentTypeCtrl">
+    <mat-option [value]="''">— اختر —</mat-option>
+
+    <!-- اجلب الخيارات من السيرفس -->
+    <ng-container *ngIf="appointmentTypes$ | async as opts">
+      <mat-option
+        *ngFor="let o of opts; trackBy: trackByValue"
+        [value]="o.value">
+        {{ o.label }}
+      </mat-option>
+    </ng-container>
+  </mat-select>
+             
             </mat-form-field>
             
            
@@ -825,7 +882,20 @@
 
             <mat-form-field appearance="outline">
               <mat-label> الفئة الوظيفية  </mat-label>
-              <input matInput formControlName="jobCategory" />
+              <!-- <input matInput formControlName="jobCategory" /> -->
+
+              <mat-select [formControl]="jobCategoryCtrl">
+    <mat-option [value]="''">— اختر —</mat-option>
+
+    <ng-container *ngIf="jobCategories$ | async as opts">
+      <mat-option *ngFor="let o of opts; trackBy: trackByValue" [value]="o.value">
+        {{ o.label }}
+      </mat-option>
+    </ng-container>
+  </mat-select>
+
+
+
                 @if (workdetails.get('jobCategory')?.hasError('required')) {
             <mat-error>هذا الحقل مطلوب</mat-error>
           }
@@ -839,20 +909,41 @@
             </mat-form-field>
 
 
-            <mat-form-field appearance="outline">
-              <mat-label> الصفة الوظيفية  </mat-label>
-              <input matInput formControlName="jobAttribute" />
-                @if (workdetails.get('jobAttribute')?.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
-          @if (workdetails.get('jobAttribute')?.hasError('minlength')) {
-            <mat-error>يجب ألا يقل عن حرفين</mat-error>
-          }
+            <mat-form-field appearance="outline" class="w-full" dir="rtl">
+  <mat-label>الصفةالوظيفة </mat-label>
+  <mat-select [formControl]="jobAttributeCtrl">
+    <mat-option [value]="''">— اختر —</mat-option>
 
-           @if (workdetails.get('jobAttribute')?.hasError('pattern')) {
-  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
-}
-            </mat-form-field>
+    <ng-container *ngIf="jobAttributes$ | async as opts">
+      <mat-option *ngFor="let o of opts; trackBy: trackByValue" [value]="o.value">
+        {{ o.label }}
+      </mat-option>
+    </ng-container>
+  </mat-select>
+
+  <mat-error *ngIf="jobAttributeCtrl.hasError('required')">
+    هذا الحقل مطلوب
+  </mat-error>
+</mat-form-field>
+
+
+ <mat-form-field appearance="outline" class="w-full" dir="rtl">
+  <mat-label>صفة التعيين </mat-label>
+  <mat-select [formControl]="decisionAttributeCtrl">
+    <mat-option [value]="''">— اختر —</mat-option>
+
+    <ng-container *ngIf="decisionAttribute$ | async as opts">
+      <mat-option *ngFor="let o of opts; trackBy: trackByValue" [value]="o.value">
+        {{ o.label }}
+      </mat-option>
+    </ng-container>
+  </mat-select>
+
+  <mat-error *ngIf="decisionAttributeCtrl.hasError('required')">
+    هذا الحقل مطلوب
+  </mat-error>
+</mat-form-field>
+
 
 
              <mat-form-field appearance="outline">

@@ -59,7 +59,10 @@
         <!-- المسمى الوظيفي -->
         <ng-container matColumnDef="jobTitle">
           <th mat-header-cell *matHeaderCellDef>المسمى الوظيفي</th>
-          <td mat-cell *matCellDef="let e">{{ e.jobTitle }}</td>
+          <td mat-cell *matCellDef="let e">  {{ labelOf(jobTitleMap, e.jobTitle) }}
+</td>
+
+          <!-- {{ jobTitleLabel || '—' }} -->
         </ng-container>
 
         <!-- الجنس -->
@@ -67,16 +70,21 @@
           <th mat-header-cell *matHeaderCellDef>الجنس</th>
           <td mat-cell *matCellDef="let e">
             <span class="chip" [class.male]="e.gender==='male'" [class.female]="e.gender==='female'">
-              {{ e.gender === 'male' ? 'ذكر' : (e.gender === 'female' ? 'أنثى' : e.gender) }}
+              <!-- {{ e.gender === 'male' ? 'ذكر' : (e.gender === 'female' ? 'أنثى' : e.gender) }} -->
+
+                {{ labelOf(genderMap, e.gender) }}
+
             </span>
           </td>
         </ng-container>
 
-        <!-- تاريخ الولادة -->
-        <ng-container matColumnDef="birthDate">
-          <th mat-header-cell *matHeaderCellDef>تاريخ الولادة</th>
-          <td mat-cell *matCellDef="let e">{{ e.birthDate }}</td>
-        </ng-container>
+       <ng-container matColumnDef="birthDate">
+  <th mat-header-cell *matHeaderCellDef>تاريخ الولادة</th>
+  <td mat-cell *matCellDef="let e">
+    {{ e.birthDate ? (e.birthDate | date:'yyyy/MM/dd') : '—' }}
+  </td>
+</ng-container>
+
 
         <!-- رقم الملف -->
         <ng-container matColumnDef="paperFileNumber">

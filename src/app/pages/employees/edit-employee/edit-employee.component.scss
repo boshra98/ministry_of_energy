@@ -1,5 +1,6 @@
 :host { display: block; }
 
+/* ===== غلاف الصفحة والبطاقة ===== */
 .gov-page { padding: 16px; background: #f8faf9; }
 
 .gov-card {
@@ -9,6 +10,7 @@
   background: #fff;
 }
 
+/* ===== الهيدر ===== */
 .gov-header {
   display: grid;
   grid-template-columns: 72px 1fr auto;
@@ -29,57 +31,95 @@
   }
 
   .titles {
-    .country { font-weight: 800; color: #0f5132; }
+    .country  { font-weight: 800; color: #0f5132; }
     .ministry { font-weight: 700; color: #1d6e3e; }
-    .dept { color: #2e5d3e; }
+    .dept     { color: #2e5d3e; }
   }
 
   .doc-meta { text-align: left; font-size: 13px; color: #204d36; }
 }
 
+/* ===== عنوان المستند ===== */
 .doc-title {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 18px 8px 18px;
+
   h2 { margin: 0; color: #134e2a; font-weight: 800; }
 }
 
+/* ===== حالات الصفحة ===== */
 .state { padding: 18px; color: #174f31; }
 .state.error { color: #b00020; }
 
+/* ===== شبكة النموذج العامة ===== */
 .form-grid {
   padding: 8px 18px 18px 18px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-
-  .col-2 { grid-column: span 2; }
+  gap: 20px; /* مسافة بين الأقسام (الـ fieldset) */
 }
 
+/* ===== كل قسم (fieldset) ===== */
+.section {
+  border: 1px solid #e3efe6;
+  background: #fcfdfc;
+  border-radius: 12px;
+  padding: 14px;
+
+  /* شبكة الحقول داخل القسم */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(1, 1fr)); /* عمودان افتراضيًا */
+  gap: 14px 16px; /* صف/عمود */
+
+  legend {
+    padding: 0 8px;
+    margin: 0 8px -2px 0;
+    font-weight: 700;
+    color: #1d6e3e;
+  }
+
+  /* كل حقول Angular Material تأخذ العرض الكامل داخل الخلية */
+  .mat-mdc-form-field { width: 100%; }
+}
+
+/* عنصر يمتد عرض القسم كله */
+.col-2 { grid-column: 1 / -1; }
+
+/* ===== أزرار الإجراءات ===== */
 .actions {
-  display: flex; gap: 10px; justify-content: flex-end;
-}
-
-/* للطباعة */
-@media print {
-  .doc-title a, .actions { display: none !important; }
-  .gov-page { padding: 0; background: #fff; }
-  .gov-card { border: none; }
-}
-
-.actions {
-  margin-top: 12px;
+  margin-top: 6px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 
-          
   button[mat-flat-button] {
     border-radius: 10px;
-    color:#02570b;
+    color: #02570b;
     background-color: #dbc189;
-  } 
-  button[mat-stroked-button] {border-radius: 10px;
-    color:#dd2f2f;
-    background-color: #dcc48f;}
+  }
+  button[mat-stroked-button] {
+    border-radius: 10px;
+    color: #dd2f2f;
+    background-color: #dcc48f;
+  }
+}
 
+/* ===== تجاوب الشاشات ===== */
+@media (max-width: 959px) {
+  /* موبايل: عمود واحد داخل كل قسم */
+  .section { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 1280px) {
+  /* شاشات واسعة: 3 أعمدة داخل كل قسم */
+  .section { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ===== للطباعة ===== */
+@media print {
+  .doc-title a, .actions { display: none !important; }
+  .gov-page { padding: 0; background: #fff; }
+  .gov-card { border: none; }
+
+  /* الطباعة بعمود واحد لقراءة أوضح */
+  .section { grid-template-columns: 1fr !important; }
 }

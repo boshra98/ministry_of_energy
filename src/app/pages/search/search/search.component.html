@@ -56,14 +56,17 @@
   <!-- لفّ كل شيء داخل فورم واحد -->
   <form [formGroup]="filtersForm">
     <div class="grid">
-      <!-- الجنس -->
-      <mat-form-field appearance="outline">
-        <mat-label>الجنس</mat-label>
-        <mat-select formControlName="gender">
-          <mat-option value="">الكل</mat-option>
-          <mat-option *ngFor="let g of genders" [value]="g.value">{{ g.label }}</mat-option>
-        </mat-select>
-      </mat-form-field>
+     <!-- الجنس -->
+<mat-form-field appearance="outline">
+  <mat-label>الجنس</mat-label>
+  <mat-select formControlName="gender">
+    <mat-option [value]="''">الكل</mat-option>
+    <mat-option *ngFor="let g of (genders$ | async) ?? []" [value]="g.value">
+      {{ g.label }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
 
       <!-- المسمى الوظيفي -->
       <!-- <mat-form-field appearance="outline">
@@ -80,47 +83,142 @@
 
   <mat-select multiple formControlName="jobTitle">
     <!-- خيار "تحديد الكل" -->
+    <mat-option [value]="ALL" (onSelectionChange)="onOptionToggle('jobTitle', $event, ALL)">
+  تحديد الكل
+</mat-option>
+
+<mat-option *ngFor="let t of jobTitleOpts"
+            [value]="t.value"
+            (onSelectionChange)="onOptionToggle('jobTitle', $event, t.value)">
+  {{ t.label }}
+</mat-option>
+
+
+  </mat-select>
+</mat-form-field>
+
+<mat-form-field appearance="outline" class="w-full">
+  <mat-label>الصفة الوظيفية</mat-label>
+
+  <mat-select multiple formControlName="jobAttribute" panelClass="w-80">
     <mat-option
       [value]="ALL"
-      (onSelectionChange)="onOptionToggle('jobTitle', $event, ALL)">
-      تحديد الكل
+      (onSelectionChange)="onOptionToggle('jobAttribute', $event, ALL)">
+      الكل
     </mat-option>
 
-    <!-- باقي الخيارات -->
     <mat-option
-      *ngFor="let title of jobTitles"
-      [value]="title"
-      (onSelectionChange)="onOptionToggle('jobTitle', $event, title)">
-      {{ title }}
+      *ngFor="let o of jobAttributeOpts; trackBy: trackByValue"
+      [value]="o.value"
+      (onSelectionChange)="onOptionToggle('jobAttribute', $event, o.value)">
+      {{ o.label }}
     </mat-option>
   </mat-select>
 </mat-form-field>
 
 
 
+<mat-form-field appearance="outline" class="w-full">
+  <mat-label>الفئة الوظيفية</mat-label>
+
+  <mat-select multiple formControlName="jobCategory" panelClass="w-80">
+    <mat-option
+      [value]="ALL"
+      (onSelectionChange)="onOptionToggle('jobCategory', $event, ALL)">
+      الكل
+    </mat-option>
+
+    <mat-option
+      *ngFor="let o of jobCategoryOpts; trackBy: trackByValue"
+      [value]="o.value"
+      (onSelectionChange)="onOptionToggle('jobCategory', $event, o.value)">
+      {{ o.label }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+
+
+<mat-form-field appearance="outline" class="w-full">
+  <mat-label>نوع التعيين</mat-label>
+
+  <mat-select multiple formControlName="appointmentType" panelClass="w-80">
+    <mat-option
+      [value]="ALL"
+      (onSelectionChange)="onOptionToggle('appointmentType', $event, ALL)">
+      الكل
+    </mat-option>
+
+    <mat-option
+      *ngFor="let o of appointmentTypesOpts; trackBy: trackByValue"
+      [value]="o.value"
+      (onSelectionChange)="onOptionToggle('appointmentType', $event, o.value)">
+      {{ o.label }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+
+<mat-form-field appearance="outline" class="w-full">
+  <mat-label>صفة التعيين</mat-label>
+
+  <mat-select multiple formControlName="decisionAttribute" panelClass="w-80">
+    <mat-option
+      [value]="ALL"
+      (onSelectionChange)="onOptionToggle('decisionAttribute', $event, ALL)">
+      الكل
+    </mat-option>
+
+    <mat-option
+      *ngFor="let o of decisionAttributeOpts; trackBy: trackByValue"
+      [value]="o.value"
+      (onSelectionChange)="onOptionToggle('decisionAttribute', $event, o.value)">
+      {{ o.label }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+
+
+
+
+
+
+
+
+
+
+
       <!-- التحصيل العلمي -->
 
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="w-full">
   <mat-label>التحصيل العلمي</mat-label>
   <!-- <mat-select formControlName="education" [multiple]="true" (selectionChange)="onMultiSelectChange('education')">
     <mat-option [value]="ALL">الكل</mat-option>
     <mat-option *ngFor="let ed of educations" [value]="ed">{{ ed }}</mat-option>
   </mat-select> -->
-  <mat-select multiple formControlName="education"
-            panelClass="w-80">
-  <mat-option [value]="ALL"
-              (onSelectionChange)="onOptionToggle('education', $event, ALL)">
-    الكل
-  </mat-option>
+ 
+  <mat-select multiple formControlName="education" panelClass="w-80" >
+    <!-- خيار "الكل" -->
+    <mat-option
+      [value]="ALL"
+      (onSelectionChange)="onOptionToggle('education', $event, ALL)">
+      الكل
+    </mat-option>
 
-  <mat-option *ngFor="let opt of educations"
-              [value]="opt"
-              (onSelectionChange)="onOptionToggle('education', $event, opt)">
-    {{ opt }}
-  </mat-option>
-</mat-select>
+    <!-- باقي الخيارات من LookupService -->
+    <mat-option
+      *ngFor="let e of educationOpts"
+      [value]="e.value"
+      (onSelectionChange)="onOptionToggle('education', $event, e.value)">
+      {{ e.label }}
+    </mat-option>
 
+     
+  </mat-select>
 </mat-form-field>
+
+
 
 
 
@@ -144,21 +242,20 @@
   <mat-label>زمرة الدم</mat-label>
 
   <!-- لا نستخدم selectionChange على mat-select -->
-  <mat-select multiple formControlName="bloodType">
-
-    <!-- خيار "الكل" -->
+   <mat-select multiple formControlName="bloodType">
+    <!-- الكل -->
     <mat-option
       [value]="ALL"
       (onSelectionChange)="onOptionToggle('bloodType', $event, ALL)">
       الكل
     </mat-option>
 
-    <!-- باقي الخيارات، كل خيار عليه onSelectionChange -->
+    <!-- الخيارات القادمة من LookupService -->
     <mat-option
-      *ngFor="let bt of bloodTypes"
-      [value]="bt"
-      (onSelectionChange)="onOptionToggle('bloodType', $event, bt)">
-      {{ bt }}
+      *ngFor="let bt of bloodTypeOpts"
+      [value]="bt.value"
+      (onSelectionChange)="onOptionToggle('bloodType', $event, bt.value)">
+      {{ bt.label }}
     </mat-option>
   </mat-select>
 </mat-form-field>
@@ -239,6 +336,8 @@
         <mat-datepicker #bdTo></mat-datepicker>
       </mat-form-field>
 
+      
+
       <mat-form-field appearance="outline">
         <mat-label>تاريخ التعيين (من)</mat-label>
         <input matInput [matDatepicker]="wdFrom" formControlName="workFrom">
@@ -294,7 +393,7 @@
         إلغاء الكل
       </button>
       <span class="mat-caption" style="margin-inline-start:auto;">
-        {{ (columnPicker.value.length || 0) }} محدّد
+        {{ (columnPicker.value?.length || 0) }} محدّد
       </span>
     </div>
 
@@ -312,7 +411,12 @@
 <!-- (اختياري) عرض مختصر كـ Chips لما تم اختياره -->
 <div class="chips-wrap" *ngIf="(columnPicker.value?.length || 0) > 0" style="margin-top:6px;">
   <mat-chip-set>
-    <mat-chip *ngFor="let id of columnPicker.value">{{ columnLabel(id) }}</mat-chip>
+    <!-- <mat-chip *ngFor="let id of columnPicker.value">{{ columnLabel(id) }}</mat-chip> -->
+      <!-- <mat-chip *ngFor="let c of columnPicker.value">{{ columnLabel(c) }}</mat-chip> -->
+  <mat-chip *ngFor="let id of columnPicker.value">{{ columnLabel(id) }}</mat-chip>
+
+
+
   </mat-chip-set>
 </div>
 
@@ -344,9 +448,43 @@
       @switch (c.id) {
         @case ('index') { {{ i + 1 }} }
         @case ('fullName') { {{ e.firstName }} {{ e.fatherName }} {{ e.lastName }} }
-        @case ('jobTitle') { {{ e.jobTitle }} }
-        @case ('bloodType') { {{ e.bloodType }} }
-        @case ('education') { {{ e.education }} }
+
+        @case ('jobTitle') {
+  {{ labelOf(jobTitleOpts, e.jobTitle ?? $any(e).details?.jobTitle ?? '') }}
+}
+@case ('education') {
+  {{ labelOf(educationOpts, e.education ?? $any(e).details?.education ?? '') }}
+}
+@case ('bloodType') {
+  {{ labelOf(bloodTypeOpts, e.bloodType ?? $any(e).personals?.bloodType ?? '') }}
+}
+
+        <!-- @case ('jobTitle') { {{ e.jobTitle }} } -->
+        <!-- @case ('bloodType') { {{ e.bloodType }} } -->
+        <!-- @case ('education') { {{ e.education }} } -->
+        @case ('jobAttribute') { 
+{{ labelOf(jobAttributeOpts, e.jobAttribute ?? '') }}
+         }  
+
+           @case ('jobCategory') { 
+{{ labelOf(jobCategoryOpts, e.jobCategory ?? '') }}
+         }
+
+            @case ('decisionAttribute') {
+{{ labelOf(decisionAttributeOpts, e.decisionAttribute ?? '') }}
+         }
+
+            @case ('appointmentType') {
+{{ labelOf(appointmentTypesOpts, e.appointmentType ?? '') }}
+          }
+
+        @case ('birthDate'){
+           @if (e.birthDate) {
+    {{ e.birthDate | date:'dd/MM/yyyy' }}
+  } @else { — }
+
+
+        }
         @case ('workDate') {
   @if (e.workDate) {
     {{ e.workDate | date:'dd/MM/yyyy' }}

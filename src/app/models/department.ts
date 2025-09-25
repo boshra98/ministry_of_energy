@@ -54,9 +54,9 @@ export const DEPARTMENTS: OrgNode[] = [
             code: 'CENTRAL-OFFICE-DAM',
             name: 'دمشق',
             subs: [
-              { code: 'CENTRAL-OFFICE-DAM-F5', name: 'الطابق الأول' },
-              { code: 'CENTRAL-OFFICE-DAM-F5', name: 'الطابق الثالث' },
-             { code: 'CENTRAL-OFFICE-DAM-F5', name: 'الطابق الخامس' }
+              { code: 'CENTRAL-OFFICE-DAM-F5', name: ' دائرة الشبكات' },
+              { code: 'CENTRAL-OFFICE-DAM-F4', name: 'دائرة المعلوماتية' },
+             { code: 'CENTRAL-OFFICE-DAM-F3', name: 'دائرة المحاسبة' }
 
 
             ]
@@ -66,7 +66,7 @@ export const DEPARTMENTS: OrgNode[] = [
             code: 'CENTRAL-OFFICE-HAM',
             name: 'حماة',
             subs: [
-              { code: 'CENTRAL-OFFICE-DAM-F5', name: 'الطابق الخامس' }
+              { code: 'CENTRAL-OFFICE-DAM-F5', name: ' دائرة الشبكات' }
             ]
           }
 
@@ -80,13 +80,36 @@ export const DEPARTMENTS: OrgNode[] = [
             code: 'CENTRAL-OFFICE-DAM',
             name: 'دمشق',
             subs: [
-              { code: 'CENTRAL-OFFICE-DAM-F5', name: 'الطابق الخامس' }
+              { code: 'CENTRAL-OFFICE-DAM-F5', name: ' دائرة المعلوماتية' }
             ]
           }
         ]
         
         },
-      { code: 'CENTRAL-IT', name: 'مديرية التقانة' },
+     { 
+  code: 'CENTRAL-IT', 
+  name: 'مديرية التقانة والتحول الرقمي',
+  subs: [
+    { 
+      code: 'CENTRAL-OFFICE-DAM-INFRA', 
+      name: 'دائرة البنية التحتيه ومراكز البيانات',
+      subs: [
+        { code: 'CENTRAL-INFRA-NETWORK', name: 'شعبة الشبكات' },
+        { code: 'CENTRAL-INFRA-DATACENTER', name: 'شعبة مراكز البيانات' },
+      ]
+    },
+    { 
+      code: 'CENTRAL-OFFICE-DAM-SYSDEV', 
+      name: 'دائرة تطوير المنظومات والخدمات الرقمية',
+      subs: [
+        { code: 'CENTRAL-SYSDEV-APPS', name: 'شعبة تطبيقات الأعمال والبوابات' },
+        { code: 'CENTRAL-SYSDEV-MOBILE', name: 'شعبة تطبيقات الموبايل والقنوات متعددة الواجهات' },
+      ]
+    },
+  ]
+},
+
+
       { code: 'CENTRAL-DEV', name: 'مديرية التنمية' },
     ]
   },
