@@ -214,27 +214,33 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { OrgNamePipe } from '../../../pipes/org-name.pipe';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTab } from '@angular/material/tabs';
+import { EmploymentChangeTabComponent } from "../employment-change-tab/employment-change-tab.component";
+import { EMPLOYMENT_CHANGES_PORT } from '../../../services/employment-changes.port';
+import { deriveCurrentState } from '../../../utils/derive-current';
 
 @Component({
   standalone: true,
   selector: 'app-browse-employee',
- imports: [CommonModule, MatCardModule, MatIconModule, MatDividerModule, MatChipsModule, MatButtonModule,OrgNamePipe],
+ imports: [CommonModule, MatCardModule, MatIconModule, MatDividerModule, MatChipsModule, MatButtonModule, OrgNamePipe, MatTabsModule, MatTab, EmploymentChangeTabComponent],
 
   templateUrl: './browse-employee.component.html',
   styleUrls: ['./browse-employee.component.scss'],
 })
 export class BrowseEmployeeComponent implements OnInit, OnDestroy {
-// edit() {
-// throw new Error('Method not implemented.');
-// }
+Array: any;
+
 
   edit(emp: Employee) {
     this.router.navigate(['/employees/edit', emp.id]);
   }
+
   private route  = inject(ActivatedRoute);
   private router = inject(Router);
   private store  = inject(LocalEmployeesService);
   private lookup = inject(LookupService);
+  private port   = inject(EMPLOYMENT_CHANGES_PORT);          // ✅ منفذ سجلّ التبدلات
 
   private destroy$ = new Subject<void>();
 
@@ -243,7 +249,10 @@ export class BrowseEmployeeComponent implements OnInit, OnDestroy {
   orgTree: OrgNode[] = DEPARTMENTS;
   orgOpts = { tree: this.orgTree, mode: 'path' as const, sep: ' | ' };
 
-  employee?: Employee;
+  employee?: Employee;                // أساس (كما هو مخزّن)
+  employeeInitial?: Employee;         // ✅ أول تعيين (نسخة مجمّدة)
+  employeeSnapshot?: Employee;        // ✅ الحالة الحالية المشتقّة من التبدلات
+
   loading = true;
   notFound = false;
   photoUrl?: string;
@@ -253,79 +262,72 @@ export class BrowseEmployeeComponent implements OnInit, OnDestroy {
   maritalMap  = new Map<string, string>();
   jobTitleMap = new Map<string, string>();
   emergencyContentRelationMap = new Map<string,string>();
-  jobAttributeMap = new Map<string, string>(); // 
-  jobCategoryMap = new Map<string, string>(); 
+  jobAttributeMap = new Map<string, string>();
+  jobCategoryMap = new Map<string, string>();
   decisionAttributeMap = new Map<string, string>();
   appointmentTypesMap = new Map<string, string>();
+  educationMap = new Map<string, string>();
 
-
-
-
-window: any;
+  window: any;
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) { this.notFound = true; this.loading = false; return; }
-
-    // جِب الموظف
-    const list = this.store.list();
-    this.employee = list.find(e => e.id === id) ?? undefined;
-    this.notFound = !this.employee;
-    this.loading = false;
-
-    // ابنِ الخرائط من الـLookupService
+    this.init(); // نفّذ التهيئة غير المتزامنة
+    // ابنِ الخرائط من الـ LookupService
     this.lookup.genders$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((opts: LookupOption[]) => {
-        this.genderMap = new Map(opts.map(o => [o.value, o.label]));
-      });
-
+      .subscribe((opts: LookupOption[]) => this.genderMap = new Map(opts.map(o => [o.value, o.label])));
     this.lookup.maritalStatus$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((opts: LookupOption[]) => {
-        this.maritalMap = new Map(opts.map(o => [o.value, o.label]));
-      });
-
+      .subscribe((opts: LookupOption[]) => this.maritalMap = new Map(opts.map(o => [o.value, o.label])));
     this.lookup.jobTitles$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((opts: LookupOption[]) => {
-        this.jobTitleMap = new Map(opts.map(o => [o.value, o.label]));
-      });
-
-      this.lookup.JOBATTRIBUTE_DEFAULTES$
-  .pipe(takeUntil(this.destroy$))
-  .subscribe((opts: LookupOption[]) => {
-    // value → label
-    this.jobAttributeMap = new Map(opts.map(o => [o.value, o.label]));
-  });
-
-   this.lookup.JOBCATEGORY_DEFAULTES$
-  .pipe(takeUntil(this.destroy$))
-  .subscribe((opts: LookupOption[]) => {
-    // value → label
-    this.jobCategoryMap = new Map(opts.map(o => [o.value, o.label]));
-  });
-  this.lookup.emergencyRelations$
-  .pipe(takeUntil(this.destroy$))
-  .subscribe((opts: LookupOption[]) =>{
-    this.emergencyContentRelationMap = new Map(opts.map(o => [o.value, o.label]));
+      .subscribe((opts: LookupOption[]) => this.jobTitleMap = new Map(opts.map(o => [o.value, o.label])));
+    this.lookup.JOBATTRIBUTE_DEFAULTES$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((opts: LookupOption[]) => this.jobAttributeMap = new Map(opts.map(o => [o.value, o.label])));
+    this.lookup.JOBCATEGORY_DEFAULTES$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((opts: LookupOption[]) => this.jobCategoryMap = new Map(opts.map(o => [o.value, o.label])));
+    this.lookup.emergencyRelations$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((opts: LookupOption[]) => this.emergencyContentRelationMap = new Map(opts.map(o => [o.value, o.label])));
+    this.lookup.decisionAttribute_DEFAULTES$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((opts: LookupOption[]) => this.decisionAttributeMap = new Map(opts.map(o => [o.value, o.label])));
+    this.lookup.appointmentTypes_DEFAULTES$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((opts: LookupOption[]) => this.appointmentTypesMap = new Map(opts.map(o => [o.value, o.label])));
+    this.lookup.educations$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((opts: LookupOption[]) => this.educationMap = new Map(opts.map(o => [o.value, o.label])));
   }
-  );
-  this.lookup.decisionAttribute_DEFAULTES$
-  .pipe(takeUntil(this.destroy$))
-  .subscribe((opts: LookupOption[]) => {
-    // value → label
-    this.decisionAttributeMap = new Map(opts.map(o => [o.value, o.label]));
 
-  });
+ private async init() {
+  const id = this.route.snapshot.paramMap.get('id');
+  if (!id) { this.notFound = true; this.loading = false; return; }
 
-  this.lookup.appointmentTypes_DEFAULTES$
-  .pipe(takeUntil(this.destroy$))
-  .subscribe((opts: LookupOption[]) => {
-    // value → label
-    this.appointmentTypesMap = new Map(opts.map(o => [o.value, o.label]));
-  });
+  // 1) جِب الموظف الأساس
+  const list = this.store.list();
+  this.employee = list.find(e => e.id === id) ?? undefined;
+  this.notFound = !this.employee;
+  if (!this.employee) { this.loading = false; return; }
+
+  // 2) ثبّت "أول تعيين" بنسخة مجمّدة (بدون التكرار)
+  this.employeeInitial = this.deepClone(this.employee); // ← احتفِظ بواحدة
+  Object.freeze(this.employeeInitial);                  // تجميد لمنع أي تعديل بالخطأ
+
+  // 3) اشتقّ الحالة الحالية من سجلّ التبدلات فقط
+  try {
+    const changes = await this.port.list(id);
+    this.employeeSnapshot = deriveCurrentState(this.employeeInitial, changes);
+  } catch (err) {
+    console.error('[BrowseEmployee.init] failed to load changes', err);
+    this.employeeSnapshot = this.employeeInitial; // fallback إلى الأول
+  } finally {
+    this.loading = false;
+  }
 }
+
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -333,105 +335,263 @@ window: any;
   }
 
   // —— تنقّل —— //
-  goHome() {
-    this.router.navigate(['']);
+  goHome() { this.router.navigate(['']); }
+  back()   { this.router.navigate(['/search']); }
+
+  // ===== أدوات مصادر العرض =====
+  private deepClone<T>(obj: T): T {
+    return JSON.parse(JSON.stringify(obj));
   }
-  back() {
-    this.router.navigate(['/search']);
-  }
+  private get E0(): any   { return this.employeeInitial; }                             // أول تعيين
+  private get Ecur(): any { return this.employeeSnapshot ?? this.employeeInitial; }
+  
+  
+  private pickPlaceInitial(src: any): string | string[] | undefined {
+  return src?.placeActionWork
+      ?? src?.workdetails?.placeActionWork
+      ?? src?.currentJoblocation
+      ?? undefined;
+}
+  
+  // الحالي
 
-
-  private get jobAttributeValue(): string | undefined {
-  const e: any = this.employee;
-  // يدعم إن كانت بالقسم العلوي أو داخل workdetails
-  return e?.jobAttribute ?? e?.workdetails?.jobAttribute ?? undefined;
+  private pickJobAttribute(src: any): string | undefined {
+  return src?.currentJobAttribute
+      ?? src?.jobAttribute
+      ?? src?.workdetails?.jobAttribute
+      ?? undefined;
 }
 
- private get jobCayegoryValue(): string | undefined {
-  const e: any = this.employee;
-  // يدعم إن كانت بالقسم العلوي أو داخل workdetails
-  return e?.jobCategory ?? e?.workdetails?.jobCategory ?? undefined;
-}
- private get EMERGENCyValues(): string | undefined {
-  const e: any = this.employee;
-  // يدعم إن كانت بالقسم العلوي أو داخل workdetails
-  return e?.emergencyContentRelation ?? e?.communication?.EMERGENCY_RELATIONS ?? undefined;
+private pickAppointmentTypeInitial(src: any): string | undefined {
+  return src?.appointmentType
+      ?? src?.appointemntType        // تهجئة قديمة
+      ?? src?.workdetails?.appointmentType
+      ?? src?.currentappointmentType // أخيراً فقط
+      ?? src?.currentAppointmentType
+      ?? undefined;
 }
 
-private get decisionAttributeValue(): string | undefined {
-  const e: any = this.employee;
-  return e?.decisionAttribute ?? e?.workdetails?.decisionAttribute ?? undefined;
+
+private pickPlaceCurrent(src: any): string | string[] | undefined {
+  return src?.currentJoblocation
+      ?? src?.placeActionWork
+      ?? src?.workdetails?.placeActionWork
+      ?? undefined;
+}
+private pickAppointmentTypeCurrent(src: any): string | undefined {
+  return src?.currentappointmentType
+      ?? src?.currentAppointmentType
+      ?? src?.appointmentType
+      ?? src?.appointemntType
+      ?? src?.workdetails?.appointmentType
+      ?? undefined;
+}
+private pickJobCategory(src: any): string | undefined {
+  return src?.currentJobCategory
+      ?? src?.jobCategory
+      ?? src?.workdetails?.jobCategory
+      ?? undefined;
+}
+private pickAppointmentType(src: any): string | undefined {
+  // لديك currentappointmentType بحرف a صغيرة بعد current
+  return src?.currentappointmentType
+      ?? src?.currentAppointmentType
+      ?? src?.appointmentType
+      ?? src?.appointemntType
+      ?? src?.workdetails?.appointmentType
+      ?? undefined;
+}
+private pickJobTitle(src: any): string | undefined {
+  return src?.currentJobTitle
+      ?? src?.jobTitle
+      ?? src?.workdetails?.jobTitle
+      ?? undefined;
+}
+private pickSalary(src: any): string | undefined {
+  return src?.currentSalary
+      ?? src?.salary
+      ?? src?.workdetails?.salary
+      ?? undefined;
+}
+private pickDecisionText(src: any): string | undefined {
+  return src?.currentDecisionAppointment
+      ?? src?.decisionAppointment
+      ?? src?.workdetails?.decisionAppointment
+      ?? undefined;
+}
+private pickDecisionDate(src: any): Date | string | undefined {
+  return src?.datecurrentDecisionAppointment
+      ?? src?.decisionDate
+      ?? src?.workdetails?.decisionDate
+      ?? undefined;
+}
+private pickPlace(src: any): string | undefined {
+  return src?.currentJoblocation          // 👈 اجعل الحالي أولاً
+      ?? src?.placeActionWork
+      ?? src?.workdetails?.placeActionWork
+      ?? undefined;
+}
+private pickEducation(src: any): string | undefined {
+  return src?.education ?? src?.details?.education ?? undefined;
+}
+private pickEmergencyRelation(src: any): string | undefined {
+  return src?.emergencyContentRelation ?? src?.communication?.EMERGENCY_RELATIONS ?? undefined;
 }
 
-private get appointemntTypeValue(): string | undefined {
-  const e: any = this.employee;
-  return e?.appointemntType ?? e?.workdetails?.appointemntType ?? undefined;
+  // ===== قيم “الحالي” (للتوافق مع القالب القديم) =====
+  // private get jobAttributeValue(): string | undefined { return this.pickJobAttribute(this.Ecur); }
+
+ private get jobAttributeValue(): string | undefined { return this.pickJobAttribute(this.Ecur); }
+private get jobCategoryValue():  string | undefined { return this.pickJobCategory(this.Ecur); }
+private get appointmentTypeValue(): string | undefined { return this.pickAppointmentType(this.Ecur); }
+private get educationValue(): string | undefined { return this.pickEducation(this.Ecur); }
+private get decisionAttributeValue(): string | undefined { return this.Ecur?.decisionAttribute ?? this.Ecur?.workdetails?.decisionAttribute ?? undefined; }
+
+
+
+/** حوّل string[] إلى string (join) وأزل '—' */
+private normalizePlaceForPipe(
+  v: string | string[] | null | undefined
+): string | null {
+  if (!v) return null;
+  // لو عندك احتمال أن getter يرجّع '—' حرفيًا:
+  if (v === '—') return null as any;
+
+  return Array.isArray(v)
+    ? v.filter(Boolean).join('/')    // أو أي فاصل تُفضّله
+    : v;
 }
 
+get place_initial_view(): string | null {
+  // place_initial: string | string[]
+  const v = this.place_initial as any;
+  return this.normalizePlaceForPipe(v);
+}
+
+get place_current_view(): string | null {
+  // place_current: string | string[]
+  const v = this.place_current as any;
+  return this.normalizePlaceForPipe(v);
+}
+
+  // ===== لابلات “الحالي” (قديمة) =====
+// ─────────────────────────────────────────────
+// Helpers: تحويل كود → لابل مع فاصل افتراضي
+// ─────────────────────────────────────────────
+private asLabel(v?: string | null, map?: Map<string, string>): string {
+  if (!v) return '—';
+  return map?.get(v) ?? v;
+}
+private asDateLabel(v?: string | Date | null): string {
+  return this.formatDate(v ?? null);
+}
+
+// ─────────────────────────────────────────────
+// لابلات "الحالي" (للتوافق مع كود قديم في القالب)
+// ─────────────────────────────────────────────
 get jobAttributeLabel(): string {
-  const v = this.jobAttributeValue;
-  if (!v) return '—';
-  // توافق خلفي: لو كانت البيانات القديمة مخزنة label وليس value
-  return this.jobAttributeMap.get(v) ?? v;
+  return this.asLabel(this.jobAttributeValue, this.jobAttributeMap);
 }
-
 get jobCategoryLabel(): string {
-  const v = this.jobCayegoryValue;
-  if (!v) return '—';
-  // توافق خلفي: لو كانت البيانات القديمة مخزنة label وليس value
-  return this.jobCategoryMap.get(v) ?? v;
+  return this.asLabel(this.jobCategoryValue, this.jobCategoryMap);
 }
-
 get EMERGENCYLabel(): string {
-  const v = this.EMERGENCyValues;
-  if (!v) return '—';
-  // توافق خلفي: لو كانت البيانات القديمة مخزنة label وليس value
-  return this.emergencyContentRelationMap.get(v) ?? v;
-
+  const v = this.pickEmergencyRelation(this.employee);
+  return this.asLabel(v, this.emergencyContentRelationMap);
 }
 get decisionAttributeLabel(): string {
-
-  const v = this.decisionAttributeValue;
-  if (!v) return '—';
-  return this.decisionAttributeMap.get(v) ?? v;
-
-
+  return this.asLabel(this.decisionAttributeValue, this.decisionAttributeMap);
 }
-get appointmentTypesLabel(): string {
-  const v = this.appointemntTypeValue;
-  if (!v) return '—';
-  return this.appointmentTypesMap.get(v) ?? v;
+get appointmentTypeLabel_current(): string {
+  const v = this.pickAppointmentTypeCurrent(this.Ecur);
+  return this.asLabel(v, this.appointmentTypesMap);
 }
+get place_current(): string | string[] {
+  return this.pickPlaceCurrent(this.Ecur) ?? '—';
+}
+get educationLabel(): string {
+  return this.asLabel(this.educationValue, this.educationMap);
+}
+
+// ─────────────────────────────────────────────
+// لابلات "أول تعيين" (Initial)
+// ─────────────────────────────────────────────
+get jobAttributeLabel_initial(): string {
+  const v = this.pickJobAttribute(this.E0);
+  return this.asLabel(v, this.jobAttributeMap);
+}
+get jobCategoryLabel_initial(): string {
+  const v = this.pickJobCategory(this.E0);
+  return this.asLabel(v, this.jobCategoryMap);
+}
+get appointmentTypeLabel_initial(): string {
+  const v = this.pickAppointmentTypeInitial(this.E0);
+  return this.asLabel(v, this.appointmentTypesMap);
+}
+get jobTitleLabel_initial(): string {
+  const v = this.pickJobTitle(this.E0);
+  return this.asLabel(v, this.jobTitleMap);
+}
+get salary_initial(): string {
+  return this.pickSalary(this.E0) ?? '—';
+}
+get decision_initial(): string {
+  return this.pickDecisionText(this.E0) ?? '—';
+}
+get decisionDate_initial(): string {
+  return this.asDateLabel(this.pickDecisionDate(this.E0));
+}
+get place_initial(): string | string[] {
+  return this.pickPlaceInitial(this.E0) ?? '—';
+}
+
+// ─────────────────────────────────────────────
+// لابلات "الحالي" (Current)
+// ─────────────────────────────────────────────
+get jobAttributeLabel_current(): string {
+  const v = this.pickJobAttribute(this.Ecur);
+  return this.asLabel(v, this.jobAttributeMap);
+}
+get jobCategoryLabel_current(): string {
+  const v = this.pickJobCategory(this.Ecur);
+  return this.asLabel(v, this.jobCategoryMap);
+}
+get jobTitleLabel_current(): string {
+  const v = this.pickJobTitle(this.Ecur);
+  return this.asLabel(v, this.jobTitleMap);
+}
+get salary_current(): string {
+  return this.pickSalary(this.Ecur) ?? '—';
+}
+get decision_current(): string {
+  return this.pickDecisionText(this.Ecur) ?? '—';
+}
+get decisionDate_current(): string {
+  return this.asDateLabel(this.pickDecisionDate(this.Ecur));
+}
+
+ 
+
   // —— عرض الجنسيات —— //
   private getOtherNationality(e: any): string | null {
     if (!e) return null;
     const direct = (e.otherNationality ?? e.basic?.otherNationality ?? '').trim();
     if (direct) return direct;
-
     const nat = e.nationality ?? e.basic?.nationality;
     if (Array.isArray(nat) && nat.includes(OTHER_VALUE)) return null;
     return null;
   }
-
   get nationalityListClean(): string[] {
     const e: any = this.employee ?? null;
     if (!e) return [];
-
     const raw = e.nationality ?? e.basic?.nationality ?? [];
-    let list: string[] = Array.isArray(raw)
-      ? raw
-      : (typeof raw === 'string' ? raw.split(/[,\u060C]/) : []);
-
-    list = list
-      .map(v => (typeof v === 'string' ? v.trim() : ''))
-      .filter(v => v && v !== OTHER_VALUE && v !== 'غير ذلك');
-
+    let list: string[] = Array.isArray(raw) ? raw : (typeof raw === 'string' ? raw.split(/[,\u060C]/) : []);
+    list = list.map(v => (typeof v === 'string' ? v.trim() : ''))
+               .filter(v => v && v !== OTHER_VALUE && v !== 'غير ذلك');
     const other = this.getOtherNationality(e);
     if (other && !list.includes(other)) list.push(other);
-
     return list;
   }
-
   get nationalityDisplay(): string {
     const list = this.nationalityListClean;
     return list.length ? list.join('، ') : '—';
@@ -443,23 +603,32 @@ get appointmentTypesLabel(): string {
     return map.get(code) ?? '—';
   }
 
-  // استخدمها في القالب:
+  // حقول شخصية (لا تتبدّل غالبًا بالتبدلات)
   get genderLabel(): string {
     return this.labelOf(this.genderMap, this.employee?.gender);
   }
   get maritalStatusLabel(): string {
     return this.labelOf(this.maritalMap, this.employee?.materialStatus);
   }
-  get jobTitleLabel(): string {
-    return this.labelOf(this.jobTitleMap, this.employee?.jobTitle);
+//   get jobTitleLabel(): string {
+//     // للتوافق القديم: اعرض الحالي
+//     const v = this.pickJobTitle(this.Ecur); if (!v) return '—';
+//     return this.jobTitleMap.get(v) ?? v;
+// }  
+get jobTitleLabel(): string {
+  const e: any = this.employeeSnapshot ?? this.employee;
+  const code = e?.currentJobTitle         // ✅ الحالي
+            ?? e?.jobTitle                // أول/قديم
+            ?? e?.workdetails?.jobTitle
+            ?? null;
+  if (!code) return '—';
+  return this.jobTitleMap.get(code) ?? code;
+}
+  // من تبويب التبدلات: يُحدّث اللقطة الحالية فقط
+  onSnapshotChange(emp: Employee) {
+    this.employeeSnapshot = this.deepClone(emp);
+    console.log('SNAP', emp);
   }
-
-  
-
- 
-  
-
-
 
   // —— تنسيق تواريخ —— //
   formatDate(v?: string | Date | null): string {
@@ -473,10 +642,26 @@ get appointmentTypesLabel(): string {
   }
   today = () => new Date();
 
-  // —— مسار مكان المباشرة —— //
+  // // —— مسار مكان المباشرة —— //
+  // get placeActionWork(): string {
+  //   const snap = this.pickPlace(this.Ecur);
+  //   const base = this.pickPlace(this.employee);
+  //   return snap ?? base ?? '—';
+  // }
+
+
   get placeActionWork(): string {
-    return this.employee?.placeActionWork
-      ?? (this.employee as any)?.workdetails?.placeActionWork
-      ?? '—';
-  }
+  const e: any = this.employeeSnapshot ?? this.employee;
+  const code =
+      e?.currentJoblocation              // ✅ الحالي من التبدّلات
+   ?? e?.placeActionWork                 // أول/قديم
+   ?? e?.workdetails?.placeActionWork
+   ?? null;
+
+  return code
+    ? this.orgOpts.tree /* pipe بالـ template */ && code
+    : '—';
 }
+
+}
+

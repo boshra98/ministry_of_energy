@@ -85,15 +85,25 @@ export type EmployeeForm = FormGroup<{
     jobAttribute: FormControl<string>;
     startingSalary: FormControl<string>;
     notes: FormControl<string>;
-
     statusWork: FormControl<string>;
     dateStatusWork: FormControl<Date | null>;
+    
+  }>;
+
+  currentworkdetails: FormGroup<{
     currentJoblocation: FormControl<string>;
     currentDecisionAppointment: FormControl<string>;
     datecurrentDecisionAppointment: FormControl<Date | null>;
     currentSalary: FormControl<string>;
+    // currentWorkplace: FormControl<string>;
+    currentjobtitle: FormControl<string | null>;
+    currentjobcategory: FormControl<string | null>;
+    currentjobattribute: FormControl<string | null>;
+    currentappointmentType: FormControl<string | null>;
   }>;
+
 }>;
+
 
 /** الدالة الموحّدة لإنشاء النموذج */
 export function createEmployeeForm(fb: NonNullableFormBuilder): EmployeeForm {
@@ -167,10 +177,18 @@ export function createEmployeeForm(fb: NonNullableFormBuilder): EmployeeForm {
 
       statusWork:                 fb.control(''),
       dateStatusWork:             fb.control<Date | null>(null),
+     
+    }),
+    currentworkdetails: fb.group({
       currentJoblocation:         fb.control(''),
       currentDecisionAppointment: fb.control(''),
       datecurrentDecisionAppointment: fb.control<Date | null>(null),
       currentSalary:              fb.control(''),
+      // currentWorkplace:           fb.control(''),
+      currentjobtitle:            fb.control(''),
+      currentjobcategory:         fb.control(''),
+      currentjobattribute:        fb.control(''),
+      currentappointmentType:        fb.control(''),
     }),
   }) as EmployeeForm;
 }

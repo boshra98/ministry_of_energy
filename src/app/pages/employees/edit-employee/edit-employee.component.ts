@@ -206,8 +206,8 @@ trackByValue = (_: number, it: { value: string }) => it.value;
 
   private findEmployee(id: string): Employee | undefined {
     return this.store.list().find(e => e.id === id);
-  }
-  
+  } 
+  //
   private patchForm(emp: Employee): void {
     // يملأ كل الحقول (Date|null وغيرها) من الموديل
     employeeToForm(emp, this.form);

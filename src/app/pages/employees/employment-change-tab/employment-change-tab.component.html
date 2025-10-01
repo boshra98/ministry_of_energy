@@ -1,0 +1,74 @@
+<div class="toolbar">
+  <button mat-raised-button color="primary" (click)="openAdd()">
+    <mat-icon>playlist_add</mat-icon>
+    إضافة تبدّل
+  </button>
+  
+</div>
+
+<table mat-table [dataSource]="changes || []" class="mat-elevation-z1 fullw">
+  <!-- النوع -->
+  <ng-container matColumnDef="type">
+    <th mat-header-cell *matHeaderCellDef> النوع </th>
+    <td mat-cell *matCellDef="let c">{{ changeTypeLabel(c.type) }}</td>
+  </ng-container>
+
+  <!-- تاريخ النفاذ -->
+  <ng-container matColumnDef="effectiveFrom">
+    <th mat-header-cell *matHeaderCellDef> تاريخ النفاذ </th>
+    <td mat-cell *matCellDef="let c">{{ c.effectiveFrom | date:'dd/MM/yyyy' }}</td>
+  </ng-container>
+
+  <!-- التغييرات -->
+  <!-- عرض التغييرات التي تطرأ على التغييرات الوظيفية :: -->
+  <ng-container matColumnDef="diff">
+    <th mat-header-cell *matHeaderCellDef> التغييرات </th>
+    <td mat-cell *matCellDef="let c">
+      <div class="diff">
+        <!-- <div *ngIf="c.newJobTitle">مسمى: <strong>{{ c.newJobTitle }}</strong></div> -->
+<div *ngIf="c.newJobTitle">مسمى:
+  <strong>{{ labelOf(jobTitleOpts, c.newJobTitle) }}</strong>
+</div>       
+        <div *ngIf="c.newJobAttribute">صفة: <strong>{{ labelOf(jobAttributeOpts, c.newJobAttribute) }}</strong></div>
+        <div *ngIf="c.newAppointmentType">نوع: <strong>{{ labelOf(appointmentTypesOpts, c.newAppointmentType) }}</strong></div>
+        <div *ngIf="c.newSalary">راتب: <strong>{{ c.newSalary | number:'1.0-0' }}</strong></div>
+        <!-- <div *ngIf="c.newPlaceCode">مكان: <strong>{{ c.newPlaceCode }}</strong></div> -->
+
+        <div *ngIf="c.newPlaceCode || c.placeActionWork">مكان:
+  <strong>
+    <!-- يفضّل المسار إن وُجد (مصفوفة أكواد)، وإلا يعرض كود واحد -->
+    {{ (c.placeActionWork?.length ? c.placeActionWork : c.newPlaceCode)
+       | orgName:{ tree: orgTree, mode:'path', sep:' | ' } }}
+  </strong>
+</div>
+      </div>
+    </td>
+  </ng-container>
+
+  <!-- القرار -->
+  <ng-container matColumnDef="decision">
+    <th mat-header-cell *matHeaderCellDef> القرار </th>
+    <td mat-cell *matCellDef="let c">
+      <div *ngIf="c.decisionNumber">رقم: {{ c.decisionNumber }}</div>
+      <div *ngIf="c.decisionDate">تاريخ: {{ c.decisionDate | date:'dd/MM/yyyy' }}</div>
+      <div *ngIf="c.reason && c.type!=='SALARY_INCREASE' && c.type!=='PROMOTION'">سبب: {{ c.reason }}</div>
+    </td>
+  </ng-container>
+
+  <!-- إجراءات -->
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef> إجراءات </th>
+    <td mat-cell *matCellDef="let c">
+      <button mat-icon-button color="warn" (click)="remove(c)" aria-label="حذف">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+  <tr class="empty" *ngIf="!(changes?.length)">
+    <td [attr.colspan]="displayedColumns.length">لا توجد تبدلات بعد.</td>
+  </tr>
+</table>

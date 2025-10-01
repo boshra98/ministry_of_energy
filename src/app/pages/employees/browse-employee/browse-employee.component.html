@@ -1,8 +1,3 @@
-
-
-
-
-
 <div class="gov-page" dir="rtl">
   <mat-card class="gov-card">
     <!-- ===== Header موحّد ===== -->
@@ -25,261 +20,350 @@
       </div>
     </div>
 
-    <!-- ===== عنوان المستند ===== -->
-    <div class="doc-title">
-      <h2> عرض بيانات الموظف  </h2>
-    </div>
-
-    <mat-divider></mat-divider>
-
     <!-- ===== حالات التحميل / عدم الوجود ===== -->
     <div class="state" *ngIf="loading">جارِ التحميل…</div>
     <div class="state error" *ngIf="!loading && notFound">لم يتم العثور على الموظف المطلوب.</div>
 
-    <!-- ===== بطاقة عرض الموظف (نفس محتواك السابق) ===== -->
+    <!-- ===== المحتوى عند توفر الموظف ===== -->
     <ng-container *ngIf="!loading && employee">
-      <mat-card class="emp-card" dir="rtl">
-        <div class="emp-header">
-          <div class="emp-photo" *ngIf="photoUrl; else placeholder">
-            <img [src]="photoUrl" alt="صورة الموظف">
+      <mat-tab-group mat-stretch-tabs class="no-print">
+        <!-- ========== تبويب: بيانات الموظف ========== -->
+        <mat-tab label="بيانات الموظف">
+          <!-- ===== عنوان المستند ===== -->
+          <div class="doc-title">
+            <h2>عرض بيانات الموظف</h2>
           </div>
-          <ng-template #placeholder>
-            <div class="emp-photo placeholder"><mat-icon>person</mat-icon></div>
-          </ng-template>
 
-          <div class="emp-ident">
-            <h2 class="name">
-              {{ employee.firstName }} {{ employee.fatherName }} {{ employee.lastName }}
-            </h2>
-            <div class="title">{{ jobTitleLabel || '—' }}</div>
+          <mat-divider></mat-divider>
 
+          <!-- ===== بطاقة عرض الموظف ===== -->
+          <mat-card class="emp-card" dir="rtl">
+            <div class="emp-header">
+              <div class="emp-photo" *ngIf="photoUrl; else placeholder">
+                <img [src]="photoUrl" alt="صورة الموظف" />
+              </div>
+              <ng-template #placeholder>
+                <div class="emp-photo placeholder"><mat-icon>person</mat-icon></div>
+              </ng-template>
 
+              <div class="emp-ident">
+                <h2 class="name">
+                  {{ employee.firstName }} {{ employee.fatherName }} {{ employee.lastName }}
+                </h2>
+                <div class="title">
+                  {{ jobTitleLabel_current || jobTitleLabel || employeeSnapshot?.jobTitle || '—' }}
+                </div>
 
-            <mat-chip-set class="badges">
+                <mat-chip-set class="badges">
+                  <mat-chip>{{ genderLabel || '—' }}</mat-chip>
+
+                  <ng-container *ngIf="nationalityListClean.length; else noNat">
+                    <mat-chip *ngFor="let nat of nationalityListClean">{{ nat }}</mat-chip>
+                  </ng-container>
+                  <ng-template #noNat><mat-chip>—</mat-chip></ng-template>
+
+                  <mat-chip>{{ maritalStatusLabel || '—' }}</mat-chip>
+                </mat-chip-set>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- المعلومات الأساسية -->
+            <section class="section">
+              <h3><mat-icon>badge</mat-icon> المعلومات الأساسية</h3>
+              <div class="grid grid-3">
+                <div class="field">
+                  <label>تاريخ الميلاد</label>
+                  <div class="value">{{ formatDate(employee.birthDate) }}</div>
+                </div>
+
+                <div class="field">
+                  <label>اسم الأم</label>
+                  <div class="value">{{ employee.motherName || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>الأمانة المركزية</label>
+                  <div class="value">{{ employee.centralSecretaion || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>القيد ورقمه</label>
+                  <div class="value">{{ employee.familyRegistration || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>مكان الولادة</label>
+                  <div class="value">{{ employee.placeBirth || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>الرقم الوطني</label>
+                  <div class="value">{{ employee.nationalNumber || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>رقم الهوية</label>
+                  <div class="value">{{ employee.idNumber || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>فصيلة الدم</label>
+                  <div class="value">{{ employee.bloodType || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>عدد المعيلين من أفراد الأسرة</label>
+                  <div class="value">{{ employee.dependences || '—' }}</div>
+                </div>
+              </div>
+            </section>
+
+            <mat-divider></mat-divider>
+
+            <!-- العنوان والتواصل -->
+            <section class="section">
+              <h3><mat-icon>call</mat-icon> العنوان والتواصل</h3>
+              <div class="grid grid-3">
+                <div class="field">
+                  <label>الإقامة</label>
+                  <div class="value">{{ employee.residence || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>العنوان الدائم</label>
+                  <div class="value">{{ employee.permenentAddress || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>الهاتف</label>
+                  <div class="value mono">{{ employee.phoneNumber || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>واتساب</label>
+                  <div class="value mono">{{ employee.whatsappNumber || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>الإيميل</label>
+                  <div class="value ltr">{{ employee.email || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>رقم هاتف الطوارئ</label>
+                  <div class="value ltr">{{ employee.emergencyPhone1 || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>رقم واتساب للطوارئ</label>
+                  <div class="value ltr">{{ employee.emergencyPhone2 || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>اسم مسؤول الطوارئ</label>
+                  <div class="value ltr">{{ employee.emergencyName || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>صلة القرابة</label>
+                  <div class="value ltr">{{ EMERGENCYLabel || '—' }}</div>
+                </div>
+              </div>
+            </section>
+
+            <mat-divider></mat-divider>
+
+            <!-- التعليم والتأهيل -->
+            <section class="section">
+              <h3><mat-icon>school</mat-icon> التعليم والتأهيل</h3>
+              <div class="grid grid-3">
+                <div class="field">
+                  <label>الكلية</label>
+                  <div class="value">{{ employee.collage || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>المؤهل العلمي</label>
+                  <div class="value">{{ educationLabel || employeeSnapshot?.education || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>مصدر المؤهل</label>
+                  <div class="value">{{ employee.sourceAcadimicQualification || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>تاريخ المؤهل</label>
+                  <div class="value">{{ formatDate(employee.dateQualification) }}</div>
+                </div>
+
+                <div class="field">
+                  <label>تفاصيل المؤهل</label>
+                  <div class="value">{{ employee.detailsQualification || '—' }}</div>
+                </div>
+              </div>
+            </section>
+
+            <mat-divider></mat-divider>
+
+            <!-- تفاصيل العمل (أول تعيين) -->
+            <section class="section">
+              <h3><mat-icon>work</mat-icon> تفاصيل العمل</h3>
+              <div class="grid grid-3">
+                <div class="field">
+                  <label>رقم الملف الورقي</label>
+                  <div class="value">{{ employee.paperFileNumber || '—' }}</div>
+                </div>
+
               
-              <mat-chip>{{ genderLabel || '—' }}</mat-chip>
-              <!-- <mat-chip>{{ employee.nationality || '—' }}</mat-chip> -->
-                 <!-- <mat-chip *ngFor="let nat of employee.nationality">{{ nat }}</mat-chip> -->
- <ng-container *ngIf="nationalityListClean.length; else noNat">
-    <mat-chip *ngFor="let nat of nationalityListClean">{{ nat }}</mat-chip>
-  </ng-container>
-  <ng-template #noNat><mat-chip>—</mat-chip></ng-template>
+                <div class="field">
+                  <label>المسمى الوظيفي عند التعيين</label>
+                  <div class="value">{{  jobTitleLabel_initial || '—' }}</div> 
+                </div>
+                
 
+                
 
-              <mat-chip>{{maritalStatusLabel || '—' }}</mat-chip>
-            </mat-chip-set>
-          </div>
-        </div>
+                <div class="field">
+                  <label>قرار بدء التعيين</label>
+                  <div class="value">{{ employee.decisionStart || '—' }}</div>
+                </div>
 
-        <mat-divider></mat-divider>
+                <div class="field">
+                  <label>تاريخ المباشرة</label>
+                  <div class="value">{{ (employee.dateActionWork | date:'dd/MM/yyyy') || '—' }}</div>
+                </div>
 
-        <!-- المعلومات الأساسية -->
-        <section class="section">
-          <h3><mat-icon>badge</mat-icon> المعلومات الأساسية</h3>
-          <div class="grid grid-3">
-            <div class="field">
-              <label>تاريخ الميلاد</label>
-              <div class="value">{{ formatDate(employee.birthDate) }}</div>
-            </div>
-             <div class="field">
-              <label> اسم  الأم </label>
-              <div class="value">{{ employee.motherName || '—' }}</div>
-            </div>
+                <div class="field">
+                  <label>مكان مباشرة العمل (أول تعيين)</label>
+                  <div class="value">
+    {{ place_initial_view | orgName:{ tree: orgTree, mode:'path', sep:' | ' } }}
+  </div>
+                </div>
 
-            <div class="field">
-              <label>   الأمانة المركزية </label>
-              <div class="value">{{ employee.centralSecretaion || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>   القيد ورقمه  </label>
-              <div class="value">{{ employee.familyRegistration || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>مكان الولادة</label>
-              <div class="value">{{ employee.placeBirth || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>الرقم الوطني  </label>
-              <div class="value">{{ employee.nationalNumber || '—' }}</div>
-            </div><div class="field">
-              <label>رقم الهوية</label>
-              <div class="value">{{ employee.idNumber || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>فصيلة الدم</label>
-              <div class="value">{{ employee.bloodType || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>  عدد المعيلين من أفراد الأسرة</label>
-              <div class="value">{{ employee.dependences || '—' }}</div>
-            </div>
-          </div>
-        </section>
+                <div class="field">
+                  <label>نوع التعيين (أول تعيين)</label>
+                  <div class="value">
+                    {{ appointmentTypeLabel_initial || '—' }}
+                  </div>
+                </div>
 
-        <mat-divider></mat-divider>
+                <div class="field">
+                  <label>الفئة الوظيفية (أول تعيين)</label>
+                  <div class="value">
+                    {{ jobCategoryLabel_initial || '—' }}
+                  </div>
+                </div>
 
-        <!-- العنوان والتواصل -->
-        <section class="section">
-          <h3><mat-icon>call</mat-icon> العنوان والتواصل</h3>
-          <div class="grid grid-3">
-            <div class="field">
-              <label>الإقامة</label>
-              <div class="value">{{ employee.residence || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>العنوان الدائم</label>
-              <div class="value">{{ employee.permenentAddress || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>الهاتف</label>
-              <div class="value mono">{{ employee.phoneNumber || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>واتساب</label>
-              <div class="value mono">{{ employee.whatsappNumber || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>الايميل</label>
-              <div class="value ltr">{{ employee.email || '—' }}</div>
-            </div>
+                <div class="field">
+                  <label>الصفة الوظيفية (أول تعيين)</label>
+                  <div class="value">
+                    {{ jobAttributeLabel_initial || '—' }}
+                  </div>
+                </div>
 
-            <div class="field">
-              <label>رقم هاتف الطوارئ</label>
-              <div class="value ltr">{{ employee.emergencyPhone1 || '—' }}</div>
-            </div><div class="field">
-              <label>رقم واتساب للطوارئ</label>
-              <div class="value ltr">{{ employee.emergencyPhone2 || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>اسم مسؤول الطوارئ</label>
-              <div class="value ltr">{{ employee.emergencyName || '—' }}</div>
-            </div>
-            <div class="field">
-              <label> صلة القرابة </label>
-              <div class="value ltr">{{ EMERGENCYLabel || '—' }}</div>
-            </div>
+                <div class="field">
+                  <label>راتب بدء التعيين</label>
+                  <div class="value mono">{{ employee.startingSalary || salary_initial || '—' }}</div>
+                </div>
 
+                <div class="field">
+                  <label>تاريخ بدء التعيين</label>
+                  <div class="value">{{ (employee.workDate | date:'dd/MM/yyyy') || '—' }}</div>
+                </div>
 
+                <div class="field field-span-3">
+                  <label>ملاحظات</label>
+                  <div class="value">{{ employee.notes || '—' }}</div>
+                </div>
+              </div>
+            </section>
 
+            <mat-divider></mat-divider>
 
+            <!-- الوضع الوظيفي الحالي -->
+            <section class="section">
+              <h3><mat-icon>history</mat-icon> الوضع الوظيفي الحالي</h3>
+              <div class="grid grid-3">
+                <div class="field">
+                  <label>المسمى الوظيفي الحالي</label>
+                  <div class="value">{{ jobTitleLabel_current || '—' }}</div>
+                </div>
 
-          </div>
-        </section>
+                <div class="field">
+                  <label>الفئة الوظيفية الحالية</label>
+                  <div class="value">{{ jobCategoryLabel_current || '—' }}</div>
+                </div>
 
-        <mat-divider></mat-divider>
+                <div class="field">
+                  <label>الصفة الوظيفية الحالية</label>
+                  <div class="value">{{ jobAttributeLabel_current || '—' }}</div>
+                </div>
 
-        <!-- التعليم والتأهيل -->
-        <section class="section">
-          <h3><mat-icon>school</mat-icon> التعليم والتأهيل</h3>
-          <div class="grid grid-3">
-            <div class="field">
-              <label>الكلية</label>
-              <div class="value">{{ employee.collage || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>المؤهل العلمي</label>
-              <div class="value">{{ employee.education || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>مصدر المؤهل</label>
-              <div class="value">{{ employee.sourceAcadimicQualification || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>تاريخ المؤهل</label>
-              <div class="value">{{ formatDate(employee.dateQualification) }}</div>
-            </div>
-            <div class="field ">
-              <label>تفاصيل المؤهل</label>
-              <div class="value">{{ employee.detailsQualification || '—' }}</div>
-            </div>
-          </div>
-        </section>
+                <div class="field">
+                  <label>نوع التعيين الحالي</label>
+                  <div class="value">{{ appointmentTypeLabel_current || '—' }}</div>
+                </div>
 
-        <mat-divider></mat-divider>
+                <div class="field">
+                  <label>قرار الحالة الحالية</label>
+                  <div class="value">{{ decision_current || '—' }}</div>
+                </div>
 
-        <!-- تفاصيل العمل -->
-        <section class="section">
-          <h3><mat-icon>work</mat-icon> تفاصيل العمل</h3>
-          <div class="grid grid-3">
-            <div class="field">
-              <label>رقم الملف الورقي  </label>
-              <div class="value">{{ employee.paperFileNumber || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>قرار بدء التعيين</label>
-              <div class="value">{{ employee.decisionStart || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>تاريخ المباشرة</label>
-              <div class="value">{{ (employee.dateActionWork | date:'dd/MM/yyyy') || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>مكان مباشرة العمل</label>
-              <!-- <div class="value">{{ placeActionWork | orgName: orgTree  }}</div> -->
-<!-- <div class="value">{{ placeActionWork }} → {{ placeActionWork | orgName: orgTree }}</div> -->
-<!-- <div class="value"> -->
-  <!-- {{ placeActionWork | orgName:{ tree: orgTree, mode: 'path', sep: ' | ' } }} -->
-    
-  <!-- {{ placeActionWork }} → {{ placeActionWork | orgName:{ tree: orgTree, mode: 'path', sep: ' | ' } }} -->
-  <!-- {{ placeActionWork | orgName: orgOpts }} -->
+                <div class="field">
+                  <label>تاريخ قرار الحالة الحالية</label>
+                  <div class="value">{{ decisionDate_current || '—' }}</div>
+                </div>
 
+                <div class="field">
+                  <label>الراتب الحالي</label>
+                  <div class="value mono">{{ salary_current || '—' }}</div>
+                </div>
 
-<!-- </div> -->
+               
 
-<div class="value">{{ placeActionWork | orgName:{ tree: orgTree, mode:'path', sep:' | ' } }}</div>
+                <div class="field">
+  <label>مكان العمل الحالي</label>
+  <div class="value">
+    <ng-container *ngIf="place_current_view as p; else dash">
+      {{ p | orgName:{ tree: orgTree, mode:'path', sep:' | ' } }}
+    </ng-container>
+    <ng-template #dash>—</ng-template>
+  </div>
+</div>
 
+              </div>
+            </section>
 
-              <!-- <div class="value">{{ employee.placeActionWork || '—' }}</div> -->
+            <!-- أزرار أسفل البطاقة -->
+            <div class="footer-actions no-print">
+              <button mat-stroked-button (click)="back()">
+                <mat-icon>arrow_back</mat-icon> رجوع للسجل
+              </button>
+
+              <button mat-stroked-button (click)="window.print()">
+                <mat-icon>print</mat-icon> طباعة
+              </button>
+
+              <button mat-raised-button (click)="edit(employee)">
+                <mat-icon>edit</mat-icon> تعديل بيانات الموظف
+              </button>
             </div>
 
-            
+          </mat-card>
+        </mat-tab>
 
-            <div class="field">
-              <label>نوع التعيين</label>
-              <div class="value">{{ appointmentTypesLabel || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>الفئة الوظيفية</label>
-              <div class="value">{{ jobCategoryLabel || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>الصفة الوظيفية</label>
-              <div class="value">{{ jobAttributeLabel || '—' }}</div>
-            </div>
-            <!-- decisionAttributeLabel -->
-
-            <div class="field">
-              <label>صفة التعيين</label>
-              <div class="value">{{ decisionAttributeLabel || '—' }}</div>
-            </div>
-
-            <div class="field">
-              <label>راتب بدء التعيين</label>
-              <div class="value mono">{{ employee.startingSalary || '—' }}</div>
-            </div>
-            <div class="field">
-              <label>تاريخ التعيين (الوظيفة الحالية)</label>
-              <div class="value">{{ (employee.workDate | date:'dd/MM/yyyy') || '—' }}</div>
-            </div>
-            <div class="field field-span-3">
-              <label>ملاحظات</label>
-              <div class="value">{{ employee.notes || '—' }}</div>
-            </div>
-          </div>
-        </section>
-
-        <div class="footer-actions no-print">
-          <button mat-stroked-button (click)="back()">
-            <mat-icon>arrow_back</mat-icon> رجوع للسجل
-          </button>
-          <button mat-stroked-button  (click)="window.print()">
-            <mat-icon>print</mat-icon> طباعة
-          </button>
-          <button mat-raised-button  (click)="edit(employee)">
-            <mat-icon>edit</mat-icon> تعديل بيانات الموظف
-        </button>
-        </div>
-      </mat-card>
+        <!-- ========== تبويب: تبدلات التوظيف ========== -->
+        <mat-tab label="تبدلات التوظيف">
+          <app-employment-changes-tab
+          
+            [employee]="employee"
+            (snapshotChange)="onSnapshotChange($event)">
+          </app-employment-changes-tab>
+        </mat-tab>
+      </mat-tab-group>
     </ng-container>
   </mat-card>
 </div>

@@ -404,42 +404,9 @@
           <mat-label>ملاحظات</mat-label>
           <textarea matInput rows="2" formControlName="notes"></textarea>
         </mat-form-field>
+        </fieldset>
 
-        <!-- الحالة الحالية -->
-        <mat-form-field appearance="outline">
-          <mat-label>الحالة الوظيفية الحالية</mat-label>
-          <input matInput formControlName="statusWork" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>تاريخ الحالة الحالية</mat-label>
-          <input matInput [matDatepicker]="sw" formControlName="dateStatusWork" />
-          <mat-datepicker-toggle matSuffix [for]="sw"></mat-datepicker-toggle>
-          <mat-datepicker #sw></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>الموقع الحالي</mat-label>
-          <input matInput formControlName="currentJoblocation" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>قرار التعيين الحالي</mat-label>
-          <input matInput formControlName="currentDecisionAppointment" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>تاريخ التعيين الحالي</mat-label>
-          <input matInput [matDatepicker]="cd" formControlName="datecurrentDecisionAppointment" />
-          <mat-datepicker-toggle matSuffix [for]="cd"></mat-datepicker-toggle>
-          <mat-datepicker #cd></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>الراتب الحالي</mat-label>
-          <input matInput formControlName="currentSalary" inputmode="numeric" />
-        </mat-form-field>
-      </fieldset>
+     
 
       <!-- أزرار -->
       <div class="actions col-2">

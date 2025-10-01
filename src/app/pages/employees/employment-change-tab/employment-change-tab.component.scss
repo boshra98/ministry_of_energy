@@ -1,0 +1,20 @@
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.fullw { width: 100%; }
+
+.diff {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+  gap: 6px 16px;
+}
+
+.empty td {
+  text-align: center;
+  padding: 16px;
+  opacity: .7;
+}

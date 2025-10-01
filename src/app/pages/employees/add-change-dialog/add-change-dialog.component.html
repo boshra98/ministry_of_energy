@@ -1,0 +1,151 @@
+<h2 mat-dialog-title>إضافة تبدّل وظيفي</h2>
+
+<mat-dialog-content [formGroup]="form" class="grid">
+  <mat-form-field appearance="outline">
+    <mat-label>نوع التبدّل</mat-label>
+    <mat-select formControlName="type">
+      <mat-option value="SALARY_INCREASE">زيادة راتب</mat-option>
+      <mat-option value="PROMOTION">ترقية</mat-option>
+      <mat-option value="INTERNAL_MOVE">نقل/ندب</mat-option>
+      <mat-option value="STATUS_UPDATE">تغيير حالة (استقالة/تسريح/…)</mat-option>
+      <mat-option value="TERMINATION">إنهاء خدمة</mat-option>
+      <mat-option value="OTHER">أخرى</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>تاريخ النفاذ</mat-label>
+    <input matInput [matDatepicker]="dp" formControlName="effectiveFrom">
+    <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    <mat-datepicker #dp></mat-datepicker>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>رقم/نص القرار (إداري)</mat-label>
+    <input matInput formControlName="decisionNumber">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>تاريخ القرار (إداري)</mat-label>
+    <input matInput [matDatepicker]="dp2" formControlName="decisionDate">
+    <mat-datepicker-toggle matSuffix [for]="dp2"></mat-datepicker-toggle>
+    <mat-datepicker #dp2></mat-datepicker>
+  </mat-form-field>
+
+  <!-- ✅ جديدان: قرار الحالة الحالية (سيظهر في بطاقة الموظف كحالي) -->
+  <mat-form-field appearance="outline">
+    <mat-label>قرار الحالة الحالية (نص/رقم)</mat-label>
+    <input matInput formControlName="newdecisionappointment" placeholder="مثال: القرار 123/2025">
+    <mat-hint align="start">يمكن تركه فارغًا وسيُؤخذ من القرار الإداري أعلاه تلقائيًا (اختياري).</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>تاريخ قرار الحالة الحالية</mat-label>
+    <input matInput [matDatepicker]="dp3" formControlName="newdecisiondate">
+    <mat-datepicker-toggle matSuffix [for]="dp3"></mat-datepicker-toggle>
+    <mat-datepicker #dp3></mat-datepicker>
+  </mat-form-field>
+
+  <!-- حقول حسب النوع -->
+  <ng-container *ngIf="t==='SALARY_INCREASE' || t==='PROMOTION'">
+    <mat-form-field appearance="outline">
+      <mat-label>الراتب الجديد</mat-label>
+      <input matInput type="number" formControlName="newSalary">
+    </mat-form-field>
+  </ng-container>
+
+  <ng-container *ngIf="t==='PROMOTION'">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>المسمى الوظيفي الجديد</mat-label>
+      <!--  كان newjobTitle → صارت newJobTitle -->
+      <mat-select formControlName="newJobTitle">
+        <mat-option *ngFor="let o of jobTitleOpts; trackBy: trackByValue" [value]="o.value">
+          {{ o.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>الفئة الوظيفية</mat-label>
+      <mat-select formControlName="newJobCategory">
+        <mat-option *ngFor="let o of jobCategoryOpts; trackBy: trackByValue" [value]="o.value">
+          {{ o.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>الصفة الوظيفية</mat-label>
+      <mat-select formControlName="newJobAttribute">
+        <mat-option *ngFor="let o of jobAttributeOpts; trackBy: trackByValue" [value]="o.value">
+          {{ o.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>نوع التعيين</mat-label>
+      <mat-select formControlName="newAppointmentType">
+        <mat-option *ngFor="let o of appointmentTypesOpts; trackBy: trackByValue" [value]="o.value">
+          {{ o.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </ng-container>
+
+  <ng-container *ngIf="t==='INTERNAL_MOVE'">
+  <mat-form-field appearance="outline" class="w-full">
+    <mat-label>المستوى الأول</mat-label>
+    <mat-select formControlName="placeL1">
+      <mat-option *ngFor="let n of level1Opts" [value]="n.code">{{ n.name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-full" *ngIf="level2Opts.length">
+    <mat-label>المستوى الثاني</mat-label>
+    <mat-select formControlName="placeL2">
+      <mat-option *ngFor="let n of level2Opts" [value]="n.code">{{ n.name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-full" *ngIf="level3Opts.length">
+    <mat-label>المستوى الثالث</mat-label>
+    <mat-select formControlName="placeL3">
+      <mat-option *ngFor="let n of level3Opts" [value]="n.code">{{ n.name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-full" *ngIf="level4Opts.length">
+    <mat-label>المستوى الرابع</mat-label>
+    <mat-select formControlName="placeL4">
+      <mat-option *ngFor="let n of level4Opts" [value]="n.code">{{ n.name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+</ng-container>
+
+
+  <ng-container *ngIf="t==='TERMINATION'">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>سبب إنهاء الخدمة</mat-label>
+      <textarea matInput rows="2" formControlName="reason"></textarea>
+    </mat-form-field>
+  </ng-container>
+
+  <ng-container *ngIf="t==='STATUS_UPDATE' || t==='OTHER'">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>السبب/الوصف</mat-label>
+      <textarea matInput rows="2" formControlName="reason"></textarea>
+    </mat-form-field>
+  </ng-container>
+
+  <mat-error *ngIf="form.hasError('nothingChanged')">
+    يجب تحديد تغيير واحد على الأقل.
+  </mat-error>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">إلغاء</button>
+  <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="form.invalid">
+    حفظ
+  </button>
+</mat-dialog-actions>

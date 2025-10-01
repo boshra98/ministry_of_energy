@@ -1,17 +1,15 @@
 import { Injectable } from '@angular/core';
 
 export interface Employee {
+   id: string;
   dependences: string | null | undefined;
   emergencyPhone2: string | null | undefined;
   emergencyPhone1: string | null | undefined;
   emergencyContentRelation: string | null | undefined;
   emergencyName: string | null | undefined;
-  datecurrentDecisionAppointment: Date | null | undefined;
-  currentDecisionAppointment: string | null | undefined;
-  currentJoblocation: string | null | undefined;
+  
   dateStatusWork: Date | null | undefined;
   statusWork: string | null | undefined;
-  currentSalary: string | null | undefined;
   email: string | null | undefined;
   whatsappNumber: string | null | undefined;
   phoneNumber: string | null | undefined;
@@ -48,9 +46,20 @@ export interface Employee {
   gender: string;
   residence: string;
   jobTitle: string;
-  birthDate: Date | null ;// YYYY-MM-DD (من input type="date")
-  id: string;        // معرّف محلي
-  createdAt: Date; // ISO
+  birthDate: Date | null ;
+  datecurrentDecisionAppointment: Date | null | undefined;
+  currentDecisionAppointment: string | null | undefined;
+  currentJoblocation: string | null | undefined;
+  currentSalary: string | null | undefined;
+  // currentWorkPlace: string | null | undefined;
+  currentJobTitle: string | null | undefined;
+  currentJobCategory: string | null | undefined;
+  currentJobAttribute: string | null | undefined;
+  currentappointmentType: string | null | undefined;
+
+
+
+createdAt: Date; // ISO
 updatedAt?: Date; //  أضِف هذا
 
 }
