@@ -88,6 +88,12 @@ export class SearchComponent {
  decisionAttributeOpts: LookupOption[]=[];
   appointmentTypesOpts: LookupOption[]=[];
 
+currentJobTitleOpts: LookupOption[] = [];
+currentJobCategoryOpts: LookupOption[] = [];
+currentJobAttributeOpts: LookupOption[] = [];
+currentAppointmentTypesOpts: LookupOption[] = [];
+
+
 
  
 
@@ -101,7 +107,10 @@ export class SearchComponent {
   private appointmentTypeValues: string[]=[];
 
 
-
+private currentJobTitleValues: string[] = [];
+private currentJobCategoryValues: string[] = [];
+private currentJobAttributeValues: string[] = [];
+private currentAppointmentTypeValues: string[] = [];
 
   // مجمّع خيارات الفلاتر المتعددة (يُحدّث لاحقًا)
   private OPTIONS: Record<string, string[]> = {
@@ -113,6 +122,15 @@ export class SearchComponent {
       jobCategory: this.jobCategoryValues ,
       decisionAttribute: this.decisionAttributeValues,
       appointmentType: this.appointmentTypeValues,
+      ////
+
+       currentJobTitle: this.currentJobTitleValues,
+  currentJobCategory: this.currentJobCategoryValues,
+  currentJobAttribute: this.currentJobAttributeValues,
+  currentAppointmentType: this.currentAppointmentTypeValues,
+  currentJoblocation: this.flatPlaces.map(p => p.code),
+
+      
 
   };
 
@@ -144,6 +162,18 @@ columnPicker = new FormControl<ColId[]>([]);
     { id: 'dateActionWork',   label: 'تاريخ المباشرة',    selectable: true },
     { id: 'workDate',         label: 'تاريخ التعيين',     selectable: true },
     { id: 'birthDate',        label: 'تاريخ الميلاد',     selectable: true },
+
+  { id: 'startingSalary',   label: 'الراتب الابتدائي',  selectable: true },
+  { id: 'currentJobTitle',           label: 'المسمى الحالي', selectable: true },
+  { id: 'currentJobCategory',        label: 'الفئة الحالية', selectable: true },
+  { id: 'currentJobAttribute',       label: 'الصفة الحالية', selectable: true },
+  { id: 'currentAppointmentType',    label: 'نوع التعيين الحالي', selectable: true },
+  { id: 'currentJoblocation',        label: 'مكان العمل الحالي', selectable: true },
+  { id: 'currentSalary',             label: 'الراتب الحالي', selectable: true },
+  { id: 'datecurrentDecisionAppointment', label: 'تاريخ قرار الحالة', selectable: true },
+  { id: 'currentDecisionAppointment',     label: 'قرار الحالة', selectable: true },
+
+
     { id: 'actions',          label: 'إجراءات',           selectable: false, always: true },
   ];
 
@@ -346,6 +376,47 @@ private idToLabel = new Map<ColId, string>(
     this.syncControlWithOptions('appointmentType', this.appointmentTypeValues); // تنظيف أي قيم قديمة
     this.cdr.markForCheck();
   });
+  this.lookup.jobTitles$
+  .pipe(takeUntil(this.destroy$))
+  .subscribe(opts => {
+    // القديمة: this.jobTitleOpts = opts; …
+    this.currentJobTitleOpts = opts;
+    this.currentJobTitleValues = opts.map(o => o.value);
+    this.OPTIONS['currentJobTitle'] = this.currentJobTitleValues;
+    this.syncControlWithOptions('currentJobTitle', this.currentJobTitleValues);
+    this.cdr.markForCheck();
+  });
+
+this.lookup.JOBCATEGORY_DEFAULTES$
+  .pipe(takeUntil(this.destroy$))
+  .subscribe(opts => {
+    this.currentJobCategoryOpts = opts;
+    this.currentJobCategoryValues = opts.map(o => o.value);
+    this.OPTIONS['currentJobCategory'] = this.currentJobCategoryValues;
+    this.syncControlWithOptions('currentJobCategory', this.currentJobCategoryValues);
+    this.cdr.markForCheck();
+  });
+
+this.lookup.JOBATTRIBUTE_DEFAULTES$
+  .pipe(takeUntil(this.destroy$))
+  .subscribe(opts => {
+    this.currentJobAttributeOpts = opts;
+    this.currentJobAttributeValues = opts.map(o => o.value);
+    this.OPTIONS['currentJobAttribute'] = this.currentJobAttributeValues;
+    this.syncControlWithOptions('currentJobAttribute', this.currentJobAttributeValues);
+    this.cdr.markForCheck();
+  });
+
+this.lookup.appointmentTypes_DEFAULTES$
+  .pipe(takeUntil(this.destroy$))
+  .subscribe(opts => {
+    this.currentAppointmentTypesOpts = opts;
+    this.currentAppointmentTypeValues = opts.map(o => o.value);
+    this.OPTIONS['currentAppointmentType'] = this.currentAppointmentTypeValues;
+    this.syncControlWithOptions('currentAppointmentType', this.currentAppointmentTypeValues);
+    this.cdr.markForCheck();
+  });
+
 
 }
 
@@ -361,7 +432,12 @@ private idToLabel = new Map<ColId, string>(
         case 'workDate':        return row.workDate       ? row.workDate.getTime()       : 0;
         case 'dateActionWork':  return row.dateActionWork ? row.dateActionWork.getTime() : 0;
         case 'fullName':        return `${row.firstName ?? ''} ${row.fatherName ?? ''} ${row.lastName ?? ''}`.trim();
-        default:                return (row as any)[column] ?? '';
+        case 'startingSalary':  return Number(row.startingSalary ?? 0);
+        case 'currentSalary':   return Number(row.currentSalary ?? 0);
+        case 'datecurrentDecisionAppointment':return (row as any).datecurrentDecisionAppointment
+        ? new Date((row as any).datecurrentDecisionAppointment).getTime()
+        : 0;
+        default: return (row as any)[column] ?? '';
       }
     };
   }
@@ -514,6 +590,74 @@ private eduValueMatches(rowEdu: string, selected: string[]): boolean {
     if (!sel.includes(rowAsValue)) return false;
   }
 }
+
+ {
+    const sel: string[] = (f.currentJobCategory ?? []) as string[];
+    const isAll = !sel.length || sel.includes(this.ALL);
+    if (!isAll) {
+      const raw = (e as any).currentJobCategory ?? '';
+      const asValue =
+        this.currentJobCategoryOpts.find(o => o.value === raw)?.value ??
+        this.currentJobCategoryOpts.find(o => o.label === raw)?.value ?? raw;
+      if (!sel.includes(asValue)) return false;
+    }
+  }
+
+
+
+  {
+    const sel: string[] = (f.currentJobAttribute ?? []) as string[];
+    const isAll = !sel.length || sel.includes(this.ALL);
+    if (!isAll) {
+      const raw = (e as any).currentJobAttribute ?? '';
+      const asValue =
+        this.currentJobAttributeOpts.find(o => o.value === raw)?.value ??
+        this.currentJobAttributeOpts.find(o => o.label === raw)?.value ?? raw;
+      if (!sel.includes(asValue)) return false;
+    }
+  }
+
+
+  {
+    const sel: string[] = (f.currentAppointmentType ?? []) as string[];
+    const isAll = !sel.length || sel.includes(this.ALL);
+    if (!isAll) {
+      const raw = (e as any).currentappointmentType ?? ''; // انتبه لاسم الحقل
+      const asValue =
+        this.currentAppointmentTypesOpts.find(o => o.value === raw)?.value ??
+        this.currentAppointmentTypesOpts.find(o => o.label === raw)?.value ?? raw;
+      if (!sel.includes(asValue)) return false;
+    }
+  }
+
+   {
+    const sel: string[] = (f.currentJoblocation ?? []) as string[];
+    const isAll = !sel.length || sel.includes(this.ALL);
+    if (!isAll) {
+      // لو لديك المخزن ككود واحد:
+      const raw = ((e as any).currentJoblocation ?? '').toString();
+      // أو لو تحفظ مسارًا (MIN|STUD|IT) ففكّكه:
+      const parts = raw.split(/[|/>\.]/).map(s => s.trim()).filter(Boolean);
+      if (!parts.length) return false;
+      const hit = sel.some(code => parts.includes(code));
+      if (!hit) return false;
+    }
+  }
+
+ {
+    const sel: string[] = (f.currentJobTitle ?? []) as string[];
+    const isAll = !sel.length || sel.includes(this.ALL);
+    if (!isAll) {
+      const raw = (e as any).currentJobTitle ?? '';
+      const asValue =
+        this.currentJobTitleOpts.find(o => o.value === raw)?.value ??
+        this.currentJobTitleOpts.find(o => o.label === raw)?.value ?? raw;
+      if (!sel.includes(asValue)) return false;
+    }
+  }
+
+
+
 
 
     const placeSel: string[] = (f.placeCode ?? []) as string[];
@@ -695,6 +839,16 @@ trackByValue = (_: number, it: { value: string }) => it.value;
       actionFrom: null, actionTo: null,
       salaryFrom: null, salaryTo: null,
       q: '',
+  currentJobTitle:        [[this.ALL] as string[]],
+  currentJobCategory:     [[this.ALL] as string[]],
+  currentJobAttribute:    [[this.ALL] as string[]],
+  currentAppointmentType: [[this.ALL] as string[]],
+  currentJoblocation:     [[this.ALL] as string[]], // إن كانت الأكواد من الشجرة
+  currentSalaryFrom:      [null as number | null],
+  currentSalaryTo:        [null as number | null],
+  currentDecisionAppointment: [''], // نص حر
+  currentDecisionDateFrom: [null as Date | null],
+  currentDecisionDateTo:   [null as Date | null],
     });
     localStorage.removeItem(this.STORAGE_KEY);
     this.triggerFilter();
@@ -843,6 +997,11 @@ type ColId =
   |'jobCategory'
   |'decisionAttribute'
   |'appointmentType'
+  | 'currentJobTitle' | 'currentJobCategory' | 'currentJobAttribute'
+  | 'currentAppointmentType' | 'currentJoblocation'
+  | 'currentSalary' | 'datecurrentDecisionAppointment'
+  | 'currentDecisionAppointment'
+  | 'startingSalary'
   
   ;
 

@@ -475,9 +475,7 @@ get place_current_view(): string | null {
 }
 
   // ===== لابلات “الحالي” (قديمة) =====
-// ─────────────────────────────────────────────
-// Helpers: تحويل كود → لابل مع فاصل افتراضي
-// ─────────────────────────────────────────────
+
 private asLabel(v?: string | null, map?: Map<string, string>): string {
   if (!v) return '—';
   return map?.get(v) ?? v;
@@ -486,9 +484,7 @@ private asDateLabel(v?: string | Date | null): string {
   return this.formatDate(v ?? null);
 }
 
-// ─────────────────────────────────────────────
 // لابلات "الحالي" (للتوافق مع كود قديم في القالب)
-// ─────────────────────────────────────────────
 get jobAttributeLabel(): string {
   return this.asLabel(this.jobAttributeValue, this.jobAttributeMap);
 }
@@ -513,9 +509,7 @@ get educationLabel(): string {
   return this.asLabel(this.educationValue, this.educationMap);
 }
 
-// ─────────────────────────────────────────────
 // لابلات "أول تعيين" (Initial)
-// ─────────────────────────────────────────────
 get jobAttributeLabel_initial(): string {
   const v = this.pickJobAttribute(this.E0);
   return this.asLabel(v, this.jobAttributeMap);
@@ -545,9 +539,7 @@ get place_initial(): string | string[] {
   return this.pickPlaceInitial(this.E0) ?? '—';
 }
 
-// ─────────────────────────────────────────────
 // لابلات "الحالي" (Current)
-// ─────────────────────────────────────────────
 get jobAttributeLabel_current(): string {
   const v = this.pickJobAttribute(this.Ecur);
   return this.asLabel(v, this.jobAttributeMap);

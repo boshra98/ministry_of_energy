@@ -57,7 +57,7 @@ export interface Employee {
   currentJobAttribute: string | null | undefined;
   currentappointmentType: string | null | undefined;
 
-
+//here all fields are optional except id, firstName, lastName, father
 
 createdAt: Date; // ISO
 updatedAt?: Date; //  أضِف هذا

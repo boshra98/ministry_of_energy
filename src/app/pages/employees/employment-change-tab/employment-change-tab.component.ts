@@ -127,16 +127,18 @@ export class EmploymentChangeTabComponent implements OnInit, OnChanges {
     autoFocus: false,
   });
 
-  ref.afterClosed().subscribe(res => {
-    if (res?.ok && res.snapshot) {
-      // ✅ جالك Snapshot محدّث من الديالوغ مباشرة
+ ref.afterClosed().subscribe(res => {
+  if (res?.ok) {
+    // حدّث الجدول من الخادم
+    this.load();
+
+    // حدّث بطاقة الموظف في الأب لو عاد Snapshot
+    if (res.snapshot) {
       this.snapshotChange.emit(this.deepClone(res.snapshot));
-    } else if (res === true) {
-      // احتياطي لو أُغلِق الديالوغ بـ boolean فقط
-      this.load();
     }
-    // وإلا: لا شيء
-  });
+  }
+});
+
 }
 
 
