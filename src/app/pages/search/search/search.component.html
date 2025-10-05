@@ -29,8 +29,25 @@
           <mat-label>بحث عام</mat-label>
           <input matInput placeholder="اسم / وظيفة / رقم ملف / …"
                  (input)="applyGlobal($event.target.value)" />
+                 
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
+
+<mat-button-toggle-group [value]="mode" (change)="setMode($event.value)" appearance="legacy">
+  <mat-button-toggle value="base">الأساسي (بداية التعيين)</mat-button-toggle>
+  <mat-button-toggle value="current">الحالي</mat-button-toggle>
+</mat-button-toggle-group>
+
+<mat-chip-set>
+  <mat-chip color="primary" selected>
+    {{ mode === 'base' ? 'وضع: الأساسي' : 'وضع: الحالي' }}
+  </mat-chip>
+</mat-chip-set>
+
+
+        
+        
+        
 
         <button mat-stroked-button type="button" (click)="showFilters = !showFilters" aria-label="إظهار/إخفاء الخيارات المتقدمة">
           <mat-icon>tune</mat-icon>&nbsp;الخيارات المتقدمة
@@ -293,80 +310,76 @@
     </div>
 
     <div class="table-wrap">
-      <table mat-table [dataSource]="dataSource" class="mat-elevation-z2">
-        <ng-container *ngFor="let c of allColumns" [matColumnDef]="c.id">
-          <th mat-header-cell *matHeaderCellDef>
-            {{ c.label }}
-          </th>
+      
+  <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z2">
+  <ng-container *ngFor="let c of allColumns" [matColumnDef]="c.id">
+    <th mat-header-cell *matHeaderCellDef
+        mat-sort-header
+        [disabled]="c.id === 'actions'">
+      {{ c.label }}
+    </th>
 
-          <td mat-cell *matCellDef="let e; let i = index">
-            @switch (c.id) {
-              @case ('index') { {{ i + 1 }} }
-              @case ('fullName') { {{ e.firstName }} {{ e.fatherName }} {{ e.lastName }} }
+    <td mat-cell *matCellDef="let e; let i = index">
+      @switch (c.id) {
+        @case ('index')     { {{ i + 1 }} }
+        @case ('fullName')  { {{ e.firstName }} {{ e.fatherName }} {{ e.lastName }} }
 
-              @case ('jobTitle') {
-                {{ labelOf(jobTitleOpts, e.jobTitle ?? $any(e).details?.jobTitle ?? '') }}
-              }
-              @case ('education') {
-                {{ labelOf(educationOpts, e.education ?? $any(e).details?.education ?? '') }}
-              }
-              @case ('bloodType') {
-                {{ labelOf(bloodTypeOpts, e.bloodType ?? $any(e).personals?.bloodType ?? '') }}
-              }
+        @case ('education') { {{ labelOf(educationOpts, e.education ?? $any(e).details?.education ?? '') }} }
+        @case ('bloodType') { {{ labelOf(bloodTypeOpts, e.bloodType ?? $any(e).personals?.bloodType ?? '') }} }
 
-              @case ('jobAttribute') {
-                {{ labelOf(jobAttributeOpts, e.jobAttribute ?? '') }}
-              }
+        <!-- أعمدة موحّدة: دوماً عبر fieldOfStr -->
+        @case ('jobTitle')         { {{ labelOf(jobTitleOpts,        fieldOfStr(e,'jobTitle')) }} }
+        @case ('jobAttribute')     { {{ labelOf(jobAttributeOpts,    fieldOfStr(e,'jobAttribute')) }} }
+        @case ('jobCategory')      { {{ labelOf(jobCategoryOpts,     fieldOfStr(e,'jobCategory')) }} }
+        @case ('appointmentType')  { {{ labelOf(appointmentTypesOpts,fieldOfStr(e,'appointmentType')) }} }
+        @case ('decisionAttribute'){ {{ labelOf(decisionAttributeOpts,fieldOfStr(e,'decisionAttribute')) }} }
 
-              @case ('jobCategory') {
-                {{ labelOf(jobCategoryOpts, e.jobCategory ?? '') }}
-              }
+        @case ('startingSalary')   {
+          {{ (fieldOfStr(e,'startingSalary') || '0') | number:'1.0-0' }}
+        }
 
-              @case ('decisionAttribute') {
-                {{ labelOf(decisionAttributeOpts,
-                  (e.decisionAttribute ?? $any(e).workdetails?.decisionAttribute ?? '')) }}
-              }
+       @case ('placeCode') {
+  @if (fieldOfPlacePath(e); as codeOrPath) {
+    {{ findNameByCode(codeOrPath) || (codeOrPath | orgName:{ tree: orgTree, mode:'path', sep:' | ' }) }}
+  } @else { — }
+}
 
-              @case ('appointmentType') {
-                {{ labelOf(appointmentTypesOpts,
-                  (e.appointmentType ?? $any(e).workdetails?.appointmentType ?? '')) }}
-              }
 
-              @case ('birthDate') {
-                @if (e.birthDate) { {{ e.birthDate | date:'dd/MM/yyyy' }} } @else { — }
-              }
-              @case ('workDate') {
-                @if (e.workDate) { {{ e.workDate | date:'dd/MM/yyyy' }} } @else { — }
-              }
-              @case ('dateActionWork') {
-                @if (e.dateActionWork) { {{ e.dateActionWork | date:'dd/MM/yyyy' }} } @else { — }
-              }
+        <!-- تواريخ ثابتة (ليست موحّدة) -->
+        @case ('birthDate')      { @if (e.birthDate)     { {{ e.birthDate     | date:'dd/MM/yyyy' }} } @else { — } }
+        @case ('workDate')       { @if (e.workDate)      { {{ e.workDate      | date:'dd/MM/yyyy' }} } @else { — } }
+        @case ('dateActionWork') { @if (e.dateActionWork){ {{ e.dateActionWork| date:'dd/MM/yyyy' }} } @else { — } }
 
-              @case ('placeCode') {
-                @if (e.placeActionWork || $any(e).workdetails?.placeActionWork) {
-                  {{ (e.placeActionWork || $any(e).workdetails?.placeActionWork)
-                      | orgName:{ tree: orgTree, mode:'path', sep:' | ' } }}
-                } @else { — }
-              }
+        <!-- قرار الحالة الحالي: نسخة واحدة فقط وتقرأ عبر fieldOf (Date حقيقي) -->
+       @case ('datecurrentDecisionAppointment') {
+  @if (fieldOf(e,'datecurrentDecisionAppointment'); as d) {
+    {{ d | date:'dd/MM/yyyy' }}
+  } @else { — }
+}
 
-              @case ('actions') {
-                <button mat-icon-button color="green" (click)="browseEmployee(e)" aria-label="عرض التفاصيل">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-              }
 
-              @default { {{ $any(e)[c.id] }} }
-            }
-          </td>
-        </ng-container>
+        @case ('currentDecisionAppointment') {
+          {{ fieldOfStr(e,'currentDecisionAppointment') || '—' }}
+        }
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        @case ('actions') {
+          <button mat-icon-button  (click)="browseEmployee(e)" aria-label="عرض التفاصيل">
+            <mat-icon>visibility</mat-icon>
+          </button>
+        }
 
-        <tr class="empty" *ngIf="dataSource.data.length === 0">
-          <td [attr.colspan]="displayedColumns.length">لا توجد بيانات موظفين بعد.</td>
-        </tr>
-      </table>
+        @default { {{ $any(e)[c.id] }} }
+      }
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  <tr class="mat-row" *matNoDataRow>
+    <td class="mat-cell" [attr.colspan]="displayedColumns.length">لا توجد نتائج مطابقة.</td>
+  </tr>
+</table>
+
     </div>
 
     <div class="footer">

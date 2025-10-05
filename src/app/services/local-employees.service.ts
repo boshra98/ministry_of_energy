@@ -80,7 +80,7 @@ const DATE_KEYS = new Set<string>([
   'createdAt',
   'updatedAt',
 ]);
-
+  // لتحديد أي الحقول يجب تحويلها إلى تواريخ عند القراءة من التخزين المحلي
 function reviveDates(key: string, value: any) {
   if (value && typeof value === 'string' && DATE_KEYS.has(key)) {
     const d = new Date(value);
