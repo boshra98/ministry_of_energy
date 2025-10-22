@@ -1,0 +1,73 @@
+<div class="lookup-toolbar" dir="rtl">
+  <!-- حقل البحث -->
+  <mat-form-field appearance="outline" class="search-field" floatLabel="auto" subscriptSizing="dynamic">
+    <mat-label>بحث</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input
+      matInput
+      [(ngModel)]="q"
+      (ngModelChange)="onQueryChange($event)"
+      [ngModelOptions]="{standalone: true}"
+      placeholder="ابحث بالاسم أو القيمة"
+    />
+    <button *ngIf="q" mat-icon-button matSuffix type="button" (click)="q=''; onQueryChange('')" aria-label="مسح">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <span class="spacer"></span>
+
+  <!-- مجموعة الأزرار -->
+  <div class="btn-group">
+    <button mat-stroked-button color="primary" (click)="resetDefaults()">
+      <mat-icon>restart_alt</mat-icon>
+      استعادة الافتراضيات
+    </button>
+
+    <button mat-stroked-button (click)="export()">
+      <mat-icon>ios_share</mat-icon>
+      تصدير JSON
+    </button>
+
+    <button mat-stroked-button type="button" (click)="uploader.click()">
+      <mat-icon>file_upload</mat-icon>
+      استيراد
+    </button>
+    <input #uploader type="file" accept="application/json" (change)="onFileInput(uploader)" class="hidden-file" />
+  </div>
+</div>
+
+
+<form class="add-form" (ngSubmit)="add()" [formGroup]="form" dir="rtl">
+  <mat-form-field appearance="fill">
+    <mat-label>التسمية</mat-label>
+    <input matInput formControlName="label" />
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>القيمة</mat-label>
+    <input matInput formControlName="value" />
+  </mat-form-field>
+
+  <button mat-raised-button color="accent" type="submit">إضافة</button>
+</form>
+
+<div cdkDropList (cdkDropListDropped)="drop($event, list)" *ngIf="items$ | async as list" class="list">
+  <div class="row" *ngFor="let it of list" cdkDrag>
+    <div class="drag-handle" cdkDragHandle>⋮⋮</div>
+
+    <mat-form-field>
+      <input matInput [(ngModel)]="it.label" (blur)="saveInline(it)" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput [(ngModel)]="it.value" (blur)="saveInline(it)" />
+    </mat-form-field>
+
+    <button mat-icon-button color="warn" (click)="del(it)" [disabled]="it.locked" matTooltip="حذف">
+      <mat-icon>delete</mat-icon>
+    </button>
+
+    <mat-chip *ngIf="it.locked" color="primary" selected>افتراضي</mat-chip>
+  </div>
+</div>

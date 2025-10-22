@@ -123,3 +123,73 @@
   /* الطباعة بعمود واحد لقراءة أوضح */
   .section { grid-template-columns: 1fr !important; }
 }
+
+
+
+/* ===== مؤهلات علمية — تنسيق مطابق لباقي الصفحة ===== */
+.section .q-list {
+  display: grid;
+
+  gap: 12px;
+
+
+  
+}
+
+.section .q-card  {
+  padding: 12px;
+  border: 1px solid #e3efe6;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.section .q-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  .spacer { flex: 1; }
+}
+
+/* شبكة الحقول داخل بطاقة الشهادة:
+   نجعل الأعمدة والاستجابة مثل .section بالضبط */
+.section .q-grid {
+  display: grid;
+  gap: 14px 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 959px) {
+  .section .q-grid { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 1280px) {
+  .section .q-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* اجعل كل mat-form-field يملأ خلاياه مثل بقية الأقسام */
+.section .q-grid .mat-mdc-form-field {
+  width: 100%;
+}
+
+
+.q-list { display: grid; gap: 12px; }
+.q-card { padding: 12px; }
+.q-header { margin-bottom: 8px; color: #1d6e3e; }
+
+.grid.grid-3 { 
+  display: grid; 
+  gap: 10px 16px; 
+  grid-template-columns: repeat(3, minmax(0,1fr)); 
+}
+.field .value { white-space: pre-wrap; }
+.col-span-3 { grid-column: 1 / -1; }
+
+@media (max-width: 900px) {
+  .grid.grid-3 { grid-template-columns: 1fr; }
+}
+.muted { color: #777; }
+
+.gov-tabs { margin-top: 12px; }
+.tab-pad { padding: 12px 8px; }

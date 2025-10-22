@@ -1,0 +1,132 @@
+:host {
+  display: block;
+}
+
+/* شريط علوي رسمي */
+.dept-toolbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; margin-bottom: 12px;
+  background: #fff; border: 1px solid #e5e9f2; border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.05);
+  .spacer { flex: 1; }
+  .hidden-file { display: none; }
+  .btn-group { display: flex; gap: 10px; }
+  .search-field { min-width: 280px; width: clamp(280px, 42vw, 520px); margin: 0; }
+}
+
+
+.org-tree {
+  direction: rtl;
+  background: #fff;
+  border: 1px solid #e7eaf2;
+  border-radius: 14px;
+  padding: 6px 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
+}
+
+/* كل سطر في الشجرة */
+.org-tree .mat-tree-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin: 4px 6px;
+  border-radius: 10px;
+  transition: background .15s ease, box-shadow .15s ease, transform .06s ease;
+
+  &:hover {
+    background: #f7f9ff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .06);
+  }
+}
+
+/* زر التوسيع/الطي */
+.org-tree .mat-tree-node > [mat-icon-button] {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e2e6f0;
+  border-radius: 10px;
+  background: #fff;
+  transition: background .15s ease, border-color .15s ease;
+
+  &:hover {
+    background: #eef3ff;
+    border-color: #cfd7ea;
+  }
+}
+
+/* الاسم والكود */
+.org-tree .mat-tree-node strong {
+  color: #203a66;
+  font-weight: 700;
+}
+.org-tree .mat-tree-node .code,
+.org-tree .mat-tree-node :where(.code) {
+  margin-inline-start: 6px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1px solid #e4e8f2;
+  background: #fafcff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: #4a5a78;
+}
+
+/* أزرار الإجراءات على يمين السطر (يسار بصريًا بالـ RTL) */
+.org-tree .actions {
+  margin-inline-start: auto;
+  display: flex;
+  gap: 6px;
+  opacity: 0;                /* تُظهر عند hover فقط */
+  pointer-events: none;
+  transition: opacity .12s ease;
+}
+.org-tree .mat-tree-node:hover .actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* أزرار الإجراءات */
+.org-tree .actions .mat-mdc-button,
+.org-tree .actions .mat-mdc-unelevated-button {
+  border-radius: 10px;
+  padding-inline: 10px;
+  height: 36px;
+}
+
+/* خطوط توصيل خفيفة (جمالية) */
+.org-tree .mat-tree-node::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 24px;  /* مكان الخط مع RTL */
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-right: 1px dashed #e3e7f3;
+  opacity: .9;
+}
+.org-tree .mat-tree-node:first-child::before {
+  top: 16px;                 /* لا يظهر فوق أول عنصر */
+}
+
+/* تحسين الحشو الافتراضي من matTreeNodePadding */
+[matTreeNodePadding] {
+  --level-pad: 20px;         /* غيّرها لو بدك إزاحة أكبر */
+}
+[matTreeNodePadding] .mat-tree-node {
+  padding-inline-start: 8px;
+}
+
+/* تجاوبية */
+@media (max-width: 720px) {
+  .org-tree .mat-tree-node {
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .org-tree .actions {
+    opacity: 1;             /* على الموبايل خلي الأزرار ظاهرة دائمًا */
+    pointer-events: auto;
+  }
+}

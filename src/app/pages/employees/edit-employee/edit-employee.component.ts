@@ -2,7 +2,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
-import { ReactiveFormsModule, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormControl, NonNullableFormBuilder ,FormArray } from '@angular/forms';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,6 +23,7 @@ import {
   Employee,
   EmployeeUpdate,
   NewEmployee,
+  DocAttachmentType,
 } from '../../../services/local-employees.service';
 
 import { DEPARTMENTS } from '../../../models/department';
@@ -34,6 +35,7 @@ import { OTHER_VALUE } from '../../../shared/constants';
 import {
   createEmployeeForm,
   EmployeeForm,
+  createQualificationGroup
 } from '../../../shared/types/employee-form.type';
 
 import {
@@ -41,6 +43,12 @@ import {
   formToNewEmployee,
   fillWorkplaceLevelsFromPath,
 } from '../../../shared/mappers/employee.mapper';
+import { EmployeeDocumentsComponent } from "../employee-documents/employee-documents.component";
+
+
+
+
+
 
 @Component({
   standalone: true,
@@ -63,7 +71,8 @@ import {
     MatTabsModule,
     MatStepperModule,
     MatChipsModule,
-  ],
+    EmployeeDocumentsComponent
+],
 })
 export class EditEmployeeComponent implements OnInit, OnDestroy {
   // — الخدمات —
@@ -88,6 +97,11 @@ export class EditEmployeeComponent implements OnInit, OnDestroy {
   nationalities: string[] = [];
   OTHER_VALUE = OTHER_VALUE;
   today = () => new Date();
+
+
+
+
+  
 
   // — شجرة الأقسام (لوائح متسلسلة) —
   departments = DEPARTMENTS;
@@ -118,7 +132,7 @@ export class EditEmployeeComponent implements OnInit, OnDestroy {
   get birthDateCtrl() { return this.basic.get('birthDate') as FormControl<Date | null>; }
   get workDateCtrl() { return this.workdetails.get('workDate') as FormControl<Date | null>; }
   get dateActionWorkCtrl() { return this.workdetails.get('dateActionWork') as FormControl<Date | null>; }
-  get dateQualificationCtrl() { return this.details.get('dateQualification') as FormControl<Date | null>; }
+  // get dateQualificationCtrl() { return this.details.get('dateQualification') as FormControl<Date | null>; }
   get nationalityCtrl() { return this.basic.get('nationality') as FormControl<string[]>; }
   get jobAttributeCtrl() { 
   return this.workdetails.get('jobAttribute') as FormControl<string>;
@@ -144,6 +158,25 @@ get appointmentTypeCtrl(){
  get decisionAttribute$(){return this.lookup.decisionAttribute_DEFAULTES$;}
  get appointmentTypes$(){return this.lookup.appointmentTypes_DEFAULTES$;}
 // Getter لكنترول النموذج (موجود عندك)
+
+
+// لم 
+get qualifications(): FormArray {
+  return this.form.get(['details', 'qualifications']) as FormArray; // ✅ صح
+}
+
+addQualification(): void {
+  this.qualifications.push(createQualificationGroup());
+}
+removeQualification(i: number): void {
+  if (this.qualifications.length > 1) this.qualifications.removeAt(i);
+}
+duplicateQualification(i: number): void {
+  const v = this.qualifications.at(i).value;
+  const g = createQualificationGroup();
+  g.patchValue(v);
+  this.qualifications.push(g);
+}
 
 
 // trackBy
@@ -190,13 +223,15 @@ trackByValue = (_: number, it: { value: string }) => it.value;
 
       this.patchForm(emp);
       this.loading = false;
-    });
+    }
+  );
     //ليطبع سبب فشل اختيار من القائمة--طلعت المشكلة بتعريف النمط داخل الفاليديتور
     this.appointmentTypeCtrl.valueChanges.subscribe(v => {
   console.log('value =', v);
   console.log('valid =', this.appointmentTypeCtrl.valid);
   console.log('errors =', this.appointmentTypeCtrl.errors);
-});
+}
+);
 
   }
 
@@ -204,6 +239,9 @@ trackByValue = (_: number, it: { value: string }) => it.value;
     // لا شيء حرج هنا؛ كل الاشتراكات على Controls تعيش بعمر الكومبوننت
   }
 
+
+
+  
   private findEmployee(id: string): Employee | undefined {
     return this.store.list().find(e => e.id === id);
   } 
@@ -238,6 +276,8 @@ trackByValue = (_: number, it: { value: string }) => it.value;
     const now = this.nationalityCtrl.value ?? [];
     const exists = now.some(v => v?.toLowerCase() === added.toLowerCase());
     if (!exists) this.nationalityCtrl.setValue([...now, added]);
+    // this.cdr.markForCheck();
+
   }
 
   // حفظ
@@ -262,4 +302,121 @@ trackByValue = (_: number, it: { value: string }) => it.value;
   cancel(): void {
     this.router.navigate(['/employees']);
   }
+
+
+// في Add/Edit component
+fileInputs: HTMLInputElement[] = []; // اربطها عبر ViewChildren لو رغبت، أو استخدم template refs في *ngFor
+
+
+async onAttachFileSelected(index: number, ev: Event) {
+  const input = ev.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
+  if (!allowed.includes(file.type)) {
+    this.snack.open('❌ الصيغة غير مدعومة. استخدم PDF أو صورة.', 'إغلاق', { duration: 2500 });
+    input.value = '';
+    return;
+  }
+
+  const max = 2 * 1024 * 1024; // 2 MB
+  if (file.size > max) {
+    this.snack.open('❌ حجم الملف كبير (الحد الأقصى 2MB).', 'إغلاق', { duration: 2500 });
+    input.value = '';
+    return;
+  }
+
+  // ✅ تم قبول الملف (نصل لهذه النقطة فقط إن كان نوعه وحجمه صالحين)
+  const dataUrl = await fileToDataUrl(file);
+
+  const att = {
+    id: crypto.randomUUID?.() ?? `att_${Date.now()}`,
+    name: file.name,
+    mime: file.type,
+    size: file.size,
+    dataUrl,
+    uploadedAt: new Date().toISOString(),
+  };
+
+  const q = this.qualifications.at(index) as FormGroup;
+  q.get('attachment')?.setValue(att);
+  q.markAsDirty();
+
+  // 🎉 إشعار نجاح
+  this.snack.open(`✅ تم تحميل ${file.type.startsWith('image/') ? 'الصورة' : 'ملف PDF'} بنجاح!`, 'إغلاق', { duration: 2500 });
+
+  input.value = '';
 }
+
+
+openAttachment(att: { dataUrl: string; mime: string; name?: string }) {
+  try {
+    const blob = dataUrlToBlob(att.dataUrl, att.mime || 'application/pdf');
+    const url = URL.createObjectURL(blob);
+    // افتح في تبويب جديد بدون إمكانية الوصول للنافذة الأم (لأمان أعلى)
+    window.open(url, '_blank', 'noopener,noreferrer');
+    // يمكن تحرير الـ URL لاحقًا:
+    // setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (e) {
+    console.error('openAttachment failed', e);
+  }
+
+
+
+}
+
+
+
+clearAttachment(index: number) {
+  const q = (this.qualifications.at(index) as FormGroup);
+  q.get('attachment')?.setValue(null);
+  q.markAsDirty();
+}
+
+
+
+
+
+
+
+
+}
+
+// حوّل Data URL إلى Blob
+function dataUrlToBlob(dataUrl: string, fallbackMime = 'application/octet-stream'): Blob {
+  const [header, base64] = dataUrl.split(',');
+  const match = /data:(.*?);base64/.exec(header || '');
+  const mime = match?.[1] || fallbackMime;
+  const binStr = atob(base64 || '');
+  const len = binStr.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+// افتح المرفق في تبويب جديد بأمان
+
+
+
+
+
+
+
+
+
+
+
+// helper
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result));
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+
+
+

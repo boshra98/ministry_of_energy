@@ -1,28 +1,57 @@
-import { FormControl, FormGroup, Validators, NonNullableFormBuilder } from '@angular/forms';
+import { FormControl, FormGroup, Validators, NonNullableFormBuilder , FormArray } from '@angular/forms';
 import { dateNotInFutureValidator } from '../validators/date.validators';
 
 /** RegExp مشتركة */
 const NAME_RX   = /^[\p{L}\s]+$/u;  // أحرف + مسافات (أي لغة)
 const DIGITS_RX = /^[0-9]+$/;
 
+// عرّف نوع المرفق بحيث dataUrl و blobUrl اختياريتان
+export type Attachment = {
+  id: string;
+  name: string;
+  mime: string;
+  size: number;
+  dataUrl?: string;   // للصور
+  blobUrl?: string;   // للـ PDF
+  uploadedAt: string;
+};
 
-// const allowed = new Set(appointmentTypes_DEFAULT.map(o => o.value));
+export function createQualificationGroup(/* fb: NonNullableFormBuilder */): FormGroup {
+  return new FormGroup({
+    paperFileNumber:         new FormControl<string>('', { nonNullable: true, validators: [Validators.pattern(/^[0-9]+$/)] }),
+    collage:                 new FormControl<string>('', { nonNullable: true, validators: [Validators.maxLength(200)] }),
+    education:               new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+    sourceAcadimicQualification: new FormControl<string>('', { nonNullable: true }),
+    dateQualification:       new FormControl<Date | null>(null),
+    detailsQualification:    new FormControl<string>('', { nonNullable: true, validators: [Validators.maxLength(500)] }),
 
-// function oneOfAllowed(ctrl: AbstractControl<string | null>) {
-//   const v = ctrl.value;
-//   return v && allowed.has(v) ? null : { oneOf: true };
-// }
+    //  كنترول قابل أن يكون null وبنوع يسمح بالصور/الـ PDF
+    attachment:              new FormControl<Attachment | null>(null),
+  });
+}
 
-// appointmentType: fb.control(null, { 
-//   validators: [Validators.required, oneOfAllowed] 
-// }),
+// عنصر شهادة واحد
+// export function createQualificationGroup(fb: NonNullableFormBuilder) {
+//   return fb.group({
+//     // paperFileNumber: [''],
+//     paperFileNumber: ['', [Validators.pattern(/^[0-9]+$/)]],
+
+//     collage: ['',[Validators.maxLength(200)]],
+//     education: ['', Validators.required], // يختار من educations$
+//     sourceAcadimicQualification: [''],
+//     dateQualification: [null as Date | null],
+//     detailsQualification: ['',[Validators.maxLength(500)]],
+// // اضافة جديدة من اجل المرفق تبع تلشهادة
+//     attachment: fb.control<{
+//       id: string; name: string; mime: string; size: number; dataUrl: string; uploadedAt: string;
+//     } | null>(null),
+
+    
+
+//   });
 
 
-/** ملاحظة مهمة حول التواريخ:
- * لو أنت تستخدم MatDatepicker يفضّل نخلي الحقول Date | null
- * (birthDate, workDate, dateActionWork, dateQualification, dateStatusWork, datecurrentDecisionAppointment)
- * لو عندك Validator مخصص لصيغة ISO، خليه بس للحقول النصّية.
- */
+export type QualificationForm = ReturnType<typeof createQualificationGroup>;
 
 // === نوع الفورم ===
 export type EmployeeForm = FormGroup<{
@@ -35,7 +64,11 @@ export type EmployeeForm = FormGroup<{
     birthDate: FormControl<Date | null>;
     nationality: FormControl<string[]>;   // متعدد
     materialStatus: FormControl<string>;
-    dependences: FormControl<string>;
+    // dependences: FormControl<string>;
+    wifedependences: FormControl<string >;
+    childdependences: FormControl<string >;
+
+    
   }>;
 
   personals: FormGroup<{
@@ -58,18 +91,16 @@ export type EmployeeForm = FormGroup<{
     emergencyPhone1: FormControl<string>;
     emergencyPhone2: FormControl<string>;
   }>;
+ 
+ 
+  details:
+   FormGroup<{
+    qualifications: FormArray<QualificationForm>;
+   }> ;
 
-  details: FormGroup<{
-    paperFileNumber: FormControl<string>;
-    collage: FormControl<string>;
-    education: FormControl<string>;
-    sourceAcadimicQualification: FormControl<string>;
-    dateQualification: FormControl<Date | null>;
-    detailsQualification: FormControl<string>;
-    jobTitle: FormControl<string>;
-  }>;
 
   workdetails: FormGroup<{
+    jobTitle: FormControl<string>;
     decisionStart: FormControl<string>;
     decisionAttribute:  FormControl<string>;
     workDate: FormControl<Date | null>;
@@ -119,7 +150,9 @@ export function createEmployeeForm(fb: NonNullableFormBuilder): EmployeeForm {
 
       nationality: fb.control<string[]>([], { validators: [Validators.required] }),
       materialStatus: fb.control('', { validators: [Validators.required] }),
-      dependences: fb.control(''),
+      // dependences: fb.control(''),
+      wifedependences: fb.control('', { validators: [Validators.pattern(DIGITS_RX)] }),
+      childdependences: fb.control('', { validators: [Validators.pattern(DIGITS_RX)] }),
     }),
 
     personals: fb.group({
@@ -143,18 +176,18 @@ export function createEmployeeForm(fb: NonNullableFormBuilder): EmployeeForm {
       emergencyPhone2:  fb.control(''),
     }),
 
-    details: fb.group({
-      paperFileNumber:          fb.control('', { validators: [Validators.pattern(DIGITS_RX)] }),
-      collage:                  fb.control('', { validators: [Validators.pattern(NAME_RX)] }),
-      education:                fb.control(''),
-      sourceAcadimicQualification: fb.control('', { validators: [Validators.pattern(NAME_RX)] }),
-      dateQualification:        fb.control<Date | null>(null),
+    
 
-      detailsQualification:     fb.control('', { validators: [Validators.pattern(NAME_RX)] }),
-      jobTitle:                 fb.control(''),
+
+
+     details: fb.group({
+      qualifications: fb.array([ createQualificationGroup() ]),
     }),
 
     workdetails: fb.group({
+
+     jobTitle:                 fb.control(''),
+
       decisionStart: fb.control(''),
       decisionAttribute: fb.control(''),
       workDate:      fb.control<Date | null>(null, { validators: [Validators.required] }),
@@ -179,16 +212,17 @@ export function createEmployeeForm(fb: NonNullableFormBuilder): EmployeeForm {
       dateStatusWork:             fb.control<Date | null>(null),
      
     }),
-    currentworkdetails: fb.group({
-      currentJoblocation:         fb.control(''),
-      currentDecisionAppointment: fb.control(''),
-      datecurrentDecisionAppointment: fb.control<Date | null>(null),
-      currentSalary:              fb.control(''),
-      // currentWorkplace:           fb.control(''),
-      currentjobtitle:            fb.control(''),
-      currentjobcategory:         fb.control(''),
-      currentjobattribute:        fb.control(''),
-      currentappointmentType:        fb.control(''),
-    }),
+  currentworkdetails: fb.group({
+  currentJoblocation:         fb.control(''),
+  currentDecisionAppointment: fb.control(''),
+  datecurrentDecisionAppointment: fb.control<Date | null>(null),
+  currentSalary:              fb.control(''),
+  // currentWorkplace:           fb.control(''),
+  currentjobtitle:            fb.control<string | null>(null),
+  currentjobcategory:         fb.control<string | null>(null),
+  currentjobattribute:        fb.control<string | null>(null),
+  currentappointmentType:     fb.control<string | null>(null),
+}),
+
   }) as EmployeeForm;
 }

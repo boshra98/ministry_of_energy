@@ -1,0 +1,105 @@
+<!-- <p>employee-documents works!</p>
+
+<ng-container *ngIf="attachments$ | async as atts">
+  <div class="toolbar" *ngIf="mode !== 'view'">
+    <mat-form-field appearance="outline">
+      <mat-label>نوع المرفق</mat-label>
+      <mat-select [(value)]="selectedType">
+        <mat-option *ngFor="let t of types" [value]="t.name">{{ t.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-raised-button (click)="fileInput.click()" [disabled]="!selectedType">رفع ملف</button>
+    <input #fileInput type="file" (change)="onPick($event)" accept="image/*,application/pdf" hidden />
+  </div>
+
+  <div class="grid">
+    <div class="card" *ngFor="let a of atts">
+      <div class="thumb" (click)="open(a)">
+        <img *ngIf="a.mime.startsWith('image/'); else pdfIcon" [src]="a.remoteUrl || a.dataUrl" />
+        <ng-template #pdfIcon><mat-icon>picture_as_pdf</mat-icon></ng-template>
+      </div>  
+
+      <div class="meta">
+        <div class="name">{{ a.name }}</div>
+        <div class="type">{{ typeLabel(a.type) }}</div>
+        <div class="date">{{ a.uploadedAt | date:'yyyy/MM/dd HH:mm' }}</div>
+      </div>
+      <div class="actions" *ngIf="mode !== 'view'">
+        <button mat-icon-button (click)="replace(a)"><mat-icon>swap_horiz</mat-icon></button>
+        <button mat-icon-button color="warn" (click)="remove(a)"><mat-icon>delete</mat-icon></button>
+      </div>
+    </div>
+  </div>
+</ng-container> -->
+
+
+
+
+<!-- شريط أدوات -->
+<ng-container *ngIf="attachments$ | async as atts">
+  <div class="toolbar" *ngIf="mode !== 'view'">
+    <mat-form-field appearance="outline" class="type-field">
+      <mat-label>نوع المرفق</mat-label>
+      <mat-select [(value)]="selectedType">
+        <mat-option *ngFor="let t of types" [value]="t.name">{{ t.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" (click)="fileInput.click()" [disabled]="!selectedType">
+      <mat-icon>cloud_upload</mat-icon>
+      رفع ملف
+    </button>
+    <input #fileInput type="file" (change)="onPick($event)" accept="image/*,application/pdf" hidden />
+  </div>
+
+  <!-- قائمة المرفقات -->
+  <mat-card class="card">
+    <mat-card-title>مرفقات الموظف</mat-card-title>
+    <mat-divider></mat-divider>
+
+    <div class="list-header" *ngIf="atts.length">
+      <div class="col col-file">الملف</div>
+      <div class="col col-type">النوع</div>
+      <div class="col col-size">الحجم</div>
+      <div class="col col-date">التاريخ</div>
+      <div class="col col-actions" *ngIf="mode !== 'view'">إجراءات</div>
+    </div>
+
+    <div class="row" *ngFor="let a of atts; trackBy: trackById">
+      <div class="col col-file">
+        <mat-icon class="file-icon" [matTooltip]="a.mime">{{ iconFor(a.mime) }}</mat-icon>
+        
+        
+        <a class="file-link" [href]="displayUrl(a)" target="_blank" rel="noopener">
+  {{ a.name }}
+</a>
+
+
+
+      </div>
+
+      <div class="col col-type">
+        <mat-chip-set>
+          <mat-chip appearance="outlined" color="primary">{{ typeLabel(a.type) }}</mat-chip>
+        </mat-chip-set>
+      </div>
+
+      <div class="col col-size">{{ formatSize(a.size) }}</div>
+      <div class="col col-date">{{ a.uploadedAt | date:'yyyy/MM/dd HH:mm' }}</div>
+
+      <div class="col col-actions" *ngIf="mode !== 'view'">
+        <button mat-icon-button matTooltip="استبدال" (click)="replace(a)">
+          <mat-icon>swap_horiz</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" matTooltip="حذف" (click)="remove(a)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="!atts.length">
+      <mat-icon>folder_open</mat-icon>
+      لا توجد مرفقات بعد.
+    </div>
+  </mat-card>
+</ng-container>

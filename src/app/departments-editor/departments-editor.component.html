@@ -1,0 +1,80 @@
+<!-- 
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="org-tree" dir="rtl">
+  <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+    <button mat-icon-button disabled></button>
+    {{ node.name }} <span class="code">({{ node.code }})</span>
+    <span class="actions">
+      <button mat-button (click)="edit(node)">تعديل</button>
+      <button mat-button color="primary" (click)="addChild(node)">إضافة فرع</button>
+      <button mat-button color="warn" (click)="remove(node)">حذف</button>
+    </span>
+  </mat-tree-node>
+
+  <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+    <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'toggle ' + node.name">
+      <mat-icon>{{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_left' }}</mat-icon>
+    </button>
+    <strong>{{ node.name }}</strong> <span class="code">({{ node.code }})</span>
+    <span class="actions">
+      <button mat-button (click)="edit(node)">تعديل</button>
+      <button mat-button color="primary" (click)="addChild(node)">إضافة فرع</button>
+      <button mat-button color="warn" (click)="remove(node)">حذف</button>
+    </span>
+  </mat-tree-node>
+</mat-tree> -->
+
+
+<!-- components/departments-editor/departments-editor.component.html -->
+<div class="dept-toolbar" dir="rtl">
+  <mat-form-field class="search-field" appearance="outline" floatLabel="auto" subscriptSizing="dynamic">
+    <mat-label>بحث في الأقسام</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput formControl="searchCtrl" placeholder="ابحث بالاسم أو الكود" />
+    <button *ngIf="searchCtrl.value" mat-icon-button matSuffix type="button" (click)="searchCtrl.setValue('')">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <span class="spacer"></span>
+
+  <div class="btn-group">
+    <button mat-stroked-button color="primary" type="button" (click)="resetDefaults()">
+      <mat-icon>restart_alt</mat-icon>
+      استعادة الافتراضيات
+    </button>
+    <button mat-stroked-button type="button" (click)="export()">
+      <mat-icon>ios_share</mat-icon>
+      تصدير JSON
+    </button>
+    <button mat-stroked-button type="button" (click)="uploader.click()">
+      <mat-icon>file_upload</mat-icon>
+      استيراد
+    </button>
+    <input #uploader type="file" accept="application/json" (change)="onFileInput(uploader)" class="hidden-file" />
+  </div>
+</div>
+
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="org-tree" dir="rtl">
+  <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+    <button mat-icon-button disabled></button>
+    {{node.name}} <span class="code">({{node.code}})</span>
+    <span class="actions">
+      <button mat-button (click)="edit(node)">تعديل</button>
+      <button mat-button color="primary" (click)="addChild(node)">إضافة فرع</button>
+      <button mat-button color="warn" (click)="remove(node)">حذف</button>
+    </span>
+  </mat-tree-node>
+
+  <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+    <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'toggle ' + node.name">
+      <mat-icon>{{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_left' }}</mat-icon>
+    </button>
+    <strong>{{node.name}}</strong> <span class="code">({{node.code}})</span>
+    <span class="actions">
+      <button mat-button (click)="edit(node)">تعديل</button>
+      <button mat-button color="primary" (click)="addChild(node)">إضافة فرع</button>
+      <button mat-button color="warn" (click)="remove(node)">حذف</button>
+    </span>
+  </mat-tree-node>
+</mat-tree>
+

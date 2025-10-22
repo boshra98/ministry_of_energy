@@ -60,17 +60,7 @@ export const EDUCATIONS_DEFAULT: LookupOption[] = [
   { value: 'deemed_resigned',  label: 'بحكم المستقيل' }
 ] ;
 
-// jobCategory  jobCategory
-// export const JOBCATEGORY_DEFAULT: LookupOption[] = 
-  
-//  [
-//   { value: 'cat_one',      label: '   الفئة الأولى' },
-//   { value: 'cat_tow',       label: 'الفئة الثانية' },
-//   { value: '',     label: '  الفئة الثالثة' },
-//   { value: '',    label: 'الفئة الرابعة ' },
-//   { value: '',  label: 'الفئة  الخامسة' },
-  
-// ] ;
+
 export const JOBCATEGORY_DEFAULT: LookupOption[] = [
   { value: 'I', label: 'الفئة الأولى' },     
   { value: 'II', label: 'الفئة الثانية' },   

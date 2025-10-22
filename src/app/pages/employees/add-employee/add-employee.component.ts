@@ -2,7 +2,7 @@ import { JOBCATEGORY_DEFAULT } from './../../../shared/lookups/lookups.constants
 import { MatCardModule } from '@angular/material/card';
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormControl, FormGroup, Validators, AbstractControl, ValidationErrors, NonNullableFormBuilder } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, FormGroup, Validators, AbstractControl, ValidationErrors, NonNullableFormBuilder , FormArray } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
@@ -16,6 +16,9 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatStepperModule } from '@angular/material/stepper';
 // import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AddNationalityDialogComponent } from './add-nationality-dialog.component';
+
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+
 
 import {
   LocalEmployeesService,
@@ -38,8 +41,10 @@ import { LookupService } from '../../../services/lookup.service';
 import {
   GENDERS, BLOOD_TYPES, MARITAL_STATUS, EMERGENCY_RELATIONS
 } from '../../../../../src/app/shared/lookups/lookups.constants';
-import { createEmployeeForm, EmployeeForm } from '../../../shared/types/employee-form.type';
+import { createEmployeeForm, EmployeeForm  , createQualificationGroup} from '../../../shared/types/employee-form.type';
 import { employeeToForm, fillWorkplaceLevelsFromPath, formToNewEmployee } from '../../../shared/mappers/employee.mapper';
+import { EmployeeDocumentsComponent } from '../employee-documents/employee-documents.component';
+
 export interface ParsedPlace {
   codes?: string[];
   /** الأسماء على الترتيب (مقابل الشجرة) */
@@ -78,7 +83,8 @@ interface OrgNode { code: string; name: string; subs?: OrgNode[]; }
     MatNativeDateModule,
     MatTabsModule,
     MatStepperModule,
-    MatChipsModule
+    MatChipsModule ,
+    MatSnackBarModule
 ],
 })
 export class AddEmployeeComponent {
@@ -120,6 +126,7 @@ private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
     private route: ActivatedRoute,
     private store: LocalEmployeesService,
     private dialog: MatDialog,
+    private snack: MatSnackBar,
     private cdr: ChangeDetectorRef ,
     private nat: NationalityService ,
     private lookup: LookupService
@@ -149,7 +156,10 @@ get jobAttributes$() { return this.lookup.JOBATTRIBUTE_DEFAULTES$; }
 get jobCategories$(){ return this.lookup.JOBCATEGORY_DEFAULTES$;}
 get decisionAttribute$(){return this.lookup.decisionAttribute_DEFAULTES$}
 get appointmentTypes$(){return this.lookup.appointmentTypes_DEFAULTES$;}
-  
+
+ get qualifications() {
+  return this.details.get('qualifications') as FormArray;
+}
 
 onWorkPick(e: any) {
   console.log('picker ->', e.value, e.value instanceof Date);
@@ -190,6 +200,22 @@ get level4List(): OrgNode[] {
 }
 
 trackByValue = (_: number, it: { value: string }) => it.value;
+
+
+addQualification(): void {
+  this.qualifications.push(createQualificationGroup());
+}
+removeQualification(i: number): void {
+  if (this.qualifications.length > 1) this.qualifications.removeAt(i);
+}
+duplicateQualification(i: number): void {
+  const v = this.qualifications.at(i).value;
+  const g = createQualificationGroup();
+  g.patchValue(v);
+  this.qualifications.push(g);
+}
+trackByIndex = (i: number) => i;
+
 
 
 ngOnInit(): void {
@@ -254,15 +280,10 @@ get materialStatusCtrl(){ return this.basic.get('materialStatus')  as FormContro
 get dependencesCtrl(){  return this.basic.get('dependences')  as FormControl<string>; }
 // الحقول داخل details
 
-get jobTitleCtrl()   { return this.details.get('jobTitle')   as FormControl<string>; }
-get paperFileNumberCtrl() { return this.details.get('paperFileNumber') as FormControl<string>; }
-get collageCtrl()         { return this.details.get('collage')         as FormControl<string>; }
-get educationCtrl()       { return this.details.get('education')       as FormControl<string>; }
-get sourceAcadimicQualificationCtrl()       { return this.details.get('sourceAcadimicQualification')       as FormControl<string>; }
-get dateQualificationCtrl(){ return this.details.get('dateQualification') as FormControl<Date | null>; }
-get detailsQualificationCtrl()       { return this.details.get('detailsQualification')       as FormControl<string>; }
 
 ///// حقول داخل ال workdetails
+get jobTitleCtrl()   { return this.workdetails.get('jobTitle')   as FormControl<string>; }
+
 get decisionStartCtrl()       { return this.workdetails.get('decisionStart')       as FormControl<string>; }
 // get workDateCtrl()       { return this.workdetails.get('workDate')       as FormControl<Date | null>; }
 get workDateCtrl()        { return this.workdetails.get('workDate')   as FormControl<Date | null>; }
@@ -358,6 +379,22 @@ private parsePlaceActionWork(value: string | null | undefined): ParsedPlace {
   };
 }
 
+openAttachment(att: { dataUrl: string; mime: string; name?: string }) {
+  try {
+    const blob = dataUrlToBlob(att.dataUrl, att.mime || 'application/pdf');
+    const url = URL.createObjectURL(blob);
+    // افتح في تبويب جديد بدون إمكانية الوصول للنافذة الأم (لأمان أعلى)
+    window.open(url, '_blank', 'noopener,noreferrer');
+    // يمكن تحرير الـ URL لاحقًا:
+    // setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (e) {
+    console.error('openAttachment failed', e);
+  }
+
+
+
+}
+
 
 
 onAddOtherClick(e: MouseEvent) {
@@ -381,26 +418,99 @@ onAddOtherClick(e: MouseEvent) {
     }
   });
 }
-
-
-
 submit() {
-  if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
+  }
 
   const payload: NewEmployee = formToNewEmployee(this.form);
 
   if (this.editingId) {
     this.store.update({ id: this.editingId, ...payload });
-
+    this.router.navigate(['/employees', this.editingId, 'documents']);
   } else {
     const saved = this.store.add(payload);
     this.editingId = saved.id;
+    this.router.navigate(['/employees', saved.id, 'documents']);
   }
-  this.router.navigate(['/employees']);
 }
 
 
+
+
+// في Add/Edit component
+fileInputs: HTMLInputElement[] = []; // اربطها عبر ViewChildren لو رغبت، أو استخدم template refs في *ngFor
+
+async onAttachFileSelected(index: number, ev: Event) {
+  const input = ev.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
+  if (!allowed.includes(file.type)) {
+    this.snack.open('❌ الصيغة غير مدعومة. استخدم PDF أو صورة.', 'إغلاق', { duration: 2500 });
+    input.value = '';
+    return;
+  }
+
+  const max = 2 * 1024 * 1024; // 2 MB
+  if (file.size > max) {
+    this.snack.open('❌ حجم الملف كبير (الحد الأقصى 2MB).', 'إغلاق', { duration: 2500 });
+    input.value = '';
+    return;
+  }
+
+  // ✅ تم قبول الملف (نصل لهذه النقطة فقط إن كان نوعه وحجمه صالحين)
+  const dataUrl = await fileToDataUrl(file);
+
+  const att = {
+    id: crypto.randomUUID?.() ?? `att_${Date.now()}`,
+    name: file.name,
+    mime: file.type,
+    size: file.size,
+    dataUrl,
+    uploadedAt: new Date().toISOString(),
+  };
+
+  const q = this.qualifications.at(index) as FormGroup;
+  q.get('attachment')?.setValue(att);
+  q.markAsDirty();
+
+  // 🎉 إشعار نجاح
+  this.snack.open(`✅ تم تحميل ${file.type.startsWith('image/') ? 'الصورة' : 'ملف PDF'} بنجاح!`, 'إغلاق', { duration: 2500 });
+
+  input.value = '';
 }
+
+
+clearAttachment(index: number) {
+  const q = (this.qualifications.at(index) as FormGroup);
+  q.get('attachment')?.setValue(null);
+  q.markAsDirty();
+}
+
+
+
+
+
+}
+
+// helper
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result));
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+
+
+
+
+
 
 
 // ابحث عن عقدة حسب الكود ضمن قائمة عقد.
@@ -451,4 +561,13 @@ function normalizeNationalities(nats: unknown, other: unknown): string[] {
 
 
 
-
+function dataUrlToBlob(dataUrl: string, fallbackMime = 'application/octet-stream'): Blob {
+  const [header, base64] = dataUrl.split(',');
+  const match = /data:(.*?);base64/.exec(header || '');
+  const mime = match?.[1] || fallbackMime;
+  const binStr = atob(base64 || '');
+  const len = binStr.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}

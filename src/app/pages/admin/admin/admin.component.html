@@ -1,1 +1,49 @@
-<p>admin works!</p>
+<div class="gov-page" dir="rtl">
+  <mat-card class="gov-card">
+    <!-- Header -->
+    <div class="gov-header">
+      <div class="crest">
+        <img src="/logo.png" class="logo" alt="شعار الوزارة" />
+      </div>
+
+      <div class="titles">
+        <div class="country">الجمهورية العربية السورية</div>
+        <div class="ministry">وزارة الطاقة</div>
+        <div class="dept">مديرية الموارد البشرية</div>
+      </div>
+
+      <div class="doc-meta">
+        <div>
+          التاريخ: <strong>{{ today() | date: 'yyyy/MM/dd' }}</strong>
+        </div>
+        <button mat-icon-button class="back-btn" (click)="back()" aria-label="رجوع">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <mat-card-title class="page-title">لوحة الإدارة</mat-card-title>
+
+    <mat-card-content>
+      <div class="admin-options">
+        <!-- 1) إعدادات القوائم الثابتة -->
+        <button mat-raised-button color="primary" class="option" routerLink="/settings/lookups" >
+          <mat-icon>tune</mat-icon>
+          <span>إعدادات القوائم الثابتة</span>
+        </button>
+
+        <!-- 2) إدارة الأقسام (اختياري إن عندك صفحة مستقلة) -->
+        <button mat-raised-button color="primary" class="option" routerLink="/admin/departments">
+          <mat-icon>account_tree</mat-icon>
+          <span>إدارة الأقسام</span>
+        </button>
+
+        <!-- 3) إدارة المستخدمين -->
+        <button mat-raised-button color="primary" class="option" routerLink="/admin/users">
+          <mat-icon>manage_accounts</mat-icon>
+          <span>إدارة المستخدمين</span>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

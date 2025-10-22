@@ -78,6 +78,23 @@ export const routes: Routes = [
     title: 'لوحة التحكم'
   },
 
+  {
+  path: 'settings/lookups',
+  loadComponent: () =>
+    import('./pages/settings/lookups-settings.page/lookups-settings.page.component')
+      .then(m => m.LookupsSettingsPage),
+  title: 'إعدادات القوائم',
+},
+
+{
+  path: 'employees/:id/documents',
+  loadComponent: () =>
+    import('./pages/employees/employee-documents/employee-documents.component')
+      .then(m => m.EmployeeDocumentsComponent), // standalone
+  title: 'مرفقات الموظف'
+},
+
+
 
   { path: '**', redirectTo: '' }
 ];

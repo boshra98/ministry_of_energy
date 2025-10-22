@@ -1,8 +1,62 @@
 import { Injectable } from '@angular/core';
 
+
+
+export interface Qualification {
+  paperFileNumber?: string;
+  collage?: string;
+  education: string;                  // code من الـ lookup
+  sourceAcadimicQualification?: string;
+  dateQualification?: string | null;  // ISO yyyy-mm-dd (نُجهّزها في المابر)
+  detailsQualification?: string;
+
+// من اجل صورة مرفقات الشهادة العلمية
+  attachment?: {
+    id: string;              // uuid
+    name: string;            // اسم الملف الأصلي
+    mime: 'image/jpeg' | 'image/png' | 'application/pdf';
+    size: number;            // بالبايت
+    dataUrl: string;         // base64 Data URL (للبيئات المحلية)
+    uploadedAt: string;      // ISO datetime
+  } | null;
+
+}
+
+
+
+export type DocAttachmentType =
+  | 'profile_photo'
+  | 'id_card_front' | 'id_card_back'
+  | 'family_record'
+  | 'passport'
+  | 'criminal_record'
+  | 'non_employment'
+  | 'appointment_order';
+
+export interface DocAttachment {
+  id: string;
+  type: DocAttachmentType;
+  name: string;
+  mime: 'image/jpeg' | 'image/png' | 'application/pdf';
+  size: number;
+  dataUrl: string;       // تخزين محلي مؤقت
+  uploadedAt: string;    // ISO
+  note?: string;
+   
+  storage?: 'local' | 'remote';      // افتراضي 'local' الآن
+  fileId?: string;                   // معرّف الملف على السيرفر
+  remoteUrl?: string;
+
+
+}
+
+export interface EmployeeDetails {
+  qualifications: Qualification[];
+}
 export interface Employee {
    id: string;
-  dependences: string | null | undefined;
+  childdependences: string | null | undefined;
+  wifedependences: string | null | undefined;
   emergencyPhone2: string | null | undefined;
   emergencyPhone1: string | null | undefined;
   emergencyContentRelation: string | null | undefined;
@@ -29,24 +83,32 @@ export interface Employee {
   familyRegistration: string | null | undefined;
   centralSecretaion: string | null | undefined;
   placeBirth: string | null | undefined;
-  detailsQualification: string | null | undefined;
-  dateQualification: Date | null | undefined;
-  sourceAcadimicQualification: string | null | undefined;
+  detailsQualification?: string | null | undefined;
+  dateQualification?: Date | null | undefined;
+  sourceAcadimicQualification?: string | null | undefined;
   materialStatus: string | null | undefined;
   nationality: string[]| null | undefined;
   otherNationality?: string | null | undefined; //  جنسية اخرى
-  education: string | undefined;
-  collage: string | undefined;
+  education?: string | undefined;
+  collage?: string | undefined;
   workDate: Date | null | undefined;
   firstName: string;
   lastName: string;
   fatherName: string;
   motherName:string;
-  paperFileNumber: string;
+  paperFileNumber?: string;
   gender: string;
   residence: string;
   jobTitle: string;
   birthDate: Date | null ;
+
+
+  details?: EmployeeDetails;
+  attachments?:DocAttachment[];
+
+
+
+
   datecurrentDecisionAppointment: Date | null | undefined;
   currentDecisionAppointment: string | null | undefined;
   currentJoblocation: string | null | undefined;
@@ -63,6 +125,46 @@ createdAt: Date; // ISO
 updatedAt?: Date; //  أضِف هذا
 
 }
+
+
+function ensureDocAttachments(e: Partial<Employee>): DocAttachment[] {
+  return Array.isArray(e.attachments) ? e.attachments : [];
+}
+
+
+///////////////////
+function legacyQualificationFrom(emp: Partial<Employee>): Qualification | null {
+  const has =
+    emp.education || emp.collage || emp.sourceAcadimicQualification ||
+    emp.dateQualification || emp.detailsQualification || emp.paperFileNumber;
+
+  if (!has) return null;
+
+  return {
+    paperFileNumber: emp.paperFileNumber || undefined,
+    collage: emp.collage || undefined,
+    education: (emp.education as any) || '', // قد تكون undefined مسبقًا
+    sourceAcadimicQualification: emp.sourceAcadimicQualification || undefined,
+    // نحفظ كـ ISO نصي في التخزين؛ الـ mapper يحوّله Date للـ Form
+    dateQualification: emp.dateQualification ? new Date(emp.dateQualification).toISOString().slice(0,10) : null,
+    detailsQualification: emp.detailsQualification || undefined,
+  };
+}
+
+function ensureDetails(e: Partial<Employee>): EmployeeDetails {
+  const q = (e.details?.qualifications ?? []).slice();
+  if (!q.length) {
+    const legacy = legacyQualificationFrom(e);
+    if (legacy) q.push(legacy);
+  }
+  return { qualifications: q };
+}
+
+
+
+
+
+
 export type NewEmployee = Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>;
 export type EmployeeUpdate = Partial<Omit<Employee, 'id' | 'createdAt'>> & { id: string };
 export const OTHER_VALUE = '__OTHER__';
@@ -74,7 +176,7 @@ const DATE_KEYS = new Set<string>([
   'birthDate',
   'workDate',
   'dateActionWork',
-  'dateQualification',
+  // 'dateQualification',
   'dateStatusWork',
   'datecurrentDecisionAppointment',
   'createdAt',
@@ -159,17 +261,23 @@ remove(id: string): void {
   this.writeAll(list);
 }
 
-
+//  لضمان قرائتهم عند اضافة ايا قائمة جديدة في ال اللوكل ايمبلويي
 
   private readAll(): Employee[] {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw, reviveDates) as Employee[]) : [];
-      // return raw ? JSON.parse(raw) as Employee[] : [];
-    } catch {
-      return [];
-    }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const arr = raw ? (JSON.parse(raw, reviveDates) as Employee[]) : [];
+    //  ضمن وجود details.qualifications حتى للبيانات القديمة
+    return arr.map(e => ({
+       ...e,
+        details: ensureDetails(e) ,
+        attachments: ensureDocAttachments(e),
+      }));
+  } catch {
+    return [];
   }
+}
+  
 
   private writeAll(list: Employee[]): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
@@ -186,6 +294,10 @@ remove(id: string): void {
     ...emp,
     nationality: norm.nationality,
     otherNationality: norm.otherNationality,
+     details: ensureDetails(emp), // ← مهم
+  attachments: ensureDocAttachments(emp),   // ← إضافة آمنة
+
+
     id: crypto.randomUUID?.() ?? `emp_${Date.now()}`,
     createdAt: new Date(),
   };
@@ -198,19 +310,67 @@ remove(id: string): void {
 
   list(): Employee[] {
     return this.readAll();
-  }
+  } 
 
   clearAll(): void {
     this.writeAll([]);
   }
 
- update(patch: EmployeeUpdate): Employee | null {
+//  update(patch: EmployeeUpdate): Employee | null {
+//   const list = this.readAll();
+//   const i = list.findIndex(e => e.id === patch.id);
+//   if (i === -1) return null;
+
+//   const prev = list[i];
+
+//   // دمج عميق بسيط لـ details
+//   const merged: Employee = {
+//     ...prev,
+//     ...patch,
+//     details: ensureDetails({
+//       ...prev,
+//       ...(patch as any),
+//       details: {
+//         qualifications: [
+//           ...((prev.details?.qualifications) ?? []),
+//           ...(((patch as any).details?.qualifications) ?? []),
+//         ]
+//       }
+//     }),
+//   };
+
+//   const norm = normalizeNationalities(merged);
+
+//   const updated: Employee = {
+//     ...merged,
+//     nationality: norm.nationality,
+//     otherNationality: norm.otherNationality,
+//     updatedAt: new Date(),
+//   };
+
+//   list[i] = updated;
+//   this.writeAll(list);
+//   return updated;
+// }
+
+update(patch: EmployeeUpdate): Employee | null {
   const list = this.readAll();
   const i = list.findIndex(e => e.id === patch.id);
   if (i === -1) return null;
 
-  // ادمج ثم طبِّع
-  const merged: Employee = { ...list[i], ...patch };
+  const prev = list[i];
+
+  const merged: Employee = {
+    ...prev,
+    ...patch,
+    //  استبدل قائمة الشهادات بالكامل إن أرسلها الـpatch، وإلا أبقِ القديمة
+    details: {
+      qualifications:
+        (patch as any).details?.qualifications ??
+        prev.details?.qualifications ?? []
+    }
+  };
+
   const norm = normalizeNationalities(merged);
 
   const updated: Employee = {
@@ -224,6 +384,8 @@ remove(id: string): void {
   this.writeAll(list);
   return updated;
 }
+
+
 
 
 }

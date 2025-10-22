@@ -236,17 +236,21 @@
 
 
                <mat-form-field appearance="outline">
-              <mat-label>  عدد الأشخاص المعيلين</mat-label>
-              <input matInput formControlName="dependences" />
-              @if (basic.get('dependences')?.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
-          @if (basic.get('dependences')?.hasError('minlength')) {
-            <mat-error>يجب ألا يقل عن حرفين</mat-error>
-          }
+              <mat-label>  عدد الزوجات  </mat-label>
+              <input matInput formControlName="wifedependences" />
+        
+           @if (basic.get('wifedependences')?.hasError('pattern')) {
+  <mat-error>يُسمح فقط بأرقام  </mat-error>
+}
+            </mat-form-field>   
 
-           @if (basic.get('dependences')?.hasError('pattern')) {
-  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
+
+
+             <mat-form-field appearance="outline">
+              <mat-label>  عدد الأولاد  </mat-label>
+              <input matInput formControlName="childdependences" />
+           @if (basic.get('childdependences')?.hasError('pattern')) {
+  <mat-error>يُسمح فقط بأرقام</mat-error>
 }
             </mat-form-field>
 
@@ -531,131 +535,161 @@
 
 
 
-      <!-- الخطوة الثانية: بيانات تفصيلية -->
-      <mat-step [stepControl]="details">
+     <!-- الخطوة الثانية: بيانات تفصيلية -->
+<mat-step [stepControl]="details">
+  <div [formGroup]="details">
+    <ng-template matStepLabel>معلومات المؤهل العلمي</ng-template>
 
-        <!-- //converted from form into div -->
-        <div [formGroup]="details">
+    <div class="step-body">
+
+      <div formArrayName="qualifications">
+        <mat-card class="q-card " *ngFor="let q of qualifications.controls; let i = index" [formGroupName]="i">
+      <div class="q-header">
+  <strong>
+    {{ i === 0 ? 'الشهادة الأساسية عند التعيين' : ('الشهادة الاضافية رقم ' + i) }}
+  </strong>
+
+  <!-- اختياري: شارة لطيفة على الأساسية -->
+  <mat-chip *ngIf="i === 0" color="primary" selected style="margin-inline-start:.5rem">
+    أساسية
+  </mat-chip>
+
+  <span class="spacer"></span>
+
+  <input #uploader type="file" hidden accept="image/*,application/pdf" (change)="onAttachFileSelected(i, $event)" /> 
+  <!-- input كاميرا للموبايل (scan) -->
+   <input #cameraInput type="file" hidden accept="image/*" capture="environment" (change)="onAttachFileSelected(i, $event)" />
+ <input type="file" accept="image/*,application/pdf" (change)="onAttachFileSelected(i, $event)" #fileInput hidden />
+
+  <!-- أزرار الرفع -->
+  <button mat-stroked-button type="button" (click)="uploader.click()">رفع ملف / PDF</button>
+  <button mat-stroked-button type="button" (click)="cameraInput.click()">رفع صورة </button>
+
+  <button mat-stroked-button color="primary" type="button" (click)="duplicateQualification(i)">
+    نسخ الشهادة
+  </button>
+
+  <!-- منع حذف الأولى (اختياري) -->
+  <button
+    mat-stroked-button color="warn" type="button"
+    (click)="removeQualification(i)"
+    *ngIf="i > 0 && qualifications.length > 1">
+    حذف
+  </button>
+</div>
+
+<!-- المعاينة + زر (×) لمسح المرفق -->
+<div *ngIf="q.get('attachment')?.value as att" class="preview" style="display:flex;align-items:center;gap:.5rem;">
+  <!-- PDF -->
+  <ng-container *ngIf="att?.mime?.toLowerCase().includes('pdf'); else showImage">
+    <a href="" (click)="openAttachment(att); $event.preventDefault()" class="file-link">
+      📄 فتح ملف PDF ({{ att.name || 'المرفق' }})
+    </a>
+
+    <!-- زر × لمسح المرفق -->
+    <button mat-icon-button color="warn" (click)="clearAttachment(i)" aria-label="مسح المرفق">
+      <mat-icon>close</mat-icon>
+    </button>
+  </ng-container>
+
+  <!-- Images -->
+  <ng-template #showImage>
+    <img *ngIf="att?.mime?.startsWith('image/'); else unknownType"
+         [src]="att.dataUrl || att.blobUrl"
+         style="max-height:120px;border:1px solid #ccc;border-radius:6px;" />
+
+    <a *ngIf="att?.mime?.startsWith('image/')" href="" (click)="openAttachment(att); $event.preventDefault()" class="file-link">
+      فتح الصورة في تبويب جديد
+    </a>
+
+    <!-- زر × لمسح المرفق -->
+    <button mat-icon-button color="warn" (click)="clearAttachment(i)" aria-label="مسح المرفق">
+      <mat-icon>close</mat-icon>
+    </button>
+
+    <!-- fallback لأنواع غير معروفة -->
+    <ng-template #unknownType>
+      <button type="button" class="linklike" (click)="openAttachment(att)">
+        فتح الملف ({{ att.name || 'ملف' }})
+      </button>
+      <button mat-icon-button color="warn" (click)="clearAttachment(i)" aria-label="مسح المرفق">
+        <mat-icon>close</mat-icon>
+      </button>
+    </ng-template>
+  </ng-template>
 
 
-          <ng-template matStepLabel>معلومات تفصيلية</ng-template>
-                <div class="step-body">
+
+
+  </div>
 
           <div class="grid">
             <mat-form-field appearance="outline">
-              <mat-label>رقم الملف الورقي</mat-label>
-              <input matInput formControlName="paperFileNumber" />
-              @if (paperFileNumberCtrl.touched && paperFileNumberCtrl.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
-          @if (paperFileNumberCtrl.touched && paperFileNumberCtrl.hasError('pattern')) {
-            <mat-error>أرقام فقط (حتى 10)</mat-error>
-          }
-          @if (paperFileNumberCtrl.hasError('pattern')) {
-  <mat-error> يُسمح فقط بالأرقام (بدون حروف)</mat-error>
-}
+              <mat-label>رقم المؤهل العلمي</mat-label>
+              <input matInput formControlName="paperFileNumber" inputmode="numeric" />
+              <mat-error *ngIf="q.get('paperFileNumber')?.hasError('required')">مطلوب</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>الاختصاص الجامعي</mat-label>
+              <mat-label>الكلية/المؤسسة التعليمية</mat-label>
               <input matInput formControlName="collage" />
-              @if (collageCtrl.touched && collageCtrl.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
-          @if (collageCtrl.touched && collageCtrl.hasError('minlength')) {
-            <mat-error>يجب ألا يقل عن حرفين</mat-error>
-          }
-
-          @if (collageCtrl.hasError('pattern')) {
-  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
-}
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>التحصيل العلمي</mat-label>
-              <!-- <mat-select formControlName="education">
-                <mat-option *ngFor="let e of educations" [value]="e">{{ e }}</mat-option>
-              </mat-select> -->
-
               <mat-select formControlName="education">
-  <mat-option *ngFor="let e of (educations$ | async)" [value]="e.value">
-    {{ e.label }}
-  </mat-option>
-</mat-select>
-
+                <mat-option *ngFor="let e of (educations$ | async)" [value]="e.value">
+                  {{ e.label }}
+                </mat-option>
+              </mat-select>
             </mat-form-field>
-
-
-
-             <mat-form-field appearance="outline">
-              <mat-label>مصدر  الشهادة</mat-label>
-              <input matInput formControlName="sourceAcadimicQualification" />
-              @if (sourceAcadimicQualificationCtrl.touched && collageCtrl.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
-          @if (sourceAcadimicQualificationCtrl.touched && collageCtrl.hasError('minlength')) {
-            <mat-error>يجب ألا يقل عن حرفين</mat-error>
-          }
-
-          @if (sourceAcadimicQualificationCtrl.hasError('pattern')) {
-  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
-}
-            </mat-form-field>
-<!-- 
-  <mat-form-field appearance="outline">
-              <mat-label>تاريخ اصدار  الشهادة</mat-label>
-              <input matInput type="date" formControlName="dateQualification" />
-             @if (details.get('dateQualification')?.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
- @if (details.get('dateQualification')?.hasError('invalidDate')) {
-            <mat-error>    أدخل تاريخًا صالحا</mat-error>
-          }
-             
-      
-        
-            </mat-form-field> -->
 
             <mat-form-field appearance="outline">
-  <mat-label>تاريخ إصدار الشهادة</mat-label>
-
-  <input
-    matInput
-    [matDatepicker]="dqPicker"
-    formControlName="dateQualification"
-    [max]="today()"  
-  />
-  <mat-datepicker-toggle matSuffix [for]="dqPicker"></mat-datepicker-toggle>
-  <mat-datepicker #dqPicker></mat-datepicker>
-
-  @if (details.get('dateQualification')?.hasError('required')) {
-    <mat-error>هذا الحقل مطلوب</mat-error>
-  }
-  @if (details.get('dateQualification')?.hasError('futureDate')) {
-    <mat-error>لا يمكن أن يكون التاريخ في المستقبل</mat-error>
-  }
-</mat-form-field>
-
-
-              <mat-form-field appearance="outline">
-              <mat-label>تفاصيل الشهادة</mat-label>
-              <input matInput formControlName="detailsQualification" />
-              @if (detailsQualificationCtrl.touched && detailsQualificationCtrl.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
-          @if (detailsQualificationCtrl.touched && detailsQualificationCtrl.hasError('minlength')) {
-            <mat-error>يجب ألا يقل عن حرفين</mat-error>
-          }
-
-          @if (detailsQualificationCtrl.hasError('pattern')) {
-  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
-}
+              <mat-label>مصدر الشهادة</mat-label>
+              <input matInput formControlName="sourceAcadimicQualification" />
             </mat-form-field>
 
+            <mat-form-field appearance="outline">
+              <mat-label>تاريخ إصدار الشهادة</mat-label>
+              <input matInput [matDatepicker]="dq" formControlName="dateQualification" [max]="today()" />
+              <mat-datepicker-toggle matSuffix [for]="dq"></mat-datepicker-toggle>
+              <mat-datepicker #dq></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="col-2">
+              <mat-label>تفاصيل الشهادة</mat-label>
+              <textarea matInput rows="2" formControlName="detailsQualification"></textarea>
+            </mat-form-field>
+          </div>
+        </mat-card>
+      </div>
+
+      <div class="actions">
+        <button mat-raised-button color="primary" type="button" (click)="addQualification()">
+          + إضافة شهادة
+        </button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button mat-button matStepperPrevious>السابق</button>
+      <button mat-button matStepperNext [disabled]="details.invalid">التالي</button>
+    </div>
+  </div>
+</mat-step>
 
 
 
-  <mat-form-field appearance="outline">
+
+       <mat-step [stepControl]="workdetails">
+       <!-- //not form its div -->
+        <div [formGroup]="workdetails">
+          <ng-template matStepLabel>تفاصيل التعيين</ng-template>
+                <div class="step-body">
+
+          <div class="grid">
+
+            <mat-form-field appearance="outline">
               <mat-label>المسمى الوظيفي</mat-label>
               <!-- <mat-select formControlName="jobTitle">
                @for (j of jobTitles; track j) {
@@ -671,35 +705,6 @@
             <mat-error>الرجاء اختيار المسمى الوظيفي</mat-error>
           } 
              </mat-form-field> 
-
-           
-          </div>
-
-
-          </div>
-
-          <div class="actions">
-            <!-- <button mat-button matStepperNext [disabled]="basic.invalid">التالي</button> -->
-            <button mat-button matStepperPrevious>السابق</button>
-                  <!-- <button mat-button matStepperNext >التالي</button> -->
-                  <button mat-button matStepperNext [disabled]="details.invalid">التالي</button>
-
-
-
-          </div>
-        
-        </div>
-      </mat-step>
-
-
-
-       <mat-step [stepControl]="workdetails">
-       <!-- //not form its div -->
-        <div [formGroup]="workdetails">
-          <ng-template matStepLabel>تفاصيل التعيين</ng-template>
-                <div class="step-body">
-
-          <div class="grid">
             <mat-form-field appearance="outline">
               <mat-label> قرار بدء التعيين</mat-label>
               <input matInput formControlName="decisionStart" />
@@ -735,41 +740,6 @@
 
 
 
-            <!-- <mat-form-field appearance="outline">
-              <mat-label>مكان المباشرة </mat-label>
-              <input matInput formControlName="placeActionWork" />
-              @if (workdetails.get('placeActionWork')?.hasError('required')) {
-            <mat-error>هذا الحقل مطلوب</mat-error>
-          }
-          @if (workdetails.get('placeActionWork')?.hasError('minlength')) {
-            <mat-error>يجب ألا يقل عن حرفين</mat-error>
-          }
-
-           @if (workdetails.get('placeActionWork')?.hasError('pattern')) {
-  <mat-error>يُسمح فقط بالأحرف (بدون أرقام أو رموز)</mat-error>
-}
-            </mat-form-field> -->
-<!-- 
-            <mat-form-field appearance="outline" class="w-100">
-    <mat-label>الإدارة الأساسية</mat-label>
-    <mat-select formControlName="mainDeptCode">
-      <mat-option *ngFor="let d of departments" [value]="d.code">{{ d.name }}</mat-option>
-    </mat-select>
-    @if (mainDeptCodeCtrl.hasError('required') && mainDeptCodeCtrl.touched) {
-      <mat-error>اختر الإدارة الأساسية</mat-error>
-    }
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="w-100">
-    <mat-label>القسم الفرعي</mat-label>
-    <mat-select formControlName="subDeptCode" [disabled]="!filteredSubs.length">
-      <mat-option *ngIf="!filteredSubs.length" [disabled]="true">لا توجد أقسام فرعية</mat-option>
-      <mat-option *ngFor="let s of filteredSubs" [value]="s.code">{{ s.name }}</mat-option>
-    </mat-select>
-    @if (subDeptCodeCtrl.hasError('required') && subDeptCodeCtrl.touched) {
-      <mat-error>اختر القسم الفرعي</mat-error>
-    }
-  </mat-form-field> -->
 
   <!-- المستوى 1 -->
 <mat-form-field appearance="outline" class="w-100">
@@ -819,9 +789,6 @@
     </mat-option>
   </mat-select>
 </mat-form-field>
-
-
-
 
          <mat-form-field appearance="outline">
   <mat-label>تاريخ المباشرة</mat-label>

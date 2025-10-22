@@ -1,0 +1,96 @@
+.gov-page {
+  display: grid;
+  place-items: start center;
+  padding: 16px;
+  background: #f6f7fb;
+}
+
+.gov-card {
+  width: min(1100px, 96vw);
+  border-radius: 18px;
+  padding: 0 0 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
+}
+
+.gov-header {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e6e8ef;
+  background: linear-gradient(180deg, #ffffff, #fafbff);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+}
+
+.crest .logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.1));
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+  color: #2b3445;
+}
+
+.country { font-weight: 700; font-size: 18px; }
+.ministry { font-weight: 600; font-size: 16px; color: #3b485f; }
+.dept { font-weight: 500; font-size: 14px; color: #5c6a82; }
+
+.doc-meta {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+  color: #445066;
+}
+
+.back-btn {
+  border: 1px solid #d9dfea;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.page-title {
+  padding: 14px 20px 0;
+  font-weight: 700;
+  color: #2a3650;
+}
+
+.admin-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  padding: 16px 20px 8px;
+}
+
+button.option {
+  display: grid;
+  grid-auto-flow: column;
+  justify-content: start;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 16px;
+  padding-block: 14px;
+  border-radius: 12px;
+  background: #f2f6ff;
+  color: #1b3a7a;
+  transition: transform .08s ease, box-shadow .12s ease, background .2s ease;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  &:hover {
+    background: #e9f0ff;
+    box-shadow: 0 4px 14px rgba(39, 82, 185, .15);
+    transform: translateY(-1px);
+  }
+}

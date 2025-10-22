@@ -1,0 +1,76 @@
+:host {
+  display: block;
+  direction: rtl;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 12px 0 16px;
+}
+
+.type-field { width: 260px; }
+
+.card {
+  padding: 0;
+}
+
+.list-header,
+.row {
+  display: grid;
+  grid-template-columns:
+    minmax(240px, 1.6fr)  /* الملف */
+    minmax(160px, 1fr)    /* النوع */
+    120px                 /* الحجم */
+    160px                 /* التاريخ */
+    120px;                /* الإجراءات */
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.list-header {
+  font-weight: 600;
+  color: rgba(0,0,0,.65);
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+.row {
+  border-bottom: 1px dashed rgba(0,0,0,.06);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.col-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-icon {
+  opacity: .85;
+}
+
+.file-link {
+  color: var(--mdc-theme-primary, #1976d2);
+  text-decoration: none;
+  font-weight: 500;
+}
+.file-link:hover { text-decoration: underline; }
+
+.col-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-start;
+}
+
+.empty {
+  padding: 24px 16px;
+  color: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

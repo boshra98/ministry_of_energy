@@ -7,8 +7,18 @@
         <div class="ministry">وزارة الطاقة</div>
         <div class="dept">مديرية الموارد البشرية</div>
       </div>
-      <div class="doc-meta"><div>نموذج: <strong>تعديل بيانات موظف</strong></div></div>
+      <div class="doc-meta">
+        <div>نموذج: <strong>تعديل بيانات موظف</strong></div>
+      </div>
     </div>
+<mat-tab-group class="gov-tabs" dynamicHeight>
+
+  <!-- تبويب البيانات -->
+  <mat-tab label="البيانات">
+
+
+
+      
 
     <div class="doc-title">
       <h2>تعديل بيانات الموظف</h2>
@@ -85,9 +95,22 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>عدد الأشخاص المعيلين</mat-label>
-          <input matInput formControlName="dependences" />
+     
+
+         <mat-form-field appearance="outline">
+          <mat-label>عدد  الزوجات</mat-label>
+          <input matInput formControlName="wifedependences" />
+            @if (basic.get('childdependences')?.hasError('pattern')) {
+  <mat-error>يُسمح فقط بأرقام</mat-error>
+}
+
+        </mat-form-field>
+         <mat-form-field appearance="outline">
+          <mat-label>عدد  الأولاد</mat-label>
+          <input matInput formControlName="childdependences" />
+            @if (basic.get('childdependences')?.hasError('pattern')) {
+  <mat-error>يُسمح فقط بأرقام</mat-error>
+}
         </mat-form-field>
       </fieldset>
 
@@ -199,12 +222,12 @@
         </mat-form-field>
       </fieldset>
 
-      <!-- ========== تفاصيل إضافية ========== -->
+      <!-- ========== تفاصيل إضافية ==========
       <fieldset formGroupName="details" class="section">
-        <legend>تفاصيل إضافية</legend>
+        <legend>تفاصيل المؤهل العلمي</legend>
 
         <mat-form-field appearance="outline">
-          <mat-label>رقم الملف الورقي</mat-label>
+          <mat-label>رقم المؤهل العلمي</mat-label>
           <input matInput formControlName="paperFileNumber" inputmode="numeric" />
         </mat-form-field>
 
@@ -237,17 +260,162 @@
           <textarea matInput rows="2" formControlName="detailsQualification"></textarea>
         </mat-form-field>
 
+        
+      </fieldset> -->
+
+
+      <!-- ========== تفاصيل إضافية ========== -->
+<fieldset formGroupName="details"  class="section" dir="rtl"  >
+  <legend>تفاصيل المؤهل العلمي</legend>
+
+  <div formArrayName="qualifications" class="q-list col-2">
+    <mat-card   class="q-card " *ngFor="let q of qualifications.controls; let i = index" [formGroupName]="i">
+      <div  class="q-header">
+       <strong>
+    {{ i === 0 ? 'الشهادة الأساسية عند التعيين' : ('الشهادة الاضافية رقم ' + i) }}
+  </strong>
+
+  <!-- اختياري: شارة لطيفة على الأساسية -->
+  <mat-chip *ngIf="i === 0" color="primary" selected style="margin-inline-start:.5rem">
+    أساسية
+  </mat-chip>
+
+  <span class="spacer"></span>
+
+  <input #uploader type="file" hidden accept="image/*,application/pdf" (change)="onAttachFileSelected(i, $event)" /> 
+  <!-- input كاميرا للموبايل (scan) -->
+   <input #cameraInput type="file" hidden accept="image/*" capture="environment" (change)="onAttachFileSelected(i, $event)" />
+ <input type="file" accept="image/*,application/pdf" (change)="onAttachFileSelected(i, $event)" #fileInput hidden />
+
+  <!-- أزرار الرفع -->
+  <button mat-stroked-button type="button" (click)="uploader.click()">رفع ملف / PDF</button>
+  <button mat-stroked-button type="button" (click)="cameraInput.click()">رفع صورة </button>
+
+  <button mat-stroked-button color="primary" type="button" (click)="duplicateQualification(i)">
+    نسخ الشهادة
+  </button>
+
+    <button mat-stroked-button color="warn" type="button" (click)="removeQualification(i)" *ngIf="qualifications.length > 1">
+      حذف
+    </button>
+
+  
+<!-- المعاينة + زر (×) لمسح المرفق -->
+<div *ngIf="q.get('attachment')?.value as att" class="preview" style="display:flex;align-items:center;gap:.5rem;">
+  <!-- PDF -->
+  <ng-container *ngIf="att?.mime?.toLowerCase().includes('pdf'); else showImage">
+    <a href="" (click)="openAttachment(att); $event.preventDefault()" class="file-link">
+      📄 فتح ملف PDF ({{ att.name || 'المرفق' }})
+    </a>
+
+    <!-- زر × لمسح المرفق -->
+    <button mat-icon-button color="warn" (click)="clearAttachment(i)" aria-label="مسح المرفق">
+      <mat-icon>close</mat-icon>
+    </button>
+  </ng-container>
+
+  <!-- Images -->
+  <ng-template #showImage>
+   
+    <a *ngIf="att?.mime?.startsWith('image/')" href="" (click)="openAttachment(att); $event.preventDefault()" class="file-link">
+      فتح الصورة في تبويب جديد
+    </a>
+
+    <!-- زر × لمسح المرفق -->
+    <button mat-icon-button color="warn" (click)="clearAttachment(i)" aria-label="مسح المرفق">
+      <mat-icon>close</mat-icon>
+    </button>
+       <ng-template #unknownType>
+      <button type="button" class="linklike" (click)="openAttachment(att)">
+        فتح الملف ({{ att.name || 'ملف' }})
+      </button>
+      <button mat-icon-button color="warn" (click)="clearAttachment(i)" aria-label="مسح المرفق">
+        <mat-icon>close</mat-icon>
+      </button>
+    </ng-template>
+  </ng-template>
+
+</div>
+  </div>
+
+      <div   class="q-grid"  >
+        <mat-form-field appearance="outline" >
+          <mat-label>رقم المؤهل العلمي</mat-label>
+          <input matInput formControlName="paperFileNumber" inputmode="numeric" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>الكلية/المؤسسة التعليمية</mat-label>
+          <input matInput formControlName="collage" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>المؤهل التعليمي</mat-label>
+          <mat-select formControlName="education">
+            <mat-option *ngFor="let e of (educations$ | async)" [value]="e.value">
+              {{ e.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>مصدر المؤهل العلمي</mat-label>
+          <input matInput formControlName="sourceAcadimicQualification" />
+        </mat-form-field>
+
+
+
+         <mat-form-field appearance="outline">
+  <mat-label>تاريخ إصدار الشهادة</mat-label>
+  <input matInput [matDatepicker]="dq" formControlName="dateQualification" [max]="today()" />
+  <mat-datepicker-toggle matSuffix [for]="dq"></mat-datepicker-toggle>
+  <mat-datepicker #dq></mat-datepicker>
+</mat-form-field>
+   
+
+        <!-- <mat-form-field appearance="outline">
+          <mat-label>تاريخ إصدار الشهادة</mat-label>
+          <mat-datepicker #dq{{i}}></mat-datepicker>
+          
+        </mat-form-field> -->
+
+        <mat-form-field appearance="outline" >
+          <mat-label>تفاصيل المؤهل</mat-label>
+          <textarea matInput rows="2" formControlName="detailsQualification"></textarea>
+        </mat-form-field>
+
+        
+
+
+
+      </div>
+    </mat-card>
+    <div class="actions">
+    <button mat-raised-button color="primary" type="button" (click)="addQualification()">
+      + إضافة شهادة
+    </button>
+
+
+    
+  
+  </div>
+
+  </div>
+
+  
+</fieldset>
+
+
+      <!-- ========== تفاصيل العمل ========== -->
+      <fieldset formGroupName="workdetails" class="section">
+        <legend>تفاصيل العمل</legend>
+
         <mat-form-field appearance="outline">
           <mat-label>المسمى الوظيفي</mat-label>
           <mat-select formControlName="jobTitle">
             <mat-option *ngFor="let j of (jobTitles$ | async)" [value]="j.value">{{ j.label }}</mat-option>
           </mat-select>
         </mat-form-field>
-      </fieldset>
-
-      <!-- ========== تفاصيل العمل ========== -->
-      <fieldset formGroupName="workdetails" class="section">
-        <legend>تفاصيل العمل</legend>
 
         <mat-form-field appearance="outline">
           <mat-label>قرار بدء التعيين</mat-label>
@@ -419,5 +587,29 @@
         </button>
       </div>
     </form>
-  </mat-card>
-</div>
+  
+
+
+
+
+  </mat-tab>
+<mat-tab label="المرفقات">
+  <div class="tab-pad">
+    <app-employee-documents
+      *ngIf="editingId"
+      [employeeId]="editingId!"
+      [mode]="'edit'">
+    </app-employee-documents>
+  </div>
+</mat-tab>
+
+
+  <!-- تبويب السجل (اختياري) -->
+  <!-- <mat-tab label="السجل" *ngIf="showAuditTab"> -->
+    <!-- <div class="tab-pad"> -->
+      <!-- لاحقًا: جدول عمليات، من أضاف/حذف، وتواريخ -->
+      <!-- جاري التحضير… -->
+    <!-- </div> -->
+  <!-- </mat-tab> -->
+
+</mat-tab-group>

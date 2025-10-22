@@ -114,8 +114,13 @@
                 </div>
 
                 <div class="field">
-                  <label>عدد المعيلين من أفراد الأسرة</label>
-                  <div class="value">{{ employee.dependences || '—' }}</div>
+                  <label>عدد  الزوجات</label>
+                  <div class="value">{{ employee.wifedependences || '—' }}</div>
+                </div>
+
+                <div class="field">
+                  <label>عدد  الأولاد</label>
+                  <div class="value">{{ employee.childdependences || '—' }}</div>
                 </div>
               </div>
             </section>
@@ -176,46 +181,99 @@
             <mat-divider></mat-divider>
 
             <!-- التعليم والتأهيل -->
-            <section class="section">
-              <h3><mat-icon>school</mat-icon> التعليم والتأهيل</h3>
-              <div class="grid grid-3">
-                <div class="field">
-                  <label>الكلية</label>
-                  <div class="value">{{ employee.collage || '—' }}</div>
-                </div>
+<section class="section">
+  <h3><mat-icon>school</mat-icon> التعليم والتأهيل</h3>
 
-                <div class="field">
-                  <label>المؤهل العلمي</label>
-                  <div class="value">{{ educationLabel || employeeSnapshot?.education || '—' }}</div>
-                </div>
+  <!-- إن وُجدت شهادات -->
+  <ng-container *ngIf="qualificationsView.length; else noQuals">
+    <div class="q-list">
+      <mat-card class="q-card" *ngFor="let q of qualificationsView; index as i">
+        <div class="q-header">
+          <!-- <strong>الشهادة رقم {{ i + 1 }}</strong> -->
 
-                <div class="field">
-                  <label>مصدر المؤهل</label>
-                  <div class="value">{{ employee.sourceAcadimicQualification || '—' }}</div>
-                </div>
+           <strong>
+    {{ i === 0 ? 'الشهادة الأساسية عند التعيين' : ('الشهادة الاضافية رقم ' + i) }}
+  </strong>
 
-                <div class="field">
-                  <label>تاريخ المؤهل</label>
-                  <div class="value">{{ formatDate(employee.dateQualification) }}</div>
-                </div>
+        </div>
 
-                <div class="field">
-                  <label>تفاصيل المؤهل</label>
-                  <div class="value">{{ employee.detailsQualification || '—' }}</div>
-                </div>
-              </div>
-            </section>
+   
+        
 
-            <mat-divider></mat-divider>
+
+        <div class="grid grid-3">
+
+          <div class="field">
+          <label>المرفق</label>
+            <div class="value">
+             <ng-container *ngIf="q.attachment as att; else noAtt">
+               <!-- PDF: افتح عبر دالة -->
+                 <a *ngIf="att.mime === 'application/pdf'"
+                   href=""
+                    (click)="openAttachment(att); $event.preventDefault()">
+                    📄 فتح ملف PDF ({{ att.name || 'المرفق' }})
+                          </a>
+
+                        <!-- صورة: يمكن عرض المعاينة مباشرة أو فتحها عبر openAttachment أيضًا -->
+                       <ng-container *ngIf="att.mime !== 'application/pdf'">
+        
+                       <a href="" (click)="openAttachment(att); $event.preventDefault()">فتح الصورة في تبويب جديد</a>
+                               </ng-container>
+                                 </ng-container>
+                                   <ng-template #noAtt>—</ng-template>
+                         </div>
+        </div> 
+        
+          <div class="field">
+            <label>رقم المؤهل العلمي</label>
+            <div class="value">{{ q.paperFileNumber }}</div>
+          </div>
+
+          <div class="field">
+            <label>الكلية/المؤسسة</label>
+            <div class="value">{{ q.collage }}</div>
+          </div>
+
+          <div class="field">
+            <label>المؤهل العلمي</label>
+            <div class="value">{{ q.education }}</div>
+          </div>
+
+          <div class="field">
+            <label>مصدر المؤهل</label>
+            <div class="value">{{ q.sourceAcadimicQualification }}</div>
+          </div>
+
+          <div class="field">
+            <label>تاريخ المؤهل</label>
+            <div class="value">{{ q.dateQualification }}</div>
+          </div>
+
+          <div class="field col-span-3">
+            <label>تفاصيل المؤهل</label>
+            <div class="value">{{ q.detailsQualification }}</div>
+          </div>
+
+          
+
+        </div>
+      </mat-card>
+    </div>
+  </ng-container>
+
+  <!-- لا توجد شهادات -->
+  <ng-template #noQuals>
+    <div class="muted">لا توجد شهادات مسجلة.</div>
+  </ng-template>
+</section>
+
+<mat-divider></mat-divider>
 
             <!-- تفاصيل العمل (أول تعيين) -->
             <section class="section">
               <h3><mat-icon>work</mat-icon> تفاصيل العمل</h3>
               <div class="grid grid-3">
-                <div class="field">
-                  <label>رقم الملف الورقي</label>
-                  <div class="value">{{ employee.paperFileNumber || '—' }}</div>
-                </div>
+                
 
               
                 <div class="field">
@@ -354,6 +412,17 @@
 
           </mat-card>
         </mat-tab>
+
+
+        <mat-tab label="المرفقات">
+  <div class="tab-pad">
+    <app-employee-documents
+      *ngIf="employee?.id"
+      [employeeId]="employee.id"
+      [mode]="'view'">
+    </app-employee-documents>
+  </div>
+</mat-tab>
 
         <!-- ========== تبويب: تبدلات التوظيف ========== -->
         <mat-tab label="تبدلات التوظيف">

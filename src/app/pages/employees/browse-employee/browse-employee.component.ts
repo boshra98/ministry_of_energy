@@ -219,11 +219,32 @@ import { MatTab } from '@angular/material/tabs';
 import { EmploymentChangeTabComponent } from "../employment-change-tab/employment-change-tab.component";
 import { EMPLOYMENT_CHANGES_PORT } from '../../../services/employment-changes.port';
 import { deriveCurrentState } from '../../../utils/derive-current';
+import { EmployeeDocumentsComponent } from "../employee-documents/employee-documents.component";
+
+
+type AttachmentView = {
+  id: string;
+  name: string;
+  mime: string;          // 'image/jpeg' | 'image/png' | 'application/pdf'
+  size: number;
+  dataUrl: string;       // base64 data URL
+  uploadedAt: string;    // ISO datetime
+};
+
+interface QualificationView {
+  paperFileNumber: string;
+  collage: string;
+  education: string;          // label جاهز للعرض
+  sourceAcadimicQualification: string;
+  dateQualification: string;  // نص منسّق
+  detailsQualification: string;
+  attachment: AttachmentView | null;   // ✅ مهم
+}
 
 @Component({
   standalone: true,
   selector: 'app-browse-employee',
- imports: [CommonModule, MatCardModule, MatIconModule, MatDividerModule, MatChipsModule, MatButtonModule, OrgNamePipe, MatTabsModule, MatTab, EmploymentChangeTabComponent],
+ imports: [CommonModule, MatCardModule, MatIconModule, MatDividerModule, MatChipsModule, MatButtonModule, OrgNamePipe, MatTabsModule, MatTab, EmploymentChangeTabComponent, EmployeeDocumentsComponent],
 
   templateUrl: './browse-employee.component.html',
   styleUrls: ['./browse-employee.component.scss'],
@@ -256,6 +277,10 @@ Array: any;
   loading = true;
   notFound = false;
   photoUrl?: string;
+
+
+
+  
 
   // خرائط لتحويل الأكواد إلى تسميات
   genderMap   = new Map<string, string>();
@@ -441,11 +466,62 @@ private pickEmergencyRelation(src: any): string | undefined {
   // ===== قيم “الحالي” (للتوافق مع القالب القديم) =====
   // private get jobAttributeValue(): string | undefined { return this.pickJobAttribute(this.Ecur); }
 
- private get jobAttributeValue(): string | undefined { return this.pickJobAttribute(this.Ecur); }
+private get jobAttributeValue(): string | undefined { return this.pickJobAttribute(this.Ecur); }
 private get jobCategoryValue():  string | undefined { return this.pickJobCategory(this.Ecur); }
 private get appointmentTypeValue(): string | undefined { return this.pickAppointmentType(this.Ecur); }
 private get educationValue(): string | undefined { return this.pickEducation(this.Ecur); }
 private get decisionAttributeValue(): string | undefined { return this.Ecur?.decisionAttribute ?? this.Ecur?.workdetails?.decisionAttribute ?? undefined; }
+
+
+
+/** تحويل تاريخ ISO أو Date إلى نص قصير */
+private fmt(v?: string | Date | null): string {
+  if (!v) return '—';
+  const d = v instanceof Date ? v : new Date(v);
+  return isNaN(d.getTime()) ? '—'
+    : `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+/** جِب قائمة الشهادات مع تحويل الأكواد إلى لابلات + تاريخ منسّق.
+ * يدعم البيانات القديمة (حقل واحد مسطّح) كعنصر واحد.
+ */
+
+
+get qualificationsView(): QualificationView[] {
+  const e: any = this.employeeSnapshot ?? this.employeeInitial ?? this.employee;
+  if (!e) return [];
+
+  const list = e.details?.qualifications as any[] | undefined;
+
+  if (Array.isArray(list) && list.length) {
+    return list.map((q: any) => ({
+      paperFileNumber: q.paperFileNumber || '—',
+      collage: q.collage || '—',
+      education: this.educationMap.get(q.education) ?? q.education ?? '—',
+      sourceAcadimicQualification: q.sourceAcadimicQualification || '—',
+      dateQualification: this.fmt(q.dateQualification ?? null),
+      detailsQualification: q.detailsQualification || '—',
+      attachment: q.attachment ?? null,                     // ✅ موجود هنا
+    }));
+  }
+
+  // توافق خلفي (حقول قديمة مفردة) ← أعِد عنصرًا واحدًا + attachment=null
+  const legacyHas =
+    e.education || e.collage || e.paperFileNumber ||
+    e.sourceAcadimicQualification || e.dateQualification || e.detailsQualification;
+
+  return legacyHas ? [{
+    paperFileNumber: e.paperFileNumber || '—',
+    collage: e.collage || '—',
+    education: this.educationMap.get(e.education) ?? e.education ?? '—',
+    sourceAcadimicQualification: e.sourceAcadimicQualification || '—',
+    dateQualification: this.fmt(e.dateQualification ?? null),
+    detailsQualification: e.detailsQualification || '—',
+    attachment: null,                                        // ✅ مهم جدًا
+  }] : [];
+}
+
+
 
 
 
@@ -655,5 +731,39 @@ get jobTitleLabel(): string {
     : '—';
 }
 
+openAttachment(att: { dataUrl: string; mime: string; name?: string }) {
+  try {
+    const blob = dataUrlToBlob(att.dataUrl, att.mime || 'application/pdf');
+    const url = URL.createObjectURL(blob);
+    // افتح في تبويب جديد بدون إمكانية الوصول للنافذة الأم (لأمان أعلى)
+    window.open(url, '_blank', 'noopener,noreferrer');
+    // يمكن تحرير الـ URL لاحقًا:
+    // setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (e) {
+    console.error('openAttachment failed', e);
+  }
+
+
+
 }
+}
+
+// حوّل Data URL إلى Blob
+function dataUrlToBlob(dataUrl: string, fallbackMime = 'application/octet-stream'): Blob {
+  const [header, base64] = dataUrl.split(',');
+  const match = /data:(.*?);base64/.exec(header || '');
+  const mime = match?.[1] || fallbackMime;
+  const binStr = atob(base64 || '');
+  const len = binStr.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+// افتح المرفق في تبويب جديد بأمان
+
+
+
+
+
 

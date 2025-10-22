@@ -1,154 +1,16 @@
-// import { Employee, NewEmployee } from '../../../../src/app/services/local-employees.service';
-// import { EmployeeForm } from '../../../../src/app/shared/types/employee-form.type';
-// import { OTHER_VALUE } from '../../../../src/app/shared/constants';
 
-// // يبني مسار مكان العمل من مستويات مختارة
-// export function buildWorkplacePath(...levels: (string | null | undefined)[]): string | null {
-//   const arr = levels.map(v => (v ?? '').trim()).filter(Boolean);
-//   return arr.length ? arr.join('|') : null;
-// }
-
-// // ينظّف الجنسيات (يشيل "غير ذلك" والقيمة المؤقتة)
-// function cleanNationalities(raw: string[] | null | undefined): string[] {
-//   const list = Array.isArray(raw) ? raw : [];
-//   return list
-//     .map(v => (v || '').trim())
-//     .filter(v => v && v !== OTHER_VALUE && v !== 'غير ذلك');
-// }
-
-// /** من الـForm → payload للحفظ في الخدمة */
-// export function formToNewEmployee(form: EmployeeForm): NewEmployee {
-//   const v = form.getRawValue();
-
-//   const placeActionWork = buildWorkplacePath(
-//     v.workdetails.level1Code,
-//     v.workdetails.level2Code,
-//     v.workdetails.level3Code,
-//     v.workdetails.level4Code
-//   );
-
-//   return {
-//     // basic
-//     firstName:  v.basic.firstName,
-//     lastName:   v.basic.lastName,
-//     fatherName: v.basic.fatherName,
-//     motherName: v.basic.motherName,
-//     gender:     v.basic.gender,
-//     birthDate:  v.basic.birthDate,   // خدمتك تتوقع string
-
-//     nationality:   cleanNationalities(v.basic.nationality),
-//     materialStatus:v.basic.materialStatus,
-//     dependences:   v.basic.dependences,
-
-//     // personals
-//     placeBirth:        v.personals.placeBirth,
-//     centralSecretaion: v.personals.centralSecretaion,
-//     familyRegistration:v.personals.familyRegistration,
-//     nationalNumber:    v.personals.nationalNumber,
-//     idNumber:          v.personals.idNumber,
-//     bloodType:         v.personals.bloodType,
-
-//     // communication
-//     permenentAddress: v.communication.permenentAddress,
-//     residence:        v.communication.residence,
-//     phoneNumber:      v.communication.phoneNumber,
-//     whatsappNumber:   v.communication.whatsappNumber,
-//     email:            v.communication.email,
-//     emergencyName:    v.communication.emergencyName,
-//     emergencyContentRelation: v.communication.emergencyContentRelation,
-//     emergencyPhone1:  v.communication.emergencyPhone1,
-//     emergencyPhone2:  v.communication.emergencyPhone2,
-
-//     // details
-//     paperFileNumber: v.details.paperFileNumber,
-//     collage:         v.details.collage,
-//     education:       v.details.education,
-//     sourceAcadimicQualification: v.details.sourceAcadimicQualification,
-//     dateQualification: v.details.dateQualification, // خزنها نص
-//     detailsQualification: v.details.detailsQualification,
-//     jobTitle:        v.details.jobTitle,
-
-//     // workdetails
-//     decisionStart:   v.workdetails.decisionStart,
-//     workDate:        v.workdetails.workDate,       // تبقى Date|null (حسب واجهتك الحالية)
-//     dateActionWork:  v.workdetails.dateActionWork, // Date|null
-//     appointmentType: v.workdetails.appointmentType,
-//     jobCategory:     v.workdetails.jobCategory,
-//     jobAttribute:    v.workdetails.jobAttribute,
-//     startingSalary:  v.workdetails.startingSalary,
-//     notes:           v.workdetails.notes,
-
-//     // من مستويات الشجرة
-//     placeActionWork,
-//   };
-// }
-
-// /** من الـModel → تعبئة الـForm (للتعديل/العرض) */
-// export function employeeToForm(emp: Employee, form: EmployeeForm): void {
-//   form.patchValue({
-//     basic: {
-//       firstName:  emp.firstName,
-//       lastName:   emp.lastName,
-//       fatherName: emp.fatherName,
-//       motherName: emp.motherName,
-//       gender:     emp.gender,
-//       birthDate:  emp.birthDate, // كان string
-//       nationality: emp.nationality ?? [],
-//       materialStatus: emp.materialStatus ?? '',
-//       dependences:    emp.dependences ?? '',
-//     },
-
-//     personals: {
-//       placeBirth:        emp.placeBirth ?? '',
-//       centralSecretaion: emp.centralSecretaion ?? '',
-//       familyRegistration:emp.familyRegistration ?? '',
-//       nationalNumber:    emp.nationalNumber ?? '',
-//       idNumber:          emp.idNumber ?? '',
-//       bloodType:         emp.bloodType ?? '',
-//     },
-
-//     communication: {
-//       permenentAddress: emp.permenentAddress ?? '',
-//       residence:        emp.residence ?? '',
-//       phoneNumber:      emp.phoneNumber ?? '',
-//       whatsappNumber:   emp.whatsappNumber ?? '',
-//       email:            emp.email ?? '',
-//       emergencyName:    emp.emergencyName ?? '',
-//       emergencyContentRelation: emp.emergencyContentRelation ?? '',
-//       emergencyPhone1:  emp.emergencyPhone1 ?? '',
-//       emergencyPhone2:  emp.emergencyPhone2 ?? '',
-//     },
-
-//     details: {
-//       paperFileNumber:          emp.paperFileNumber ?? '',
-//       collage:                  emp.collage ?? '',
-//       education:                emp.education ?? '',
-//       sourceAcadimicQualification: emp.sourceAcadimicQualification ?? '',
-//       dateQualification:        emp.dateQualification,
-//       detailsQualification:     emp.detailsQualification ?? '',
-//       jobTitle:                 emp.jobTitle ?? '',
-//     },
-
-//     workdetails: {
-//       decisionStart:   emp.decisionStart ?? '',
-//       workDate:        emp.workDate ?? null,
-//       dateActionWork:  emp.dateActionWork ?? null,
-//       appointmentType: emp.appointmentType ?? '',
-//       jobCategory:     emp.jobCategory ?? '',
-//       jobAttribute:    emp.jobAttribute ?? '',
-//       startingSalary:  emp.startingSalary ?? '',
-//       notes:           emp.notes ?? '',
-
-//       // سنملأ level1..4 في الكومبوننت عبر parse للشجرة
-//       placeActionWork: emp.placeActionWork ?? '',
-//     },
-//   }, { emitEvent: false });
-// }
 
 import { Employee, NewEmployee } from '../../../../src/app/services/local-employees.service';
 import { EmployeeForm } from '../../../../src/app/shared/types/employee-form.type';
 import { OTHER_VALUE } from '../../../../src/app/shared/constants';
+import { FormArray, AbstractControl, FormGroup, FormControl, Validators } from '@angular/forms';
 
+
+
+
+function toISO(d?: Date | null) {
+  return d ? d.toISOString().slice(0, 10) : null; // yyyy-mm-dd
+}
 
 /** يبني مسار مكان العمل من مستويات مختارة */
 export function buildWorkplacePath(
@@ -176,41 +38,86 @@ function cleanNationalities(raw: string[] | null | undefined): string[] {
     .filter(v => v && v !== OTHER_VALUE && v !== 'غير ذلك');
 }
 
-/** من الـForm → Payload للحفظ في الخدمة */
 export function formToNewEmployee(form: EmployeeForm): NewEmployee {
-  const { basic, personals, communication, details, workdetails  , currentworkdetails} = form.getRawValue();
+  const { basic, personals, communication, details, workdetails, currentworkdetails } = form.getRawValue();
 
-  // استبعد مفاتيح الشجرة، واحتفظ بالباقي للـ payload
+  // استبعد مفاتيح مستويات الشجرة
   const { level1Code, level2Code, level3Code, level4Code, ...workRest } = workdetails;
- const currentMapped = {
+
+  // حرّر qualifications من الـ FormArray إلى JSON بسيط
+  const fa = (form.get('details.qualifications') as FormArray) ?? new FormArray([]);
+  const qualifications = fa.controls.map((ctrl: AbstractControl) => {
+    const g = ctrl as FormGroup;
+    const v = g.getRawValue() as any;
+    return {
+      paperFileNumber: v.paperFileNumber || '',
+      collage: v.collage || '',
+      education: v.education || '',
+      sourceAcadimicQualification: v.sourceAcadimicQualification || '',
+      dateQualification: toISO(v.dateQualification ?? null),
+      detailsQualification: v.detailsQualification || '',
+      attachment: v.attachment ?? null,              // مرّرها كما هي
+
+    };
+  });
+
+  const currentMapped = {
     currentJoblocation:         currentworkdetails.currentJoblocation,
     currentDecisionAppointment: currentworkdetails.currentDecisionAppointment,
     datecurrentDecisionAppointment: currentworkdetails.datecurrentDecisionAppointment,
     currentSalary:              currentworkdetails.currentSalary,
-    currentJobTitle:            currentworkdetails.currentjobtitle as any,      // ← تطابق خدمة الموظف
+    currentJobTitle:            currentworkdetails.currentjobtitle as any,
     currentJobCategory:         currentworkdetails.currentjobcategory as any,
     currentJobAttribute:        currentworkdetails.currentjobattribute as any,
-    currentappointmentType:     currentworkdetails.currentappointmentType as any, // لاحظ الـ a الصغيرة عندك
+    currentappointmentType:     currentworkdetails.currentappointmentType as any,
   };
 
   return {
-  // مجموعات 1:1 باستخدام spread
-  ...basic,
-  ...personals,
-  ...communication,
-  ...details,
-  ...workRest,
-  ...currentMapped,
+    // مجموعات 1:1
+    ...basic,
+    ...personals,
+    ...communication,
+    ...workRest,
+    ...currentMapped,
 
-  // تخصيصات
-  nationality: cleanNationalities(basic.nationality),
-  placeActionWork: buildWorkplacePath(level1Code, level2Code, level3Code, level4Code),
-  
-};
+    // تخصيصات
+    nationality: cleanNationalities(basic.nationality),
+    placeActionWork: buildWorkplacePath(level1Code, level2Code, level3Code, level4Code),
+
+    // أهم شيء: details → qualifications (مصفوفة)
+    details: {
+      qualifications,
+    },
+  };
 }
 
-/** من الـModel → تعبئة الـForm (للتعديل/العرض) */
+type Attachment = {
+  id: string;
+  name: string;
+  mime: string;
+  size: number;
+  dataUrl?: string;   // للصور
+  blobUrl?: string;   // للـ PDF
+  uploadedAt: string;
+};
+
+
+function makeQualificationGroup(init?: any): FormGroup {
+  return new FormGroup({
+    paperFileNumber: new FormControl(init?.paperFileNumber ?? ''),
+    collage: new FormControl(init?.collage ?? '', { nonNullable: true, validators: [Validators.maxLength(200)] }),
+    education: new FormControl(init?.education ?? '', { nonNullable: true, validators: [Validators.required] }),
+    sourceAcadimicQualification: new FormControl(init?.sourceAcadimicQualification ?? ''),
+    dateQualification: new FormControl( new Date(init.dateQualification)  ),
+   
+    detailsQualification: new FormControl(init?.detailsQualification ?? '', { nonNullable: true, validators: [Validators.maxLength(500)] }),
+        attachment:               new FormControl<Attachment | null>(init?.attachment ?? null),
+
+  });
+}
+
 export function employeeToForm(emp: Employee, form: EmployeeForm): void {
+  // 1) باقي المجموعات كما عندك (بدون details الفردية)
   form.patchValue(
     {
       basic: {
@@ -219,10 +126,11 @@ export function employeeToForm(emp: Employee, form: EmployeeForm): void {
         fatherName: emp.fatherName,
         motherName: emp.motherName,
         gender: emp.gender,
-        birthDate: emp.birthDate ?? null,               // Date|null
+        birthDate: emp.birthDate ?? null,
         nationality: emp.nationality ?? [],
         materialStatus: emp.materialStatus ?? '',
-        dependences: emp.dependences ?? '',
+        wifedependences: emp.wifedependences ?? '',
+        childdependences: emp.childdependences ?? '',
       },
       personals: {
         placeBirth: emp.placeBirth ?? '',
@@ -243,18 +151,10 @@ export function employeeToForm(emp: Employee, form: EmployeeForm): void {
         emergencyPhone1: emp.emergencyPhone1 ?? '',
         emergencyPhone2: emp.emergencyPhone2 ?? '',
       },
-      details: {
-        paperFileNumber: emp.paperFileNumber ?? '',
-        collage: emp.collage ?? '',
-        education: emp.education ?? '',
-        sourceAcadimicQualification: emp.sourceAcadimicQualification ?? '',
-        dateQualification: emp.dateQualification ?? null, // Date|null
-        detailsQualification: emp.detailsQualification ?? '',
-        jobTitle: emp.jobTitle ?? '',
-      },
       workdetails: {
+        jobTitle: emp.jobTitle ?? '',
         decisionStart: emp.decisionStart ?? '',
-        decisionAttribute:emp.decisionAttribute ?? '',
+        decisionAttribute: emp.decisionAttribute ?? '',
         workDate: emp.workDate ?? null,
         dateActionWork: emp.dateActionWork ?? null,
         appointmentType: emp.appointmentType ?? '',
@@ -262,49 +162,61 @@ export function employeeToForm(emp: Employee, form: EmployeeForm): void {
         jobAttribute: emp.jobAttribute ?? '',
         startingSalary: emp.startingSalary ?? '',
         notes: emp.notes ?? '',
-
-        // نبقي placeActionWork كما هو؛ تعبئة مستويات الشجرة اختيارية
         placeActionWork: emp.placeActionWork ?? '',
-
-        // الحقول اللاحقة (الحالة الحالية):
         statusWork: emp.statusWork ?? '',
         dateStatusWork: emp.dateStatusWork ?? null,
-        
       },
-
-      currentworkdetails:{
-
+      currentworkdetails: {
         currentJoblocation: emp.currentJoblocation ?? '',
         currentDecisionAppointment: emp.currentDecisionAppointment ?? '',
         datecurrentDecisionAppointment: emp.datecurrentDecisionAppointment ?? null,
         currentSalary: emp.currentSalary ?? '',
-        // currentWorkplace: emp.currentWorkPlace ?? '',
         currentjobtitle: emp.currentJobTitle ?? null,
         currentjobcategory: emp.currentJobCategory ?? null,
         currentjobattribute: emp.currentJobAttribute ?? null,
         currentappointmentType: emp.currentappointmentType ?? '',
-        
-
       }
-
-
-
     },
     { emitEvent: false }
   );
-}
 
 
-/** (اختياري) ملء مستويات الشجرة من مسار placeActionWork */
-export function fillWorkplaceLevelsFromPath(form: EmployeeForm, path?: string | null): void {
-  const [l1, l2, l3, l4] = splitWorkplacePath(path);
-  form.controls.workdetails.patchValue(
-    {
-      level1Code: l1 ?? '',
-      level2Code: l2 ?? '',
-      level3Code: l3 ?? null,
-      level4Code: l4 ?? null,
-    },
-    { emitEvent: false }
-  );
+
+
+
+
+
+  // 2) تعبئة qualifications (FormArray)
+  const fa = form.get('details.qualifications') as FormArray;
+  fa.clear();
+
+  const d: any = (emp as any).details ?? {};
+  const hasLegacy =
+    d.education || d.dateQualification || d.collage || d.paperFileNumber || d.sourceAcadimicQualification || d.detailsQualification;
+
+  const list = Array.isArray(d.qualifications) && d.qualifications.length
+    ? d.qualifications
+    : (hasLegacy ? [{
+        paperFileNumber: d.paperFileNumber ?? '',
+        collage: d.collage ?? '',
+        education: d.education ?? '',
+        sourceAcadimicQualification: d.sourceAcadimicQualification ?? '',
+        dateQualification: d.dateQualification ?? null,
+        detailsQualification: d.detailsQualification ?? '',
+      }] : []);
+
+  if (!list.length) {
+    fa.push(makeQualificationGroup()); // عنصر فارغ واحد على الأقل
+  } else {
+    list.forEach((q: any) => fa.push(makeQualificationGroup(q)));
+  }
+
 }
+/** (اختياري) ملء مستويات الشجرة من مسار placeActionWork */ 
+export function fillWorkplaceLevelsFromPath(
+  form: EmployeeForm, path?: string | null):
+   void { const [l1, l2, l3, l4] = splitWorkplacePath(path); form.controls.workdetails.patchValue(
+     { level1Code: l1 ?? '', level2Code: l2 ?? '', level3Code: l3 ?? null, level4Code: l4 ?? null, },
+      { emitEvent: false } ); 
+    }
+
