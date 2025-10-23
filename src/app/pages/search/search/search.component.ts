@@ -27,6 +27,8 @@ import { LookupService } from '../../../services/lookup.service';
 import { LookupOption } from '../../../shared/lookups/lookups.types';
 import { EMPLOYMENT_CHANGES_PORT } from '../../../services/employment-changes.port';
 import { deriveCurrentState } from '../../../utils/derive-current';
+import { MatDivider } from "@angular/material/divider";
+import { MatMenu, MatMenuModule } from "@angular/material/menu";
 
 type SearchMode = 'base' | 'current';
 
@@ -39,10 +41,12 @@ type SearchMode = 'base' | 'current';
     MatCardModule, MatTableModule, MatSortModule, MatPaginatorModule,
     MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
     MatSelectModule, ReactiveFormsModule, MatChipsModule,
-    MatDatepickerModule, MatNativeDateModule, MatButtonToggleModule,
+    MatDatepickerModule, MatNativeDateModule, MatButtonToggleModule,MatMenuModule,
     // Pipes
     OrgNamePipe,
-  ],
+    MatDivider,
+    MatMenu
+],
   templateUrl: './search.component.html',
   styleUrl: './search.component.scss',
 })
@@ -895,6 +899,34 @@ if (Array.isArray(_place) && _place.length) {
   public browseEmployee(emp: Employee) {
     this.router.navigate(['/employees/browse', emp.id]);
   }
+
+ 
+
+editEmployee(e: Employee) {
+  this.router.navigate(['/employees/edit', e.id]);
+}
+
+confirmRemove(e: Employee) {
+  const ok = confirm(`هل تريد حذف ${e.firstName} ${e.lastName}؟`);
+  if (ok) this.remove(e);
+}
+
+refresh() {
+    this.dataSource.data = this.store.list(); // تعبئة الجدول
+  }
+
+remove(emp: Employee) {
+    const ok = confirm(`هل أنت متأكد من حذف الموظف: ${emp.firstName} ${emp.lastName}؟`);
+    if (!ok) return;
+    if (typeof (this.store as any).remove === 'function') {
+      (this.store as any).remove(emp.id);
+    } else {
+      const rest = this.store.list().filter(e => e.id !== emp.id);
+      localStorage.setItem('employees', JSON.stringify(rest));
+    }
+    this.refresh();
+  }
+
 
   private saveFilters() {
     const v = this.filtersForm.value;

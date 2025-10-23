@@ -44,7 +44,10 @@ import {
   fillWorkplaceLevelsFromPath,
 } from '../../../shared/mappers/employee.mapper';
 import { EmployeeDocumentsComponent } from "../employee-documents/employee-documents.component";
+import { EmploymentChangeTabComponent } from "../employment-change-tab/employment-change-tab.component";
+import { EMPLOYMENT_CHANGES_PORT } from '../../../services/employment-changes.port';
 
+import { deriveCurrentState } from '../../../utils/derive-current';
 
 
 
@@ -71,7 +74,8 @@ import { EmployeeDocumentsComponent } from "../employee-documents/employee-docum
     MatTabsModule,
     MatStepperModule,
     MatChipsModule,
-    EmployeeDocumentsComponent
+    EmployeeDocumentsComponent,
+    EmploymentChangeTabComponent
 ],
 })
 export class EditEmployeeComponent implements OnInit, OnDestroy {
@@ -84,6 +88,7 @@ export class EditEmployeeComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private nat = inject(NationalityService);
   private lookup = inject(LookupService);
+  private port   = inject(EMPLOYMENT_CHANGES_PORT);          // منفذ سجلّ التبدلات
 
   // — الحالة —
   editingId: string | null = null;
@@ -98,10 +103,18 @@ export class EditEmployeeComponent implements OnInit, OnDestroy {
   OTHER_VALUE = OTHER_VALUE;
   today = () => new Date();
 
-
+private deepClone<T>(obj: T): T {
+    return JSON.parse(JSON.stringify(obj));
+  }
 
 
   
+
+  employeeSnapshot?: Employee;        // ✅ الحالة الحالية المشتقّة من التبدلات
+
+    employee?: Employee;                // أساس (كما هو مخزّن)
+  employeeInitial?: Employee;         // ✅ أول تعيين (نسخة مجمّدة)
+
 
   // — شجرة الأقسام (لوائح متسلسلة) —
   departments = DEPARTMENTS;
@@ -186,6 +199,8 @@ trackByValue = (_: number, it: { value: string }) => it.value;
 
 
   ngOnInit(): void {
+        this.init(); // نفّذ التهيئة غير المتزامنة
+
     // جلب الجنسيات وترتيبها
     this.nat.nationalities$.subscribe(list => {
       this.nationalities = [...list].sort((a, b) => a.localeCompare(b, 'ar'));
@@ -238,6 +253,33 @@ trackByValue = (_: number, it: { value: string }) => it.value;
   ngOnDestroy(): void {
     // لا شيء حرج هنا؛ كل الاشتراكات على Controls تعيش بعمر الكومبوننت
   }
+
+  private async init() {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) { this.notFound = true; this.loading = false; return; }
+  
+    // 1) جِب الموظف الأساس
+    const list = this.store.list();
+    this.employee = list.find(e => e.id === id) ?? undefined;
+    this.notFound = !this.employee;
+    if (!this.employee) { this.loading = false; return; }
+  
+    // 2) ثبّت "أول تعيين" بنسخة مجمّدة (بدون التكرار)
+    this.employeeInitial = this.deepClone(this.employee); // ← احتفِظ بواحدة
+    Object.freeze(this.employeeInitial);                  // تجميد لمنع أي تعديل بالخطأ
+  
+    // 3) اشتقّ الحالة الحالية من سجلّ التبدلات فقط
+    try {
+      const changes = await this.port.list(id);
+      this.employeeSnapshot = deriveCurrentState(this.employeeInitial, changes);
+    } catch (err) {
+      console.error('[BrowseEmployee.init] failed to load changes', err);
+      this.employeeSnapshot = this.employeeInitial; // fallback إلى الأول
+    } finally {
+      this.loading = false;
+    }
+  }
+  
 
 
 
@@ -301,6 +343,11 @@ trackByValue = (_: number, it: { value: string }) => it.value;
 
   cancel(): void {
     this.router.navigate(['/employees']);
+  }  
+
+   onSnapshotChange(emp: Employee) {
+    this.employeeSnapshot = this.deepClone(emp);
+    console.log('SNAP', emp);
   }
 
 

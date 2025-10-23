@@ -39,7 +39,11 @@
   background: linear-gradient(135deg, #e8f3ea, #f3f8f4);
   border-bottom: 2px solid #1d6e3e;
 
- 
+ .nav-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
 
   .back-btn { grid-column: 1; justify-self: start; }
 
@@ -223,3 +227,10 @@
 .q-header{
   padding: 12px;
 }
+
+.nav-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+

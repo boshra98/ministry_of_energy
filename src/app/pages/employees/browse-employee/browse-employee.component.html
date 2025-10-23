@@ -12,12 +12,22 @@
         <div class="dept">مديرية الموارد البشرية</div>
       </div>
 
-      <div class="doc-meta">
-        <div>التاريخ: <strong>{{ today() | date:'yyyy/MM/dd' }}</strong></div>
-        <button mat-icon-button class="back-btn" (click)="back()" aria-label="رجوع للسجل">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
-      </div>
+     <div class="doc-meta">
+  <div>التاريخ: <strong>{{ today() | date:'yyyy/MM/dd' }}</strong></div>
+
+  <div class="nav-buttons">
+    <button mat-stroked-button color="primary" (click)="back()">
+      <mat-icon>list</mat-icon>
+      السجل
+    </button>
+
+    <button mat-flat-button color="primary" (click)="goHome()">
+      <mat-icon>home</mat-icon>
+      الرئيسية
+    </button>
+  </div>
+</div>
+
     </div>
 
     <!-- ===== حالات التحميل / عدم الوجود ===== -->
@@ -397,18 +407,28 @@
 
             <!-- أزرار أسفل البطاقة -->
             <div class="footer-actions no-print">
-              <button mat-stroked-button (click)="back()">
-                <mat-icon>arrow_back</mat-icon> رجوع للسجل
-              </button>
+  <button mat-stroked-button (click)="back()">
+    <mat-icon>arrow_back</mat-icon>
+    رجوع للسجل
+  </button>
 
-              <button mat-stroked-button (click)="window.print()">
-                <mat-icon>print</mat-icon> طباعة
-              </button>
+  <!-- ✅ زر عرض التبدلات -->
+  <!-- <button mat-stroked-button (click)="goToEmploymentChanges(employee)">
+    <mat-icon>playlist_add</mat-icon>
+    اضافة تبدل وظيفي
+  </button> -->
 
-              <button mat-raised-button (click)="edit(employee)">
-                <mat-icon>edit</mat-icon> تعديل بيانات الموظف
-              </button>
-            </div>
+  <button mat-stroked-button (click)="window.print()">
+    <mat-icon>print</mat-icon>
+    طباعة
+  </button>
+
+  <button mat-raised-button  (click)="edit(employee)">
+    <mat-icon>edit</mat-icon>
+    تعديل بيانات الموظف
+  </button>
+</div>
+
 
           </mat-card>
         </mat-tab>
@@ -425,10 +445,10 @@
 </mat-tab>
 
         <!-- ========== تبويب: تبدلات التوظيف ========== -->
-        <mat-tab label="تبدلات التوظيف">
+        <mat-tab label="  عرض تبدلات التوظيف  ">
           <app-employment-changes-tab
-          
-            [employee]="employee"
+            [employee]="employee" 
+             [readonly]="true" 
             (snapshotChange)="onSnapshotChange($event)">
           </app-employment-changes-tab>
         </mat-tab>

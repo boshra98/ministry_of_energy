@@ -55,6 +55,8 @@ export class EmploymentChangeTabComponent implements OnInit, OnChanges {
   appointmentTypesOpts: LookupOption[] = [];
   jobTitleOpts: LookupOption[] = []; // د
 
+  @Input() readonly = false;   // ✅ جديد
+
   displayedColumns: string[] = ['type', 'effectiveFrom', 'diff', 'decision', 'actions'];
 
   ngOnInit(): void {
@@ -66,13 +68,28 @@ export class EmploymentChangeTabComponent implements OnInit, OnChanges {
     if (this.employee?.id != null) {
       this.load();
     }
+      this.updateDisplayedColumns();
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['employee'] && this.employee?.id != null) {
       this.load();
     }
+
+    if (changes['readonly'] && this.employee?.id != null) {
+      this.updateDisplayedColumns();
+    }
+
+    
   }
+
+
+  private updateDisplayedColumns() {
+  this.displayedColumns = this.readonly
+    ? ['type','effectiveFrom','diff','decision']
+    : ['type','effectiveFrom','diff','decision','actions'];
+}
 
   private deepClone<T>(obj: T): T {
     try { return structuredClone(obj); } catch { return JSON.parse(JSON.stringify(obj)); }
@@ -119,6 +136,8 @@ export class EmploymentChangeTabComponent implements OnInit, OnChanges {
   // }
 
   openAdd() {
+      if (this.readonly) return;           // ✅ منع
+
   if (!this.employee?.id) return;
 
   const ref = this.dialog.open(AddChangeDialogComponent, {
@@ -143,6 +162,8 @@ export class EmploymentChangeTabComponent implements OnInit, OnChanges {
 
 
   async remove(change: EmploymentChange) {
+      if (this.readonly) return;           // ✅ منع
+
     const empId = String(this.employee?.id || '').trim();
     if (!empId) return;
     await this.port.delete(empId, String(change.id));

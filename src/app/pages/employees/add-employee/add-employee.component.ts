@@ -1,4 +1,4 @@
-import { JOBCATEGORY_DEFAULT } from './../../../shared/lookups/lookups.constants';
+// import { JOBCATEGORY_DEFAULT } from './../../../shared/lookups/lookups.constants';
 import { MatCardModule } from '@angular/material/card';
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -38,9 +38,9 @@ import { MatChipSet, MatChipsModule } from "@angular/material/chips";
 import { MatDialog } from '@angular/material/dialog';
 import { NationalityService } from '../../../services/nationality.services';
 import { LookupService } from '../../../services/lookup.service';
-import {
-  GENDERS, BLOOD_TYPES, MARITAL_STATUS, EMERGENCY_RELATIONS
-} from '../../../../../src/app/shared/lookups/lookups.constants';
+// import {
+//   GENDERS, BLOOD_TYPES, MARITAL_STATUS, EMERGENCY_RELATIONS
+// } from '../../../../../src/app/shared/lookups/lookups.constants';
 import { createEmployeeForm, EmployeeForm  , createQualificationGroup} from '../../../shared/types/employee-form.type';
 import { employeeToForm, fillWorkplaceLevelsFromPath, formToNewEmployee } from '../../../shared/mappers/employee.mapper';
 import { EmployeeDocumentsComponent } from '../employee-documents/employee-documents.component';

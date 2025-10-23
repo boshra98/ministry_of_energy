@@ -94,6 +94,13 @@ export const routes: Routes = [
   title: 'مرفقات الموظف'
 },
 
+{
+  path: 'employees/:id/changes',
+  loadComponent: () => import('./pages/employees/employment-change-tab/employment-change-tab.component')
+    .then(m => m.EmploymentChangeTabComponent)
+} ,
+
+
 
 
   { path: '**', redirectTo: '' }

@@ -204,6 +204,8 @@
   grid-auto-flow: dense;
 }
 
+
+
 @media (max-width: 900px) {
   .filters .grid {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -234,6 +236,7 @@
   ::ng-deep .mat-mdc-form-field { width: 100%; }
   ::ng-deep .mat-mdc-form-field-infix { padding-top: 6px; padding-bottom: 6px; }
 }
+
 
 /* استجابة */
 @media (max-width: 1200px) {
@@ -268,6 +271,8 @@ table {
   tr:nth-child(even) td { background: #fbfdfb; }
   tr:hover td { background: #f5faf6; }
   .actions-h, .actions-c { text-align: center; }
+
+ 
 }
 
 .chip {
@@ -292,6 +297,7 @@ table {
     font-weight: 700;
   }
 }
+ 
 
 /* للطباعة بشكل رسمي */
 @media print {

@@ -1,4 +1,4 @@
-<div class="toolbar">
+<div class="toolbar"   *ngIf="!readonly" >
   <button mat-raised-button color="primary" (click)="openAdd()">
     <mat-icon>playlist_add</mat-icon>
     إضافة تبدّل
@@ -56,7 +56,7 @@
   </ng-container>
 
   <!-- إجراءات -->
-  <ng-container matColumnDef="actions">
+  <ng-container matColumnDef="actions"  *ngIf="!readonly">
     <th mat-header-cell *matHeaderCellDef> إجراءات </th>
     <td mat-cell *matCellDef="let c">
       <button mat-icon-button color="warn" (click)="remove(c)" aria-label="حذف">

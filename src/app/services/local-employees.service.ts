@@ -7,7 +7,7 @@ export interface Qualification {
   collage?: string;
   education: string;                  // code من الـ lookup
   sourceAcadimicQualification?: string;
-  dateQualification?: string | null;  // ISO yyyy-mm-dd (نُجهّزها في المابر)
+  dateQualification?: string | null;  // ISO yyyy-mm- dd (نُجهّزها في المابر)
   detailsQualification?: string;
 
 // من اجل صورة مرفقات الشهادة العلمية

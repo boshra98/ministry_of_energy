@@ -121,6 +121,10 @@ table {
   tr:nth-child(even) td { background: #fbfdfb; }
   tr:hover td { background: #f5faf6; }
   .actions-h, .actions-c { text-align: center; }
+
+
+
+
 }
 
 .chip {
@@ -144,6 +148,14 @@ table {
     border-radius: 10px;
     font-weight: 700;
   }
+}
+
+  .actions-c {
+  text-align: start; /* أو end حسب تصميمك */
+}
+
+.warn {
+  color: #b00020; /* لمسة تحذير */
 }
 
 /* للطباعة بشكل رسمي */

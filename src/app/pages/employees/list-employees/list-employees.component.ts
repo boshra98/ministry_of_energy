@@ -22,12 +22,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule, MatMenu }   from '@angular/material/menu';
 
 import { LocalEmployeesService, Employee, OTHER_VALUE } from '../../../services/local-employees.service';
 import { LookupService } from '../../../services/lookup.service';
 import { Subject, takeUntil } from 'rxjs';
 import { DEPARTMENTS, OrgNode } from '../../../models/department';
 import { LookupOption } from '../../../shared/lookups/lookups.types';
+import { MatDivider } from "@angular/material/divider";
 
 @Component({
   standalone: true,
@@ -45,7 +47,10 @@ import { LookupOption } from '../../../shared/lookups/lookups.types';
     MatInputModule,
     MatIconModule,
     MatButtonModule,
-  ],
+    MatDivider,
+    MatMenu ,
+    MatMenuModule
+],
 })
 // export class ListEmployeesComponent implements OnInit  ,OnDestroy{
 
@@ -153,11 +158,11 @@ goHome() {
   displayedColumns: string[] = [
     'index',
     'fullName',
-    'jobTitle',
+    // 'jobTitle',
     'gender',
     'birthDate',
-    'paperFileNumber',
-    'residence',
+    // 'paperFileNumber',
+    // 'residence',
     'actions',
   ];
 
@@ -242,4 +247,12 @@ goHome() {
     const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   }
+
+
+confirmRemove(e: any) {
+  const ok = confirm(`هل تريد حذف الموظف (${e.firstName} ${e.lastName}) نهائيًا؟`);
+  if (ok) this.remove(e);
+}
+
+
 }

@@ -250,7 +250,7 @@ interface QualificationView {
   styleUrls: ['./browse-employee.component.scss'],
 })
 export class BrowseEmployeeComponent implements OnInit, OnDestroy {
-Array: any;
+  Array: any;
 
 
   edit(emp: Employee) {
@@ -261,7 +261,7 @@ Array: any;
   private router = inject(Router);
   private store  = inject(LocalEmployeesService);
   private lookup = inject(LookupService);
-  private port   = inject(EMPLOYMENT_CHANGES_PORT);          // ✅ منفذ سجلّ التبدلات
+  private port   = inject(EMPLOYMENT_CHANGES_PORT);          // منفذ سجلّ التبدلات
 
   private destroy$ = new Subject<void>();
 
@@ -521,6 +521,10 @@ get qualificationsView(): QualificationView[] {
   }] : [];
 }
 
+ goToEmploymentChanges(emp: Employee) {
+  if (!emp?.id) return;
+  this.router.navigate(['/employees', emp.id, 'changes']);
+ }
 
 
 

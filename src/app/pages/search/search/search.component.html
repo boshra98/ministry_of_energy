@@ -363,10 +363,36 @@
         }
 
         @case ('actions') {
-          <button mat-icon-button  (click)="browseEmployee(e)" aria-label="عرض التفاصيل">
-            <mat-icon>visibility</mat-icon>
-          </button>
-        }
+  <button
+    mat-icon-button
+    [matMenuTriggerFor]="rowMenu"
+    aria-label="قائمة الإجراءات">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+
+  <mat-menu #rowMenu="matMenu" xPosition="before" yPosition="below">
+    <!-- عرض -->
+    <button mat-menu-item (click)="browseEmployee(e)">
+      <mat-icon>visibility</mat-icon>
+      <span>عرض</span>
+    </button>
+
+    <!-- تعديل -->
+    <button mat-menu-item (click)="editEmployee(e)">
+      <mat-icon>edit</mat-icon>
+      <span>تعديل</span>
+    </button>
+
+    <mat-divider></mat-divider>
+
+    <!-- حذف -->
+    <button mat-menu-item (click)="confirmRemove(e)">
+      <mat-icon>delete</mat-icon>
+      <span>حذف</span>
+    </button>
+  </mat-menu>
+}
+
 
         @default { {{ $any(e)[c.id] }} }
       }
