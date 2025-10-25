@@ -1,4 +1,3 @@
-// import { JOBCATEGORY_DEFAULT } from './../../../shared/lookups/lookups.constants';
 import { MatCardModule } from '@angular/material/card';
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -19,14 +18,14 @@ import { AddNationalityDialogComponent } from './add-nationality-dialog.componen
 
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-
+import { map, take } from 'rxjs/operators';
 import {
   LocalEmployeesService,
   NewEmployee,
   EmployeeUpdate,
   Employee
 } from '../../../services/local-employees.service';
-import { DEPARTMENTS } from '../../../models/department';
+// import { DEPARTMENTS } from '../../../models/department';
 
 import { OTHER_VALUE } from '../../../shared/constants';
 import { firstValueFrom, Subscription } from 'rxjs';
@@ -36,14 +35,13 @@ import { startWith, distinctUntilChanged, takeUntil } from 'rxjs';
 import { Subject } from 'rxjs';
 import { MatChipSet, MatChipsModule } from "@angular/material/chips";
 import { MatDialog } from '@angular/material/dialog';
-import { NationalityService } from '../../../services/nationality.services';
+// import { NationalityService } from '../../../services/nationality.services';
 import { LookupService } from '../../../services/lookup.service';
-// import {
-//   GENDERS, BLOOD_TYPES, MARITAL_STATUS, EMERGENCY_RELATIONS
-// } from '../../../../../src/app/shared/lookups/lookups.constants';
+
 import { createEmployeeForm, EmployeeForm  , createQualificationGroup} from '../../../shared/types/employee-form.type';
 import { employeeToForm, fillWorkplaceLevelsFromPath, formToNewEmployee } from '../../../shared/mappers/employee.mapper';
 import { EmployeeDocumentsComponent } from '../employee-documents/employee-documents.component';
+import { OrgTreeService } from '../../../services/org-tree.service';
 
 export interface ParsedPlace {
   codes?: string[];
@@ -93,9 +91,10 @@ export class AddEmployeeComponent {
 
 
 
-    nationalities: string[] = [];
-         private sub?: Subscription;
+    // nationalities: string[] = [];
+    // private sub?: Subscription;
   
+
 
   OTHER_VALUE = OTHER_VALUE;
 
@@ -112,7 +111,13 @@ goHome() {
   editingId: string | null = null;
 
 
-departments: OrgNode[] = DEPARTMENTS; 
+// departments: OrgNode[] = DEPARTMENTS; 
+private org = inject(OrgTreeService);
+departments: OrgNode[] = [];
+orgTree: OrgNode[] = [];          // إن كنت تمُرِّرها للبايب/القالب
+private destroy$ = new Subject<void>();
+
+
 
 
 private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
@@ -128,7 +133,7 @@ private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
     private dialog: MatDialog,
     private snack: MatSnackBar,
     private cdr: ChangeDetectorRef ,
-    private nat: NationalityService ,
+    // private nat: NationalityService ,
     private lookup: LookupService
   )
    {
@@ -144,7 +149,9 @@ private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
 
 
   } 
-
+get nationalities$() { 
+  return this.lookup.nationalities$; 
+}
 
 get genders$()              { return this.lookup.genders$; }
 get bloodTypes$()           { return this.lookup.bloodTypes$; }
@@ -152,10 +159,10 @@ get maritalStatus$()        { return this.lookup.maritalStatus$; }
 get emergencyRelations$()   { return this.lookup.emergencyRelations$; }
 get jobTitles$()            { return this.lookup.jobTitles$; }
 get educations$()           { return this.lookup.educations$; }
-get jobAttributes$() { return this.lookup.JOBATTRIBUTE_DEFAULTES$; }
-get jobCategories$(){ return this.lookup.JOBCATEGORY_DEFAULTES$;}
-get decisionAttribute$(){return this.lookup.decisionAttribute_DEFAULTES$}
-get appointmentTypes$(){return this.lookup.appointmentTypes_DEFAULTES$;}
+get jobAttributes$()     { return this.lookup.jobAttributes$; }
+get jobCategories$()     { return this.lookup.jobCategories$; }
+get decisionAttribute$() { return this.lookup.decisionAttributes$; }
+get appointmentTypes$()  { return this.lookup.appointmentTypes$; }
 
  get qualifications() {
   return this.details.get('qualifications') as FormArray;
@@ -169,7 +176,6 @@ onWorkPick(e: any) {
 
 }
 
-private destroy$ = new Subject<void>();
 
 
 
@@ -220,11 +226,14 @@ trackByIndex = (i: number) => i;
 
 ngOnInit(): void {
 
-  //بتجلب القائمة من السيرفس وبترتبهم بالعربي
-  this.sub = this.nat.nationalities$.subscribe(list => {
-    this.nationalities = [...list].sort((a, b) => a.localeCompare(b, 'ar'));
-      });
 
+this.org.tree$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(tree => {
+      this.departments = tree ?? [];
+      this.orgTree = tree ?? [];
+      this.cdr?.markForCheck(); // لو OnPush
+    });
 
   this.workdetails.get('level1Code')?.valueChanges.subscribe(() => {
     this.workdetails.patchValue({ level2Code: '', level3Code: '', level4Code: '' }, { emitEvent: false });
@@ -243,16 +252,24 @@ ngOnInit(): void {
 ngOnDestroy(): void {
   this.destroy$.next();
   this.destroy$.complete();
-  this.sub?.unsubscribe();
 
 }
 
 // لفتح محور الحوار
- private openAddNationalityDialog(): Promise<string | undefined> {
+private async openAddNationalityDialog(): Promise<string | undefined> {
+  // نجلب الموجود (labels) مرة واحدة
+  const existing = await firstValueFrom(
+    this.lookup.nationalities$.pipe(
+      take(1),
+      map(list => list.map(x => x.label)) // أو x.value — حسب ما تريد منع تكراره
+    )
+  );
+
   const ref = this.dialog.open(AddNationalityDialogComponent, {
     width: '420px',
-    data: { existing: this.nationalities.filter(n => n !== OTHER_VALUE) }
+    data: { existing }
   });
+
   return firstValueFrom(ref.afterClosed());
 }
 
@@ -287,7 +304,9 @@ get jobTitleCtrl()   { return this.workdetails.get('jobTitle')   as FormControl<
 get decisionStartCtrl()       { return this.workdetails.get('decisionStart')       as FormControl<string>; }
 // get workDateCtrl()       { return this.workdetails.get('workDate')       as FormControl<Date | null>; }
 get workDateCtrl()        { return this.workdetails.get('workDate')   as FormControl<Date | null>; }
-
+get placeLevels() { 
+  return this.workdetails.get('placeLevels') as FormArray<FormControl<string>>; 
+}
 get placeActionWorkCtrl()       { return this.workdetails.get('placeActionWork')       as FormControl<string>; }
 // get mainDeptCodeCtrl() { return this.workdetails.get('mainDeptCode') as FormControl<string>; }
 // get subDeptCodeCtrl()  { return this.workdetails.get('subDeptCode')  as FormControl<string>; }
@@ -334,50 +353,100 @@ get nationalityDisplay(): string {
     return this.store.list().find(e => e.id === id);
   }
 
+  private setPlaceLevelsFromPath(path: string | null | undefined) {
+  this.placeLevels.clear();
+  const codes = (path ? String(path).split(/[|/>.]/).map(s => s.trim()).filter(Boolean) : []);
+  if (codes.length === 0) {
+    this.placeLevels.push(this.fb.control<string>(''));
+  } else {
+    codes.forEach(c => this.placeLevels.push(this.fb.control<string>(c)));
+    // إن كان آخر كود له أبناء، أضف مستوىً جديدًا فارغًا لتمكين التعمّق
+    const next = this.getOptionsForLevel(this.placeLevels.length);
+    if (next.length) this.placeLevels.push(this.fb.control<string>(''));
+  }
+}
+
+
+
 
 private patchForm(emp: Employee): void {
-  // يملأ كل الحقول من الموديل (بما فيها التواريخ كـ Date|null)
   employeeToForm(emp, this.form);
-
-  // يملأ مستويات المكان من المسار المخزّن بدون إطلاق valueChanges
-  fillWorkplaceLevelsFromPath(this.form, emp.placeActionWork);
-
-  // نظافة حالة النموذج
+  this.setPlaceLevelsFromPath(emp.placeActionWork);     // 👈 هنا
   this.form.markAsPristine();
   this.form.markAsUntouched();
   this.form.updateValueAndValidity({ emitEvent: false });
 }
 
+private childrenOf(nodes: OrgNode[] | undefined, code: string | null | undefined): OrgNode[] {
+  if (!nodes || !code) return [];
+  const hit = nodes.find(n => n.code === code);
+  return hit?.subs ?? [];
+}
+
+// ارجع لائحة العقد لمستوى i بالاعتماد على اختيارات ما قبله
+getOptionsForLevel(i: number): OrgNode[] {
+  let list = this.departments; // جذور
+  for (let k = 0; k < i; k++) {
+    const code = this.placeLevels.at(k).value;
+    list = this.childrenOf(list, code);
+  }
+  return list ?? [];
+}
 
 
 
-private parsePlaceActionWork(value: string | null | undefined): ParsedPlace {
-  if (!value) return {};
+// private parsePlaceActionWork(value: string | null | undefined): ParsedPlace {
+//   if (!value) return {};
 
-  // حوّل القيمة لمسار أكواد: يفصل بـ | أو / أو >
-  const codes = String(value)
-    .split(/[|/>]/)
-    .map(s => s.trim())
-    .filter(Boolean);
+//   // حوّل القيمة لمسار أكواد: يفصل بـ | أو / أو >
+//   const codes = String(value)
+//     .split(/[|/>]/)
+//     .map(s => s.trim())
+//     .filter(Boolean);
 
-  if (!codes.length) return {};
+//   if (!codes.length) return {};
 
-  // طابق المسار على الشجرة، واحصل على ما تم التحقق منه فعليًا
-  const { names, matchedCodes } = matchPathOnTree(codes, DEPARTMENTS);
+//   // طابق المسار على الشجرة، واحصل على ما تم التحقق منه فعليًا
+//   const { names, matchedCodes } = matchPathOnTree(codes, DEPARTMENTS);
 
-  if (!matchedCodes.length) {
-    // لم يطابق أي مستوى: نرجّع المسار كما هو كأكواد فقط (للخلفية/التصحيح)
-    return { codes, names: [], lastCode: codes.at(-1), depth: 0 };
+//   if (!matchedCodes.length) {
+//     // لم يطابق أي مستوى: نرجّع المسار كما هو كأكواد فقط (للخلفية/التصحيح)
+//     return { codes, names: [], lastCode: codes.at(-1), depth: 0 };
+//   }
+
+//   return {
+//     codes: matchedCodes,
+//     names,
+//     lastCode: matchedCodes.at(-1),
+//     lastName: names.at(-1),
+//     depth: matchedCodes.length,
+//   };
+// }
+onLevelChange(i: number): void {
+  // 1) قصّ المستويات اللاحقة إن وجدت
+  while (this.placeLevels.length > i + 1) {
+    this.placeLevels.removeAt(this.placeLevels.length - 1);
   }
 
-  return {
-    codes: matchedCodes,
-    names,
-    lastCode: matchedCodes.at(-1),
-    lastName: names.at(-1),
-    depth: matchedCodes.length,
-  };
+  // 2) إن للعقدة أبناء، أضف مستوى جديد
+  const selectedCode = this.placeLevels.at(i).value;
+  const optionsNext = this.getOptionsForLevel(i + 1);
+  const hasChildren = optionsNext.length > 0 && !!selectedCode;
+  if (hasChildren) {
+    this.placeLevels.push(this.fb.control<string>(''));
+  }
+
+  // 3) حدّث قيمة المسار النصي للتخزين/الحفظ
+  const path = this.placeLevels.value.filter(Boolean).join('|') || null;
+  this.workdetails.get('placeActionWork')?.setValue(path);
 }
+clearPlaceLevels() {
+  this.placeLevels.clear();
+  this.placeLevels.push(this.fb.control<string>('')); // مستوى أول فارغ
+  this.workdetails.get('placeActionWork')?.setValue(null);
+}
+
+
 
 openAttachment(att: { dataUrl: string; mime: string; name?: string }) {
   try {
@@ -396,28 +465,33 @@ openAttachment(att: { dataUrl: string; mime: string; name?: string }) {
 }
 
 
+async onAddOtherClick(e: MouseEvent) {
+  e.stopPropagation();
 
-onAddOtherClick(e: MouseEvent) {
-  e.stopPropagation(); // يمنع إغلاق القائمة فورًا إن رغبت
-  // this.openAddNationalityDialog().then(added => {
-  //   if (!added) return;
-  this.openAddNationalityDialog().then(addedRaw => {
-    const added = (addedRaw ?? '').trim();
-    if (!added) return;
+  const addedRaw = await this.openAddNationalityDialog();
+  const added = (addedRaw ?? '').trim();
+  if (!added) return;
 
+  // جرّب الإضافة
+  const created = await this.lookup.add('NATIONALITIES', { value: added, label: added });
 
-        this.nat.addNationality(added);
+  if (!created) {
+    // إمّا تكرار أو ادخال فارغ حسب منطق الريجستري
+    this.snack?.open('هذه الجنسية موجودة مسبقًا أو غير صالحة', 'إغلاق', { duration: 2000 });
+    return;
+  }
 
-    const ctrl = this.basic.get('nationality') as FormControl<string[]>;
-    const now = ctrl.value ?? [];
-    
-    const exists = now.some(v => v?.toLowerCase() === added.toLowerCase());
+  // تحديث حقل النموذج
+  const ctrl = this.basic.get('nationality') as FormControl<string[]>;
+  const now  = ctrl.value ?? [];
+  if (!now.some(v => v?.toLowerCase() === added.toLowerCase())) {
+    ctrl.setValue([...now, added]);
+  }
 
-    if (!exists) {
-      ctrl.setValue([...now, added]); // يحددها مباشرة
-    }
-  });
+  this.snack?.open('تمت إضافة الجنسية', 'إغلاق', { duration: 2000 });
 }
+
+
 submit() {
   if (this.form.invalid) {
     this.form.markAllAsTouched();
@@ -571,3 +645,5 @@ function dataUrlToBlob(dataUrl: string, fallbackMime = 'application/octet-stream
   for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
   return new Blob([bytes], { type: mime });
 }
+
+

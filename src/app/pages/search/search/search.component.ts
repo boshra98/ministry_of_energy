@@ -1,6 +1,8 @@
 import { ChangeDetectorRef, Component, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSelect } from '@angular/material/select';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -17,19 +19,20 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MatOptionSelectionChange } from '@angular/material/core';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
-import { Subscription, Subject, takeUntil } from 'rxjs';
+import { Subscription, Subject, takeUntil, map, distinctUntilChanged } from 'rxjs';
 
 import { LocalEmployeesService, Employee } from '../../../services/local-employees.service';
-import { DEPARTMENTS, OrgNode } from '../../../models/department';
-import { OrgNamePipe } from '../../../pipes/org-name.pipe';
-import { NationalityService } from '../../../services/nationality.services';
+// import { DEPARTMENTS, OrgNode } from '../../../models/department';
+import { OrgNamePipe, OrgNode } from '../../../pipes/org-name.pipe';
 import { LookupService } from '../../../services/lookup.service';
-import { LookupOption } from '../../../shared/lookups/lookups.types';
 import { EMPLOYMENT_CHANGES_PORT } from '../../../services/employment-changes.port';
 import { deriveCurrentState } from '../../../utils/derive-current';
 import { MatDivider } from "@angular/material/divider";
 import { MatMenu, MatMenuModule } from "@angular/material/menu";
-
+import { LookupOption } from '../../../models/lookup.models';
+import { OrgTreeService } from '../../../services/org-tree.service';
+import { MatDialog } from '@angular/material/dialog';
+import { PlaceTreeDialogComponent } from '../../../components/place-tree-dialog/place-tree-dialog.component';
 type SearchMode = 'base' | 'current';
 
 @Component({
@@ -40,7 +43,8 @@ type SearchMode = 'base' | 'current';
     // UI
     MatCardModule, MatTableModule, MatSortModule, MatPaginatorModule,
     MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
-    MatSelectModule, ReactiveFormsModule, MatChipsModule,
+    MatSelectModule, ReactiveFormsModule, MatChipsModule,MatMenuModule,
+  MatDividerModule,MatSelect,
     MatDatepickerModule, MatNativeDateModule, MatButtonToggleModule,MatMenuModule,
     // Pipes
     OrgNamePipe,
@@ -48,7 +52,7 @@ type SearchMode = 'base' | 'current';
     MatMenu
 ],
   templateUrl: './search.component.html',
-  styleUrl: './search.component.scss',
+  styleUrls: ['./search.component.scss'],
 })
 export class SearchComponent {
   // ===== عام =====
@@ -60,11 +64,14 @@ private port = inject(EMPLOYMENT_CHANGES_PORT);
 
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
-  private nationalityService = inject(NationalityService);
+  // private nationalityService = inject(NationalityService);
   private store = inject(LocalEmployeesService);
   private router = inject(Router);
   private lookup = inject(LookupService);
   private route = inject(ActivatedRoute);
+private org = inject(OrgTreeService);
+private dialog = inject(MatDialog);
+
 
   private readonly STORAGE_KEY = 'emp_search_filters_v1';
   private readonly TABLE_STATE_KEY = 'emp_search_table_v1';
@@ -73,7 +80,10 @@ private port = inject(EMPLOYMENT_CHANGES_PORT);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  orgTree: OrgNode[] = DEPARTMENTS;
+  // orgTree: OrgNode[] = DEPARTMENTS;
+  orgTree: OrgNode[] = [];
+  
+
   dataSource = new MatTableDataSource<Employee>([]);
   nationalities: string[] = [];
   private sub?: Subscription;
@@ -106,7 +116,9 @@ private port = inject(EMPLOYMENT_CHANGES_PORT);
     decisionAttribute: this.decisionAttributeValues,
     education: this.educationValues,
     bloodType: this.bloodTypeValues,
-    nationality: this.nationalities,
+    // nationality: this.nationalities,
+      nationalities: this.nationalities,   //  (بدلاً من nationality)
+
     placeCode: [], // سنملؤها من flatPlaces
   };
 
@@ -156,9 +168,37 @@ private port = inject(EMPLOYMENT_CHANGES_PORT);
   goHome() { this.router.navigate(['']); }
   today = () => new Date();
   columnLabel = (id: ColId) => this.idToLabel.get(id) ?? '';
+dialogForm = this.fb.group({
+  placeIncludeChildren: [true],
+});
+private normalizePlaceFromDialog(codes: string[] | undefined): string[] {
+  const allCodes = this.flatPlaces.map(p => p.code);                 // المصدر الموثوق لكل الأكواد
+  const uniq = Array.from(new Set((codes ?? []).filter(c => allCodes.includes(c))));
+
+  if (uniq.length === 0) return [this.ALL];                          // لا شيء مختار => الكل
+  if (uniq.length === allCodes.length) return [this.ALL];            // كلهم => الكل
+  return uniq;                                                       // جزء فقط => بدون ALL
+}
+
+stringCompare = (a: string, b: string) => a === b;
+
+onPlaceSelectionChange(ev: import('@angular/material/select').MatSelectChange) {
+  let sel: string[] = Array.isArray(ev.value) ? [...ev.value] : [];
+
+  // تطبيع "الكل"
+  if (!sel.length) sel = [this.ALL];
+  if (sel.includes(this.ALL) && sel.length > 1) sel = [this.ALL];
+
+  this.filtersForm.get('placeCode')!.setValue(sel, { emitEvent: true });
+  this.saveFilters();
+  this.triggerFilter();
+  this.cdr.markForCheck();
+}
 
   // ====== Lifecycle ======
   ngOnInit(): void {
+
+    
     // استرجاع الوضع
     const savedMode = (localStorage.getItem(this.MODE_KEY) as SearchMode | null);
     this.mode = savedMode === 'current' ? 'current' : 'base';
@@ -179,7 +219,8 @@ private port = inject(EMPLOYMENT_CHANGES_PORT);
       education: [[this.ALL] as string[]],
       bloodType: [[this.ALL] as string[]],
       placeCode: [[this.ALL] as string[]],
-
+ placeIncludeChildren: [true],   // ✅ جديد: شمل الفروع
+  placePickMode: ['tree'],        // (اختياري) 'tree' | 'flat'
       // نص عام
       q: [''],
 
@@ -218,8 +259,31 @@ this.hydrateCurrentSnapshots();
     // this.dataSource.data = this.store.list();
     // this.dataSource.filterPredicate = (row, _f) => this.applyPredicate(row);
 
-    // 4) تسطيح الشجرة وتعبئة placeCode في OPTIONS
+
+    this.org.tree$
+  .pipe(takeUntil(this.destroy$))
+  .subscribe(tree => {
+    // خزّن الشجرة لاستخدامها في الـ pipe وفي البحث عن الاسم
+    this.orgTree = tree ?? [];
+
+    // حدّث قائمة الأماكن المفلطحة لقائمة الاختيار
+    this.flatPlaces = [];
     this.flattenOrgs(this.orgTree, this.flatPlaces);
+this.buildDescendantsMap(this.orgTree);
+
+    // حدّث خيارات الفلتر + تأكد من تماسك قيمة الكنترول
+    // حدّث خيارات الفلتر + تأكد من تماسك قيمة الكنترول
+    this.OPTIONS['placeCode'] = this.flatPlaces.map(p => p.code);
+    this.syncControlWithOptions('placeCode', this.OPTIONS['placeCode']);
+
+    // أعد تطبيق الفلترة لأن البيانات تغيّرت
+    this.triggerFilter();
+    this.cdr.markForCheck();
+  });
+
+    // 4) تسطيح الشجرة وتعبئة placeCode في OPTIONS
+    // this.flattenOrgs(this.orgTree, this.flatPlaces);
+    
     // this.OPTIONS.placeCode = this.flatPlaces.map(p => p.code);
 
     // 5) تحميل حالة الفلاتر
@@ -254,6 +318,10 @@ this.hydrateCurrentSnapshots();
         this.triggerFilter();
       });
 
+      // داخل ngOnInit بعد إنشاء this.filtersForm
+this.filtersForm.addControl('placeIncludeChildren', this.fb.control(true));
+
+
     this.columnPicker.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(cols => {
@@ -274,7 +342,7 @@ this.hydrateCurrentSnapshots();
         this.cdr.markForCheck();
       });
 
-    this.lookup.JOBATTRIBUTE_DEFAULTES$
+    this.lookup.jobAttributes$
       .pipe(takeUntil(this.destroy$))
       .subscribe(opts => {
         this.jobAttributeOpts = opts;
@@ -284,7 +352,7 @@ this.hydrateCurrentSnapshots();
         this.cdr.markForCheck();
       });
 
-    this.lookup.JOBCATEGORY_DEFAULTES$
+    this.lookup.jobCategories$
       .pipe(takeUntil(this.destroy$))
       .subscribe(opts => {
         this.jobCategoryOpts = opts;
@@ -294,7 +362,7 @@ this.hydrateCurrentSnapshots();
         this.cdr.markForCheck();
       });
 
-    this.lookup.appointmentTypes_DEFAULTES$
+    this.lookup.appointmentTypes$
       .pipe(takeUntil(this.destroy$))
       .subscribe(opts => {
         this.appointmentTypesOpts = opts;
@@ -304,7 +372,7 @@ this.hydrateCurrentSnapshots();
         this.cdr.markForCheck();
       });
 
-    this.lookup.decisionAttribute_DEFAULTES$
+    this.lookup.decisionAttributes$
       .pipe(takeUntil(this.destroy$))
       .subscribe(opts => {
         this.decisionAttributeOpts = opts;
@@ -333,15 +401,49 @@ this.hydrateCurrentSnapshots();
         this.cdr.markForCheck();
       });
 
-    this.nationalityService.nationalities$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(list => {
-        this.nationalities = list;
-        this.OPTIONS['nationality'] = list;
-        this.cdr.markForCheck();
-      });
+
+     this.lookup.nationalities$
+  .pipe(
+    takeUntil(this.destroy$),
+    map(opts => opts.map(o => o.label).sort((a,b) => a.localeCompare(b,'ar'))),
+    distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))
+  )
+  .subscribe(list => {
+    this.nationalities = list;
+    this.cdr.markForCheck();
+  });
+
+    
   }
 
+private descendantsMap = new Map<string, string[]>();
+
+private buildDescendantsMap(nodes: OrgNode[]) {
+  // امسح القديم
+  this.descendantsMap.clear();
+  // مرور DFS لتجميع كل الأحفاد لكل عقدة
+  const gather = (n: OrgNode): string[] => {
+    const me = n.code ? [n.code] : [];
+    const kids = (n.subs ?? []).flatMap(gather);
+    const all = me.concat(kids);
+    if (n.code) this.descendantsMap.set(n.code, all);
+    return all;
+  };
+  nodes.forEach(gather);
+}
+private expandPlaceSelection(sel: string[], includeChildren: boolean): Set<string> {
+  const S = new Set<string>();
+  for (const code of sel) {
+    if (code === this.ALL) { S.add(this.ALL); continue; }
+    if (includeChildren) {
+      const all = this.descendantsMap.get(code) ?? [code];
+      for (const c of all) S.add(c);
+    } else {
+      S.add(code);
+    }
+  }
+  return S;
+}
 
 
   ngAfterViewInit() {
@@ -669,19 +771,21 @@ public fieldOf(
     }
 
     // مكان العمل (حسب الوضع)
-    {
-      // const placeSel: string[] = (f.placeCode ?? []) as string[];
-      const placeSel: string[] = ((this.filtersForm.value as any)['placeCode'] ?? []) as string[];
+   {
+  const placeSel: string[] = ((this.filtersForm.value as any)['placeCode'] ?? []) as string[];
+  const includeChildren = !!((this.filtersForm.value as any)['placeIncludeChildren']);
+  const placeAll = !placeSel.length || placeSel.includes(this.ALL);
+  if (!placeAll) {
+    const expanded = this.expandPlaceSelection(placeSel, includeChildren);
+    const raw = (this.fieldOf(e, 'placeCode') ?? '').toString();
+    const parts = normalizeWorkPath(raw); // لديك هذه الدالة
+    if (!parts.length) return false;
 
-      const placeAll = !placeSel.length || placeSel.includes(this.ALL);
-      if (!placeAll) {
-        const raw = (this.fieldOf(e, 'placeCode') ?? '').toString();
-        const parts = normalizeWorkPath(raw);
-        if (!parts.length) return false;
-        const hasIntersection = placeSel.some(code => parts.includes(code));
-        if (!hasIntersection) return false;
-      }
-    }
+    // المطابقة هنا على أي جزء من المسار
+    const hit = parts.some(p => expanded.has(p));
+    if (!hit) return false;
+  }
+}
 
     // 3) فلاتر مفردة ثابتة
     if (f.gender && e.gender !== f.gender) return false;
@@ -762,9 +866,14 @@ public clearColumns() {
 
     };
     const _place = (this.filtersForm.value as any)['placeCode'] as string[] | undefined;
+    const includeChildren = !!((this.filtersForm.value as any)['placeIncludeChildren']);
+
 if (Array.isArray(_place) && _place.length) {
-  const vals = _place.includes(this.ALL) ? ['الكل'] : _place.map((c: string) => this.findNameByCode(c) ?? c);
-  chips.push({ key: 'placeCode', label: 'مكان العمل', value: vals.join('، ') });
+  const vals = _place.includes(this.ALL)
+    ? ['الكل']
+    : _place.map((c: string) => this.findNameByCode(c) ?? c);
+  const suffix = includeChildren ? ' (مع الفروع)' : '';
+  chips.push({ key: 'placeCode', label: 'مكان العمل', value: vals.join('، ') + suffix });
 }
 
     pushMulti('jobTitle', 'المسمى', this.jobTitleOpts);
@@ -808,6 +917,56 @@ if (Array.isArray(_place) && _place.length) {
 
     this.activeChips = chips;
   }
+
+  public placeBreadcrumb(e: Employee): string {
+  const raw = this.fieldOf(e, 'placeCode') || '';
+  const parts = normalizeWorkPath(raw);
+  const names = parts
+    .map(c => this.findNameByCode(c) ?? c)
+    .filter(Boolean);
+  return names.join(' / ');
+}
+
+public placeLeafName(e: Employee): string {
+  const raw = this.fieldOf(e, 'placeCode') || '';
+  const parts = normalizeWorkPath(raw);
+  const last = parts.at(-1);
+  return last ? (this.findNameByCode(last) ?? last) : '';
+}
+openPlaceTreeDialog(select?: MatSelect) {
+  const currentSel: string[] = (this.filtersForm.value.placeCode as string[]) ?? [];
+  const includeChildren = !!this.filtersForm.value.placeIncludeChildren;
+  select?.close();
+
+  this.dialog.open(PlaceTreeDialogComponent, {
+    data: {
+      tree: this.orgTree,
+      selected: (this.filtersForm.value.placeCode as string[])?.includes(this.ALL)
+                  ? [] : (this.filtersForm.value.placeCode as string[]) ?? [],
+      includeChildren: !!this.filtersForm.value.placeIncludeChildren,
+    },
+    width: '900px',
+  })
+  .afterClosed()
+  .subscribe((res?: { codes: string[]; includeChildren: boolean }) => {
+    if (!res) return;
+
+    const placeCode = this.normalizePlaceFromDialog(res.codes);   // 👈 هنا التطبيع
+
+    this.filtersForm.patchValue(
+      {
+        placeCode,
+        placeIncludeChildren: res.includeChildren,
+      },
+      { emitEvent: true }
+    );
+
+    this.saveFilters?.();
+    this.triggerFilter?.();
+    this.cdr.markForCheck();
+  });
+}
+
 
   public onOptionToggle(controlName: keyof typeof this.OPTIONS, e: MatOptionSelectionChange, value: string) {
     if (!e.isUserInput) return;
@@ -864,6 +1023,8 @@ if (Array.isArray(_place) && _place.length) {
       education: [this.ALL],
       bloodType: [this.ALL],
       placeCode: [this.ALL],
+        placeIncludeChildren: true, // 
+
       nationalities: [],
       birthFrom: null, birthTo: null,
       workFrom: null, workTo: null,
@@ -873,6 +1034,7 @@ if (Array.isArray(_place) && _place.length) {
       currentDecisionAppointment: '',
       currentDecisionDateFrom: null,
       currentDecisionDateTo: null,
+
     });
     localStorage.removeItem(this.STORAGE_KEY);
     this.triggerFilter();
@@ -960,6 +1122,8 @@ remove(emp: Employee) {
       actionTo: toDate(p.actionTo),
       currentDecisionDateFrom: toDate(p.currentDecisionDateFrom),
       currentDecisionDateTo: toDate(p.currentDecisionDateTo),
+          placeIncludeChildren: typeof p.placeIncludeChildren === 'boolean' ? p.placeIncludeChildren : true, // 👈 افتراضي
+
     };
   }
 

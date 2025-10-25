@@ -93,35 +93,27 @@
     </mat-form-field>
   </ng-container>
 
-  <ng-container *ngIf="t==='INTERNAL_MOVE'">
-  <mat-form-field appearance="outline" class="w-full">
-    <mat-label>المستوى الأول</mat-label>
-    <mat-select formControlName="placeL1">
-      <mat-option *ngFor="let n of level1Opts" [value]="n.code">{{ n.name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
+  <ng-container *ngIf="t === 'INTERNAL_MOVE'">
+  <ng-container *ngFor="let level of levels; let i = index">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>المستوى {{ i + 1 }}</mat-label>
 
-  <mat-form-field appearance="outline" class="w-full" *ngIf="level2Opts.length">
-    <mat-label>المستوى الثاني</mat-label>
-    <mat-select formControlName="placeL2">
-      <mat-option *ngFor="let n of level2Opts" [value]="n.code">{{ n.name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
+      <!-- القيمة المختارة للمستوى الحالي هي path[i] -->
+      <!-- عند اختيار قيمة جديدة نحدّث المسار عبر onPickLevel(i, value) -->
+      <mat-select
+        [value]="path[i] || null"
+        (selectionChange)="onPickLevel(i, $event.value)">
 
-  <mat-form-field appearance="outline" class="w-full" *ngIf="level3Opts.length">
-    <mat-label>المستوى الثالث</mat-label>
-    <mat-select formControlName="placeL3">
-      <mat-option *ngFor="let n of level3Opts" [value]="n.code">{{ n.name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
+        <mat-option *ngFor="let n of level" [value]="n.code">
+          {{ n.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </ng-container>
 
-  <mat-form-field appearance="outline" class="w-full" *ngIf="level4Opts.length">
-    <mat-label>المستوى الرابع</mat-label>
-    <mat-select formControlName="placeL4">
-      <mat-option *ngFor="let n of level4Opts" [value]="n.code">{{ n.name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
+ 
 </ng-container>
+
 
 
   <ng-container *ngIf="t==='TERMINATION'">

@@ -1,4 +1,5 @@
-// models/lookup.models.ts
+// src/app/models/lookup.models.ts
+
 export type LookupKey =
   | 'GENDERS'
   | 'BLOOD_TYPES'
@@ -12,12 +13,23 @@ export type LookupKey =
   | 'APPOINTMENT_TYPES'
   | 'NATIONALITIES';
 
+/** تُستخدم داخل التطبيق بعد التطبيع (id موجود) */
 export interface LookupOption {
-  id: string;          // UUID
-  value: string;       // قيمة مختصرة (machine)
-  label: string;       // تسمية عربية (UI)
-  locked?: boolean;    // عناصر افتراضية لا تُحذف
-  order?: number;      // ترتيب لجرّ/إفلات
+  id: string;              // UUID بعد التطبيع
+  value: string;           // القيمة التي تُحفظ في الداتا/الباكند
+  label: string;           // المعروض للمستخدم
+  locked?: boolean;        // يمنع الحذف
+  order?: number;          // للترتيب والسحب/الإفلات
+  disabled?: boolean;      // إخفاء مؤقت بدون حذف (اختياري)
+  meta?: Record<string, unknown>; // بيانات إضافية مستقبلية (اختياري)
 }
 
-//ملاحظة” (locked) هي الافتراضيات التي لا تريد السماح بحذفها، لكن يمكن تعديل تسميتها إن رغبت.
+/** للـ seed والـ import قبل التطبيع (id غير مطلوب) */
+export interface LookupSeedOption {
+  value: string;
+  label: string;
+  locked?: boolean;
+  order?: number;
+  disabled?: boolean;
+  meta?: Record<string, unknown>;
+}

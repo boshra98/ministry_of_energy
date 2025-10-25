@@ -66,7 +66,7 @@ export const DEPARTMENTS: OrgNode[] = [
             code: 'CENTRAL-OFFICE-HAM',
             name: 'حماة',
             subs: [
-              { code: 'CENTRAL-OFFICE-DAM-F5', name: ' دائرة الشبكات' }
+              { code: 'CENTRAL-OFFICE-DAM-F51', name: ' دائرة الشبكات' }
             ]
           }
 
@@ -80,7 +80,7 @@ export const DEPARTMENTS: OrgNode[] = [
             code: 'CENTRAL-OFFICE-DAM',
             name: 'دمشق',
             subs: [
-              { code: 'CENTRAL-OFFICE-DAM-F5', name: ' دائرة المعلوماتية' }
+              { code: 'CENTRAL-OFFICE-DAM-F52', name: ' دائرة المعلوماتية' }
             ]
           }
         ]

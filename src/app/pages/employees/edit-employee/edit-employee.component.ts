@@ -1,8 +1,9 @@
 // src/app/pages/employees/edit-employee/edit-employee.component.ts
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormControl, NonNullableFormBuilder ,FormArray } from '@angular/forms';
+ import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,9 +27,8 @@ import {
   DocAttachmentType,
 } from '../../../services/local-employees.service';
 
-import { DEPARTMENTS } from '../../../models/department';
+// import { DEPARTMENTS } from '../../../models/department';
 import { LookupService } from '../../../services/lookup.service';
-import { NationalityService } from '../../../services/nationality.services';
 import { AddNationalityDialogComponent } from '../add-employee/add-nationality-dialog.component';
 
 import { OTHER_VALUE } from '../../../shared/constants';
@@ -48,6 +48,8 @@ import { EmploymentChangeTabComponent } from "../employment-change-tab/employmen
 import { EMPLOYMENT_CHANGES_PORT } from '../../../services/employment-changes.port';
 
 import { deriveCurrentState } from '../../../utils/derive-current';
+import { OrgTreeService } from '../../../services/org-tree.service';
+import { OrgNode } from '../../../pipes/org-name.pipe';
 
 
 
@@ -86,9 +88,10 @@ export class EditEmployeeComponent implements OnInit, OnDestroy {
   private snack = inject(MatSnackBar);
   private fb = inject(NonNullableFormBuilder);
   private dialog = inject(MatDialog);
-  private nat = inject(NationalityService);
   private lookup = inject(LookupService);
-  private port   = inject(EMPLOYMENT_CHANGES_PORT);          // منفذ سجلّ التبدلات
+  private port   = inject(EMPLOYMENT_CHANGES_PORT);  
+      private cdr: ChangeDetectorRef | undefined ;
+        // منفذ سجلّ التبدلات
 
   // — الحالة —
   editingId: string | null = null;
@@ -99,7 +102,10 @@ export class EditEmployeeComponent implements OnInit, OnDestroy {
   form: EmployeeForm = createEmployeeForm(this.fb);
 
   // — القوائم —
-  nationalities: string[] = [];
+  // nationalities: string[] = [];
+  // بدلاً من string[] + اشتراك يدوي
+nationalities$ = this.lookup.nationalities$;
+
   OTHER_VALUE = OTHER_VALUE;
   today = () => new Date();
 
@@ -117,7 +123,17 @@ private deepClone<T>(obj: T): T {
 
 
   // — شجرة الأقسام (لوائح متسلسلة) —
-  departments = DEPARTMENTS;
+  // departments = DEPARTMENTS;
+private org = inject(OrgTreeService);
+departments: OrgNode[] = [];
+orgTree: OrgNode[] = [];          // إن كنت تمُرِّرها للبايب/القالب
+private destroy$ = new Subject<void>(); 
+
+  get nationalityDisplay(): string {
+  const list = this.nationalityCtrl.value ?? [];
+  return list.length ? list.join('، ') : 'اختر جنسية واحدة أو أكثر';
+}
+
   get workdetails() { return this.form.get('workdetails') as FormGroup; }
   get level1Code(): string | null { return this.workdetails.get('level1Code')?.value ?? null; }
   get level2Code(): string | null { return this.workdetails.get('level2Code')?.value ?? null; }
@@ -166,10 +182,10 @@ get appointmentTypeCtrl(){
   get emergencyRelations$() { return this.lookup.emergencyRelations$; }
   get jobTitles$()          { return this.lookup.jobTitles$; }
   get educations$()         { return this.lookup.educations$; }
-  get jobAttributes$() { return this.lookup.JOBATTRIBUTE_DEFAULTES$; }
-  get jobCategories$(){return this.lookup.JOBCATEGORY_DEFAULTES$;}
- get decisionAttribute$(){return this.lookup.decisionAttribute_DEFAULTES$;}
- get appointmentTypes$(){return this.lookup.appointmentTypes_DEFAULTES$;}
+ get jobAttributes$()     { return this.lookup.jobAttributes$; }
+get jobCategories$()     { return this.lookup.jobCategories$; }
+get decisionAttribute$() { return this.lookup.decisionAttributes$; }
+get appointmentTypes$()  { return this.lookup.appointmentTypes$; }
 // Getter لكنترول النموذج (موجود عندك)
 
 
@@ -201,10 +217,17 @@ trackByValue = (_: number, it: { value: string }) => it.value;
   ngOnInit(): void {
         this.init(); // نفّذ التهيئة غير المتزامنة
 
-    // جلب الجنسيات وترتيبها
-    this.nat.nationalities$.subscribe(list => {
-      this.nationalities = [...list].sort((a, b) => a.localeCompare(b, 'ar'));
+
+this.org.tree$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(tree => {
+      this.departments = tree ?? [];
+      this.orgTree = tree ?? [];
+      this.cdr?.markForCheck(); // لو OnPush
     });
+
+    // جلب الجنسيات وترتيبها
+   
 
     // تنظيف المستويات عند تغيّر الأعلى
     this.workdetails.get('level1Code')?.valueChanges.subscribe(() => {
@@ -302,25 +325,38 @@ trackByValue = (_: number, it: { value: string }) => it.value;
   }
 
   // دعم “غير ذلك…” في الجنسيات (اختياري)
-  async onAddOtherNationality(): Promise<void> {
-    const ref = this.dialog.open(AddNationalityDialogComponent, {
-      width: '420px',
-      data: { existing: this.nationalities.filter(n => n !== OTHER_VALUE) },
-    });
-    const addedRaw = await ref.afterClosed().toPromise();
-    const added = (addedRaw ?? '').trim();
-    if (!added) return;
 
-    // أضف للقائمة الدائمة
-    this.nat.addNationality(added);
+async onAddOtherNationality(): Promise<void> {
+  // افتح الديالوج (لا حاجة لتمرير existing؛ التكرار يُمنع داخل الريجستري)
+  const ref = this.dialog.open(AddNationalityDialogComponent, {
+    width: '420px',
+    data: { existing: [] },
+  });
 
-    // حدّث قيمة الكنترول
-    const now = this.nationalityCtrl.value ?? [];
-    const exists = now.some(v => v?.toLowerCase() === added.toLowerCase());
-    if (!exists) this.nationalityCtrl.setValue([...now, added]);
-    // this.cdr.markForCheck();
+  const addedRaw = await firstValueFrom(ref.afterClosed());
+  const added = (addedRaw ?? '').trim();
+  if (!added) return;
 
+  // 1) أضِف للجداول المرجعية المركزية (LookupRegistry)
+  //    add يُرجع null إذا كانت القيمة مكررة أو غير صالحة حسب منطقك
+  const created = await this.lookup.add('NATIONALITIES', { value: added, label: added });
+
+  if (!created) {
+    // تكرار أو إدخال غير صالح
+    this.snack.open('الجنسية موجودة مسبقًا أو غير صالحة', 'إغلاق', { duration: 2000 });
+    return;
   }
+
+  // 2) حدّث قيمة الكنترول مباشرة (النموذج يحفظ مصفوفة سلاسل)
+  const ctrl = this.nationalityCtrl;
+  const now  = ctrl.value ?? [];
+  if (!now.some(v => v?.toLowerCase() === added.toLowerCase())) {
+    ctrl.setValue([...now, added]);
+  }
+
+  this.snack.open('تمت إضافة الجنسية', 'إغلاق', { duration: 2000 });
+}
+
 
   // حفظ
   save(): void {

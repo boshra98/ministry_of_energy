@@ -12,7 +12,7 @@
 
 
 
-import { Component, EventEmitter, Input, OnInit, OnChanges, Output, SimpleChanges, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnChanges, Output, SimpleChanges, inject, ChangeDetectorRef , OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,12 +23,14 @@ import { EMPLOYMENT_CHANGES_PORT, EmploymentChangesPort } from '../../../service
 import { EmploymentChange, EmploymentChangeType } from '../../../models/employment-change';
 import { deriveCurrentState } from '../../../utils/derive-current';
 import { LookupService } from '../../../services/lookup.service';
-import { LookupOption } from '../../../shared/lookups/lookups.types';
 import { AddChangeDialogComponent } from '../add-change-dialog/add-change-dialog.component';
 import { Employee } from '../../../services/local-employees.service';
 import { OrgNamePipe, OrgNode } from '../../../pipes/org-name.pipe';
-import { DEPARTMENTS } from '../../../models/department';
+// import { DEPARTMENTS } from '../../../models/department';
+import { OrgTreeService } from '../../../services/org-tree.service';
 
+import { LookupOption } from '../../../models/lookup.models';
+import { Subject, takeUntil } from 'rxjs';
 @Component({
   selector: 'app-employment-changes-tab',
   standalone: true,
@@ -38,7 +40,7 @@ import { DEPARTMENTS } from '../../../models/department';
 })
 
 
-export class EmploymentChangeTabComponent implements OnInit, OnChanges {
+export class EmploymentChangeTabComponent implements OnInit, OnChanges ,OnDestroy {
   @Input({ required: true }) employee!: Employee;
   @Output() snapshotChange = new EventEmitter<Employee>();
 
@@ -46,9 +48,12 @@ export class EmploymentChangeTabComponent implements OnInit, OnChanges {
   private dialog = inject(MatDialog);
   private lookup = inject(LookupService);
   private cdr    = inject(ChangeDetectorRef);
+private destroy$ = new Subject<void>();
+private org = inject(OrgTreeService);
 
   changes: EmploymentChange[] = [];
-  orgTree: OrgNode[] = DEPARTMENTS; // لتغذية البايب
+  // orgTree: OrgNode[] = DEPARTMENTS; // لتغذية البايب
+  orgTree: OrgNode[] = [];
 
   jobCategoryOpts: LookupOption[] = [];
   jobAttributeOpts: LookupOption[] = [];
@@ -59,19 +64,39 @@ export class EmploymentChangeTabComponent implements OnInit, OnChanges {
 
   displayedColumns: string[] = ['type', 'effectiveFrom', 'diff', 'decision', 'actions'];
 
-  ngOnInit(): void {
-    this.lookup.JOBCATEGORY_DEFAULTES$?.subscribe(o => this.jobCategoryOpts = o || []);
-    this.lookup.JOBATTRIBUTE_DEFAULTES$?.subscribe(o => this.jobAttributeOpts = o || []);
-    this.lookup.appointmentTypes_DEFAULTES$?.subscribe(o => this.appointmentTypesOpts = o || []);
-    this.lookup.jobTitles$?.subscribe(o => this.jobTitleOpts = o || []); // ✅ جديد
+  ngOnInit() {
+  this.lookup.jobCategories$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(o => this.jobCategoryOpts = o ?? []);
 
-    if (this.employee?.id != null) {
-      this.load();
-    }
-      this.updateDisplayedColumns();
+  this.lookup.jobAttributes$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(o => this.jobAttributeOpts = o ?? []);
 
-  }
+  this.lookup.appointmentTypes$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(o => this.appointmentTypesOpts = o ?? []);
 
+  this.lookup.jobTitles$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(o => this.jobTitleOpts = o ?? []);
+
+    
+this.org.tree$
+  .pipe(takeUntil(this.destroy$))
+  .subscribe(tree => {
+    this.orgTree = tree ?? [];
+    this.cdr.markForCheck();
+  });
+
+  if (this.employee?.id) this.load();
+  this.updateDisplayedColumns();
+}
+
+ngOnDestroy() {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['employee'] && this.employee?.id != null) {
       this.load();
@@ -126,14 +151,7 @@ export class EmploymentChangeTabComponent implements OnInit, OnChanges {
 
 
   
-  // openAdd() {
-  //   if (!this.employee?.id) return;
-  //   const ref = this.dialog.open(AddChangeDialogComponent, {
-  //     width: '720px',
-  //     data: { emp: this.employee }
-  //   });
-  //   ref.afterClosed().subscribe(ok => { if (ok) this.load(); });
-  // }
+ 
 
   openAdd() {
       if (this.readonly) return;           // ✅ منع

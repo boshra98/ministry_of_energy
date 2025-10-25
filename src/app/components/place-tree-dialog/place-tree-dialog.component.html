@@ -1,0 +1,85 @@
+<h2 mat-dialog-title>اختيار مكان المباشرة</h2>
+<mat-dialog-content class="col-dialog">
+
+  <!-- شريط البحث والأزرار -->
+  <div class="toolbar">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>بحث في الأقسام</mat-label>
+      <input matInput (input)="applyFilter($any($event.target).value)" placeholder="اكتب اسم القسم..." />
+      <button mat-icon-button matSuffix aria-label="clear" *ngIf="filterText" (click)="applyFilter('')">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <div class="tools">
+      <!-- <mat-checkbox [(ngModel)]="includeChildren">شمل الفروع عند التحديد</mat-checkbox> -->
+      <button mat-stroked-button (click)="expandAll()"><mat-icon>unfold_more</mat-icon>&nbsp;فتح الجذور</button>
+      <button mat-stroked-button (click)="collapseAll()"><mat-icon>unfold_less</mat-icon>&nbsp;إغلاق الجذور</button>
+    </div>
+  </div>
+
+  <!-- الأعمدة: كل عمود = جذر وأبناؤه -->
+  <div class="root-columns">
+    <div class="root-col" *ngFor="let root of dataSource.data; trackBy: trackByCode">
+      <!-- رأس الجذر -->
+      <div class="root-header" [class.expanded]="isExpanded(root)">
+        <button mat-icon-button (click)="toggleExpand(root)">
+          <mat-icon class="chev" [class.rot]="isExpanded(root)">chevron_right</mat-icon>
+        </button>
+
+       <mat-checkbox
+  [indeterminate]="nodeChecked(root)==='indeterminate'"
+  [checked]="nodeChecked(root)==='checked'"
+  (click)="toggleSelect(root, $event)">
+</mat-checkbox>
+
+        <span class="root-name" (click)="toggleSelect(root)">{{ root.name }}</span>
+
+        <span class="root-actions">
+          <button mat-button color="primary" (click)="expanded.add(root.code!)">فتح</button>
+          <button mat-button color="warn" (click)="clearBranch(root)">مسح الفرع</button>
+        </span>
+      </div>
+
+      <!-- أبناء الجذر (طولي) -->
+      <div class="branch-stack" *ngIf="isExpanded(root)">
+        <ng-container *ngFor="let child of root.subs ?? []; trackBy: trackByCode">
+          <ng-container *ngTemplateOutlet="nodeTpl; context: { $implicit: child }"></ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="clearAll()">مسح الكل</button>
+  <span class="flex-1"></span>
+  <button mat-button (click)="cancel()">إلغاء</button>
+  <button mat-flat-button color="primary" (click)="done()">تم</button>
+</mat-dialog-actions>
+
+<!-- القالب التكراري للعقدة الداخلية -->
+<ng-template #nodeTpl let-node>
+  <div class="node-row" [class.exp]="isExpanded(node)">
+    <div class="node-line">
+      <button mat-icon-button (click)="toggleExpand(node)" [disabled]="!(node.subs?.length)">
+        <mat-icon class="chev" [class.rot]="isExpanded(node)">chevron_right</mat-icon>
+      </button>
+
+      <mat-checkbox
+  [indeterminate]="nodeChecked(node)==='indeterminate'"
+  [checked]="nodeChecked(node)==='checked'"
+  (click)="toggleSelect(node, $event)">
+</mat-checkbox>
+
+      <span class="node-name" (click)="toggleSelect(node)">{{ node.name }}</span>
+    </div>
+
+    <div class="children" *ngIf="isExpanded(node) && node.subs?.length">
+      <ng-container *ngFor="let c of node.subs; trackBy: trackByCode">
+        <ng-container *ngTemplateOutlet="nodeTpl; context: { $implicit: c }"></ng-container>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>

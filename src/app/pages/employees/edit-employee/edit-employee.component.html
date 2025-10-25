@@ -14,7 +14,7 @@
 <mat-tab-group class="gov-tabs" dynamicHeight>
 
   <!-- تبويب البيانات -->
-  <mat-tab label="البيانات">
+  <mat-tab label=" تعديل البيانات"> ">
 
 
 
@@ -78,15 +78,22 @@
           <mat-error *ngIf="basic.get('birthDate')?.hasError('futureDate')">لا يمكن أن يكون في المستقبل</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" >
-          <mat-label>الجنسية</mat-label>
-          <mat-select formControlName="nationality" multiple>
-            <mat-option *ngFor="let n of nationalities" [value]="n">{{ n }}</mat-option>
-            <mat-option [value]="OTHER_VALUE" (onSelectionChange)="onAddOtherNationality()">غير ذلك…</mat-option>
-          </mat-select>
-          <!-- <mat-hint>{{ nationalities }}</mat-hint> -->
-          <mat-error *ngIf="basic.get('nationality')?.hasError('required')">اختر جنسية واحدة أو أكثر</mat-error>
-        </mat-form-field>
+       <mat-form-field appearance="outline" class="w-full" dir="rtl">
+  <mat-label>الجنسية</mat-label>
+  <mat-select formControlName="nationality" [multiple]="true">
+    <mat-select-trigger>{{ nationalityDisplay }}</mat-select-trigger>
+
+    <mat-option *ngFor="let n of (nationalities$ | async) ?? []" [value]="n.value">
+      {{ n.label }}
+    </mat-option>
+
+    <mat-option (click)="onAddOtherNationality()">
+      <mat-icon class="me-2">add</mat-icon>
+      إضافة جنسية أخرى…
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
 
         <mat-form-field appearance="outline">
           <mat-label>الحالة الاجتماعية</mat-label>
@@ -282,7 +289,7 @@
 
   <span class="spacer"></span>
 
-  <input #uploader type="file" hidden accept="image/*,application/pdf" (change)="onAttachFileSelected(i, $event)" /> 
+  <input #uploader type="file" hidden accept="application/pdf" (change)="onAttachFileSelected(i, $event)" /> 
   <!-- input كاميرا للموبايل (scan) -->
    <input #cameraInput type="file" hidden accept="image/*" capture="environment" (change)="onAttachFileSelected(i, $event)" />
  <input type="file" accept="image/*,application/pdf" (change)="onAttachFileSelected(i, $event)" #fileInput hidden />
@@ -291,9 +298,7 @@
   <button mat-stroked-button type="button" (click)="uploader.click()">رفع ملف / PDF</button>
   <button mat-stroked-button type="button" (click)="cameraInput.click()">رفع صورة </button>
 
-  <button mat-stroked-button color="primary" type="button" (click)="duplicateQualification(i)">
-    نسخ الشهادة
-  </button>
+  
 
     <button mat-stroked-button color="warn" type="button" (click)="removeQualification(i)" *ngIf="qualifications.length > 1">
       حذف
@@ -593,7 +598,7 @@
 
 
   </mat-tab>
-<mat-tab label="المرفقات">
+<mat-tab label="     تعديل المرفقات">
   <div class="tab-pad">
     <app-employee-documents
       *ngIf="editingId"
@@ -613,7 +618,7 @@
         </mat-tab> -->
 
 
-        <mat-tab label="تبدلات التوظيف">
+        <mat-tab label= " اضافة تبدلات وظيفية ">
     <div class="tab-pad" *ngIf="employeeInitial">
       <app-employment-changes-tab
 

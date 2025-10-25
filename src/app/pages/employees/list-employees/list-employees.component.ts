@@ -28,8 +28,8 @@ import { LocalEmployeesService, Employee, OTHER_VALUE } from '../../../services/
 import { LookupService } from '../../../services/lookup.service';
 import { Subject, takeUntil } from 'rxjs';
 import { DEPARTMENTS, OrgNode } from '../../../models/department';
-import { LookupOption } from '../../../shared/lookups/lookups.types';
 import { MatDivider } from "@angular/material/divider";
+import { LookupOption } from '../../../models/lookup.models';
 
 @Component({
   standalone: true,

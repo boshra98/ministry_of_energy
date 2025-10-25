@@ -117,9 +117,14 @@
                 <mat-option value="female">أنثى</mat-option>
               </mat-select> -->
               <mat-select formControlName="gender">
-  <mat-option *ngFor="let g of (genders$ | async)" [value]="g.value">
+  <!-- <mat-option *ngFor="let g of (genders$ | async)" [value]="g.value">
     {{ g.label }}
-  </mat-option>
+  </mat-option> -->
+
+  <mat-option *ngFor="let g of (genders$ | async) ?? []" [value]="g.value">
+  {{ g.label }}
+</mat-option>
+
 </mat-select>
               @if (genderCtrl.touched && genderCtrl.hasError('required')) {
             <mat-error>الرجاء اختيار الجنس</mat-error>
@@ -187,30 +192,23 @@
   <mat-label>الجنسية</mat-label>
 
   <mat-select formControlName="nationality" [multiple]="true">
+    <mat-select-trigger>{{ nationalityDisplay }}</mat-select-trigger>
 
-    <!-- تريغر مخصص لعرض المختارات -->
-    <mat-select-trigger>
-      {{ nationalityDisplay }}
-    </mat-select-trigger>
-
-    <!-- الخيارات الثابتة + الديناميكية -->
-    <mat-option *ngFor="let n of nationalities" [value]="n">
-      {{ n }}
+    <mat-option *ngFor="let n of (nationalities$ | async) ?? []" [value]="n.value">
+      {{ n.label }}
     </mat-option>
 
-    <!-- خيار خاص لفتح مربع الحوار -->
-    <mat-option class="text-primary" (click)="onAddOtherClick($event)" [disabled]="false">
+    <mat-option class="text-primary" (click)="onAddOtherClick($event)">
       <mat-icon class="me-2">add</mat-icon>
       إضافة جنسية أخرى…
     </mat-option>
-    
-
   </mat-select>
 
   <mat-error *ngIf="basic.get('nationality')?.hasError('required')">
     هذا الحقل مطلوب
   </mat-error>
 </mat-form-field>
+
 
 
 
@@ -222,7 +220,7 @@
             }
           </mat-select>  -->
           <mat-select formControlName="materialStatus">
-  <mat-option *ngFor="let m of (maritalStatus$ | async)" [value]="m.value">
+  <mat-option *ngFor="let m of (maritalStatus$ | async) ?? []" [value]="m.value">
     {{ m.label }}
   </mat-option>
 </mat-select>
@@ -349,7 +347,7 @@
 
               </mat-select> -->
               <mat-select formControlName="bloodType">
-  <mat-option *ngFor="let b of (bloodTypes$ | async)" [value]="b.value">
+  <mat-option *ngFor="let b of (bloodTypes$ | async) ?? []" [value]="b.value">
     {{ b.label }}
   </mat-option>
 </mat-select>
@@ -502,7 +500,7 @@
                 <mat-option *ngFor="let e of emergencyContentRelations" [value]="e">{{ e }}</mat-option>
               </mat-select> -->
               <mat-select formControlName="emergencyContentRelation">
-  <mat-option *ngFor="let e of (emergencyRelations$ | async)" [value]="e.value">
+  <mat-option *ngFor="let e of (emergencyRelations$ | async) ?? [] " [value]="e.value">
     {{ e.label }}
   </mat-option>
 </mat-select>
@@ -565,9 +563,7 @@
   <button mat-stroked-button type="button" (click)="uploader.click()">رفع ملف / PDF</button>
   <button mat-stroked-button type="button" (click)="cameraInput.click()">رفع صورة </button>
 
-  <button mat-stroked-button color="primary" type="button" (click)="duplicateQualification(i)">
-    نسخ الشهادة
-  </button>
+  
 
   <!-- منع حذف الأولى (اختياري) -->
   <button
@@ -691,13 +687,9 @@
 
             <mat-form-field appearance="outline">
               <mat-label>المسمى الوظيفي</mat-label>
-              <!-- <mat-select formControlName="jobTitle">
-               @for (j of jobTitles; track j) {
-              <mat-option [value]="j">{{ j }}</mat-option>
-            }
-          </mat-select> -->
+           
           <mat-select formControlName="jobTitle">
-  <mat-option *ngFor="let j of (jobTitles$ | async)" [value]="j.value">
+  <mat-option *ngFor="let j of (jobTitles$ | async) ?? []" [value]="j.value">
     {{ j.label }}
   </mat-option>
 </mat-select>
@@ -741,7 +733,7 @@
 
 
 
-  <!-- المستوى 1 -->
+  <!--  مكان المباشرة -->
 <mat-form-field appearance="outline" class="w-100">
   <mat-label>الإدارة الأساسية</mat-label>
   <mat-select formControlName="level1Code" required>

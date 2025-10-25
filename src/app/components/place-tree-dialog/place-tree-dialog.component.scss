@@ -1,0 +1,85 @@
+// :host { display: block; min-width: 560px; }
+// .mat-tree { max-height: 420px; overflow: auto; }
+:host { display: block; min-width: 820px; }
+
+.col-dialog {
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  }
+
+  .root-columns {
+    display: flex;
+    gap: 0; /* لدينا فاصل طولي، لا نحتاج gap */
+    overflow-x: auto;
+    padding: 6px 0;
+
+    .root-col {
+      min-width: 280px;
+      padding: 8px 14px;
+      position: relative;
+    }
+
+    /* خط فاصل طولي بين الأعمدة */
+    .root-col + .root-col {
+      border-left: 2px solid rgba(0,0,0,.08);
+    }
+  }
+
+  .root-header {
+    display: grid;
+    grid-template-columns: 32px 32px 1fr auto;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 4px;
+    border-radius: 10px;
+    background: #f9fafb;
+
+    .chev { transition: transform .2s ease; }
+    .chev.rot { transform: rotate(90deg); }
+    .root-name { font-weight: 600; }
+    .root-actions { display: flex; gap: 6px; }
+  }
+
+  .branch-stack {
+    margin-top: 8px;
+    padding-left: 10px;
+    border-left: 2px dashed rgba(0,0,0,.08);
+  }
+
+  .node-row {
+    .node-line {
+      display: grid;
+      grid-template-columns: 32px 32px 1fr;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 2px;
+      border-radius: 8px;
+      cursor: default;
+
+      &:hover { background: rgba(0, 0, 0, .03); }
+      .chev { transition: transform .2s ease; }
+      .chev.rot { transform: rotate(90deg); }
+      .node-name { font-weight: 500; }
+    }
+
+    .children {
+      margin: 4px 0 4px 14px;
+      padding-left: 12px;
+      border-left: 2px dashed rgba(0,0,0,.06);
+    }
+  }
+}
+
+/* لتوسيط أزرار الأفعال السفلية */
+.flex-1 { flex: 1; }

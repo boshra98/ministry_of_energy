@@ -204,15 +204,14 @@ import { Subject, takeUntil } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 
 import { LocalEmployeesService, Employee } from '../../../services/local-employees.service';
-import { DEPARTMENTS, OrgNode } from '../../../models/department';
+// import { DEPARTMENTS, OrgNode } from '../../../models/department';
 import { OTHER_VALUE } from '../../../shared/constants';
 import { LookupService } from '../../../services/lookup.service';
-import { LookupOption } from '../../../shared/lookups/lookups.types';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
-import { OrgNamePipe } from '../../../pipes/org-name.pipe';
+import { OrgNamePipe, OrgNode } from '../../../pipes/org-name.pipe';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTab } from '@angular/material/tabs';
@@ -220,6 +219,8 @@ import { EmploymentChangeTabComponent } from "../employment-change-tab/employmen
 import { EMPLOYMENT_CHANGES_PORT } from '../../../services/employment-changes.port';
 import { deriveCurrentState } from '../../../utils/derive-current';
 import { EmployeeDocumentsComponent } from "../employee-documents/employee-documents.component";
+import { LookupOption } from '../../../models/lookup.models';
+import { OrgTreeService } from '../../../services/org-tree.service';
 
 
 type AttachmentView = {
@@ -267,8 +268,16 @@ export class BrowseEmployeeComponent implements OnInit, OnDestroy {
 
   OTHER_VALUE = OTHER_VALUE;
 
-  orgTree: OrgNode[] = DEPARTMENTS;
-  orgOpts = { tree: this.orgTree, mode: 'path' as const, sep: ' | ' };
+  // orgTree: OrgNode[] = DEPARTMENTS;
+  // orgOpts = { tree: this.orgTree, mode: 'path' as const, sep: ' | ' };
+
+
+private org = inject(OrgTreeService);
+
+orgTree: OrgNode[] = [];
+// الأفضل تجعلها getter لتقرأ الشجرة الحاليّة دائمًا
+get orgOpts() { return { tree: this.orgTree, mode: 'path' as const, sep: ' | ' }; }
+
 
   employee?: Employee;                // أساس (كما هو مخزّن)
   employeeInitial?: Employee;         // ✅ أول تعيين (نسخة مجمّدة)
@@ -297,6 +306,14 @@ export class BrowseEmployeeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.init(); // نفّذ التهيئة غير المتزامنة
+
+    this.org.tree$
+  .pipe(takeUntil(this.destroy$))
+  .subscribe(tree => {
+    this.orgTree = tree ?? [];
+    // لا حاجة لإعادة بناء orgOpts لأننا جعلناه getter
+  });
+
     // ابنِ الخرائط من الـ LookupService
     this.lookup.genders$
       .pipe(takeUntil(this.destroy$))
@@ -307,19 +324,19 @@ export class BrowseEmployeeComponent implements OnInit, OnDestroy {
     this.lookup.jobTitles$
       .pipe(takeUntil(this.destroy$))
       .subscribe((opts: LookupOption[]) => this.jobTitleMap = new Map(opts.map(o => [o.value, o.label])));
-    this.lookup.JOBATTRIBUTE_DEFAULTES$
+    this.lookup.jobAttributes$
       .pipe(takeUntil(this.destroy$))
       .subscribe((opts: LookupOption[]) => this.jobAttributeMap = new Map(opts.map(o => [o.value, o.label])));
-    this.lookup.JOBCATEGORY_DEFAULTES$
+    this.lookup.jobCategories$
       .pipe(takeUntil(this.destroy$))
       .subscribe((opts: LookupOption[]) => this.jobCategoryMap = new Map(opts.map(o => [o.value, o.label])));
     this.lookup.emergencyRelations$
       .pipe(takeUntil(this.destroy$))
       .subscribe((opts: LookupOption[]) => this.emergencyContentRelationMap = new Map(opts.map(o => [o.value, o.label])));
-    this.lookup.decisionAttribute_DEFAULTES$
+    this.lookup.decisionAttributes$
       .pipe(takeUntil(this.destroy$))
       .subscribe((opts: LookupOption[]) => this.decisionAttributeMap = new Map(opts.map(o => [o.value, o.label])));
-    this.lookup.appointmentTypes_DEFAULTES$
+    this.lookup.appointmentTypes$
       .pipe(takeUntil(this.destroy$))
       .subscribe((opts: LookupOption[]) => this.appointmentTypesMap = new Map(opts.map(o => [o.value, o.label])));
     this.lookup.educations$

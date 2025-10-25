@@ -304,12 +304,22 @@
                   <div class="value">{{ (employee.dateActionWork | date:'dd/MM/yyyy') || '—' }}</div>
                 </div>
 
-                <div class="field">
+                <!-- <div class="field">
                   <label>مكان مباشرة العمل (أول تعيين)</label>
                   <div class="value">
     {{ place_initial_view | orgName:{ tree: orgTree, mode:'path', sep:' | ' } }}
   </div>
-                </div>
+                </div> -->
+                <div class="field">
+  <label>مكان مباشرة العمل (أول تعيين)</label>
+  <div class="value">
+    <ng-container *ngIf="place_initial_view as p; else noPlace">
+      {{ p | orgName: orgOpts }}
+    </ng-container>
+    <ng-template #noPlace>—</ng-template>
+  </div>
+</div>
+
 
                 <div class="field">
                   <label>نوع التعيين (أول تعيين)</label>
@@ -392,7 +402,7 @@
 
                
 
-                <div class="field">
+                <!-- <div class="field">
   <label>مكان العمل الحالي</label>
   <div class="value">
     <ng-container *ngIf="place_current_view as p; else dash">
@@ -400,7 +410,17 @@
     </ng-container>
     <ng-template #dash>—</ng-template>
   </div>
+</div> -->
+<div class="field">
+  <label>مكان العمل الحالي</label>
+  <div class="value">
+    <ng-container *ngIf="place_current_view as p; else dash">
+      {{ p | orgName: orgOpts }}
+    </ng-container>
+    <ng-template #dash>—</ng-template>
+  </div>
 </div>
+
 
               </div>
             </section>

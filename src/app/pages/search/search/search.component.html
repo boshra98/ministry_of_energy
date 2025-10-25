@@ -186,20 +186,35 @@
             </mat-form-field>
 
             <!-- مكان المباشرة -->
-            <mat-form-field appearance="outline">
-              <mat-label>مكان المباشرة</mat-label>
-              <mat-select multiple formControlName="placeCode">
-                <mat-option [value]="ALL"
-                            (onSelectionChange)="onOptionToggle('placeCode', $event, ALL)">
-                  الكل
-                </mat-option>
-                <mat-option *ngFor="let n of flatPlaces"
-                            [value]="n.code"
-                            (onSelectionChange)="onOptionToggle('placeCode', $event, n.code)">
-                  {{ n.name }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+  <mat-label>مكان المباشرة</mat-label>
+
+  <mat-select #placeSel="matSelect" multiple formControlName="placeCode">
+    <mat-option [value]="ALL">الكل</mat-option>
+    <mat-option *ngFor="let n of flatPlaces" [value]="n.code">{{ n.name }}</mat-option>
+  </mat-select>
+
+  <button mat-icon-button
+          matSuffix
+          type="button"
+          aria-label="اختيار من الشجرة"
+          (mousedown)="$event.preventDefault()"          
+          (click)="$event.stopPropagation(); openPlaceTreeDialog(placeSel)">
+    <mat-icon>account_tree</mat-icon>
+  </button>
+
+  <!-- Hint واحد فقط -->
+  <mat-hint align="end">
+    {{ (filtersForm.value.placeCode?.includes(ALL) ? 'الكل' : (filtersForm.value.placeCode?.length || 0) + ' مختار/ة') }}
+    {{ filtersForm.value.placeIncludeChildren ? ' (مع الفروع)' : '' }}
+  </mat-hint>
+</mat-form-field>
+
+<!-- ضع الـ slide-toggle خارج الـ mat-form-field لكن داخل نفس الـ form -->
+<!-- <mat-slide-toggle formControlName="placeIncludeChildren" color="primary" style="margin-top:4px;">
+  شمل الفروع
+</mat-slide-toggle> -->
+
 
             <!-- الجنسية (متعدد) -->
             <mat-form-field appearance="outline">
@@ -340,7 +355,9 @@
 
        @case ('placeCode') {
   @if (fieldOfPlacePath(e); as codeOrPath) {
-    {{ findNameByCode(codeOrPath) || (codeOrPath | orgName:{ tree: orgTree, mode:'path', sep:' | ' }) }}
+    <!-- {{ findNameByCode(codeOrPath) || (codeOrPath | orgName:{ tree: orgTree, mode:'path', sep:' | ' }) }} -->
+      {{ codeOrPath | orgName:{ tree: orgTree, mode:'path', sep:' | ' } }}
+
   } @else { — }
 }
 
