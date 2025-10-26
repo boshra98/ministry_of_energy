@@ -210,32 +210,15 @@
 //   --mdc-outlined-text-field-container-shape: 10px;
 // }
 
-
-
-/* صف أفقي للمستويات */
-.levels-row {
+/* شبكة مرنة: تضع عدة حقول في الصف وتلف لو ضاق المكان */
+.levels-grid {
   display: grid;
-  grid-auto-flow: column;                 /* صف أفقي */
-  grid-auto-columns: minmax(180px, 1fr);  /* كل مستوى عرض مرن مع حد أدنى جميل */
-  gap: 12px;
-  align-items: start;
-  overflow-x: auto;                       /* شريط أفقي لو المستويات كثيرة */
-  padding-inline-end: 4px;                /* مساحة صغيرة للتمرير */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 16px;
+  justify-content: start;
 }
 
-/* أجعل حقول الماتيريال لا تأخذ 100% داخل الصف */
-.levels-row .level-ff.mat-mdc-form-field {
-  width: auto;              /* يلغي 100% الافتراضية */
-  min-width: 180px;         /* لا تصغر أكثر من اللازم */
-}
-
-/* زر المسح يثبت بحجم صغير */
-.levels-row .clear-btn {
-  align-self: start;
-  margin-inline-start: 4px;
-}
-
-/* اختياري: تصغير قائمة الـ mat-select */
-::ng-deep .panel-sm .mat-mdc-select-panel {
-  max-height: 280px;
+.levels-grid .level-ff.mat-mdc-form-field {
+  width: 100%;
+  max-width: 360px;  /* يمنع التمدّد حتى لو العمود 1fr */
 }
