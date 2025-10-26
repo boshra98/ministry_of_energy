@@ -731,13 +731,15 @@
   </mat-form-field>
 
 
-
-<!-- مكان مباشرة العمل (ديناميكي بعدد مستويات الشجرة) -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+       <!-- مستويات الأقسام -->
+<!-- مستويات الأقسام (صف أفقي جميل + Scroll عند الحاجة) -->
+<div class="levels-row">
   <ng-container *ngFor="let ctrl of placeLevels.controls; index as i">
-    <mat-form-field appearance="outline" class="w-full">
+    <mat-form-field appearance="outline" class="level-ff" [hideRequiredMarker]="true">
       <mat-label>المستوى {{ i + 1 }}</mat-label>
-      <mat-select [formControl]="ctrl" (selectionChange)="onLevelChange(i)">
+      <mat-select [formControl]="ctrl"
+                  (selectionChange)="onLevelChange(i)"
+                  panelClass="panel-sm">
         <mat-option [value]="''">— اختر —</mat-option>
         <mat-option *ngFor="let n of getOptionsForLevel(i)" [value]="n.code">
           {{ n.name }}
@@ -745,14 +747,7 @@
       </mat-select>
     </mat-form-field>
   </ng-container>
-</div>
-
-<div class="mt-2">
-  <button mat-stroked-button color="primary" type="button" (click)="clearPlaceLevels()">
-    مسح اختيار المكان
-  </button>
-</div>
-
+  </div>
 
 
          <mat-form-field appearance="outline">

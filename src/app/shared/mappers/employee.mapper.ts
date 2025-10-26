@@ -13,21 +13,18 @@ function toISO(d?: Date | null) {
 }
 
 /** يبني مسار مكان العمل من مستويات مختارة */
-export function buildWorkplacePath(
-  ...levels: (string | null | undefined)[]
-): string | null {
-  const arr = levels.map(v => (v ?? '').trim()).filter(Boolean);
+export function buildWorkplacePathFromArray(codes: Array<string | null | undefined>): string | null {
+  const arr = (codes ?? []).map(v => (v ?? '').trim()).filter(Boolean);
   return arr.length ? arr.join('|') : null;
 }
 
 /** تقسيم المسار إلى مستويات (اختياري للاستخدام عند التحرير) */
-export function splitWorkplacePath(path?: string | null): (string | null)[] {
-  if (!path) return [null, null, null, null];
-  const codes = String(path)
-    .split(/[|/>]/) // يقبل أي فاصل شائع
+export function splitWorkplaceAny(path?: string | null): string[] {
+  if (!path) return [];
+  return String(path)
+    .split(/[|/>.]/) // يقبل | أو / أو > أو .
     .map(s => s.trim())
     .filter(Boolean);
-  return [codes[0] ?? null, codes[1] ?? null, codes[2] ?? null, codes[3] ?? null];
 }
 
 /** تنظيف الجنسيات (إزالة القيم المؤقتة) */
@@ -59,6 +56,10 @@ export function formToNewEmployee(form: EmployeeForm): NewEmployee {
 
     };
   });
+  const placeLevelsFA = form.get('workdetails.placeLevels') as FormArray<FormControl<string>>;
+  const placeCodes = (placeLevelsFA?.value ?? []).map((x: string) => (x ?? '').trim()).filter(Boolean);
+  const placeActionWork = buildWorkplacePathFromArray(placeCodes); // "CODE1|CODE2|..."
+
 
   const currentMapped = {
     currentJoblocation:         currentworkdetails.currentJoblocation,
@@ -76,12 +77,27 @@ export function formToNewEmployee(form: EmployeeForm): NewEmployee {
     ...basic,
     ...personals,
     ...communication,
-    ...workRest,
-    ...currentMapped,
+
+    jobTitle:           workdetails.jobTitle,
+    decisionStart:      workdetails.decisionStart,
+    decisionAttribute:  workdetails.decisionAttribute,
+    workDate:           workdetails.workDate,
+    dateActionWork:     workdetails.dateActionWork,
+    appointmentType:    workdetails.appointmentType,
+    jobCategory:        workdetails.jobCategory,
+    jobAttribute:       workdetails.jobAttribute,
+    startingSalary:     workdetails.startingSalary,
+    notes:              workdetails.notes,
+    statusWork:         workdetails.statusWork,
+    dateStatusWork:     workdetails.dateStatusWork,
+
+    placeActionWork,
+
+        ...currentMapped,
+
 
     // تخصيصات
     nationality: cleanNationalities(basic.nationality),
-    placeActionWork: buildWorkplacePath(level1Code, level2Code, level3Code, level4Code),
 
     // أهم شيء: details → qualifications (مصفوفة)
     details: {
@@ -113,7 +129,32 @@ function makeQualificationGroup(init?: any): FormGroup {
         attachment:               new FormControl<Attachment | null>(init?.attachment ?? null),
 
   });
+
+  
 }
+
+function setPlaceLevelsFromPath(form: EmployeeForm, path?: string | null) {
+  const codes = splitWorkplaceAny(path); // string[]
+  const fa = form.get('workdetails.placeLevels') as FormArray<FormControl<string>>;
+  fa.clear();
+
+  if (codes.length === 0) {
+    // مستوى واحد فارغ على الأقل
+    fa.push(new FormControl<string>('', { nonNullable: true }));
+  } else {
+    // ضع الأكواد الموجودة
+    codes.forEach(c => fa.push(new FormControl<string>(c, { nonNullable: true })));
+    // (اختياري) تمكين التعمّق لاحقًا:
+    // fa.push(new FormControl<string>('', { nonNullable: true }));
+  }
+
+  // إبقاء النص متزامنًا مع المصفوفة
+  const pathText = buildWorkplacePathFromArray(codes);
+  (form.get('workdetails.placeActionWork') as FormControl<string | null>)
+    .setValue(pathText, { emitEvent: false });
+}
+
+
 
 export function employeeToForm(emp: Employee, form: EmployeeForm): void {
   // 1) باقي المجموعات كما عندك (بدون details الفردية)
@@ -161,7 +202,7 @@ export function employeeToForm(emp: Employee, form: EmployeeForm): void {
         jobAttribute: emp.jobAttribute ?? '',
         startingSalary: emp.startingSalary ?? '',
         notes: emp.notes ?? '',
-        placeActionWork: emp.placeActionWork ?? '',
+        placeActionWork: emp.placeActionWork ?? null,   //  النص
         statusWork: emp.statusWork ?? '',
         dateStatusWork: emp.dateStatusWork ?? null,
       },
@@ -210,12 +251,10 @@ export function employeeToForm(emp: Employee, form: EmployeeForm): void {
     list.forEach((q: any) => fa.push(makeQualificationGroup(q)));
   }
 
+    setPlaceLevelsFromPath(form, emp.placeActionWork ?? null);
+
+
 }
 /** (اختياري) ملء مستويات الشجرة من مسار placeActionWork */ 
-export function fillWorkplaceLevelsFromPath(
-  form: EmployeeForm, path?: string | null):
-   void { const [l1, l2, l3, l4] = splitWorkplacePath(path); form.controls.workdetails.patchValue(
-     { level1Code: l1 ?? '', level2Code: l2 ?? '', level3Code: l3 ?? null, level4Code: l4 ?? null, },
-      { emitEvent: false } ); 
-    }
+
 

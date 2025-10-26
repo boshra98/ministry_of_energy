@@ -151,3 +151,35 @@ button[mat-stroked-button] { border-radius: 10px; color:#0f5132; }
   .grid { grid-template-columns: 1fr; row-gap: 14px; }
   .actions { flex-direction: column-reverse; align-items: stretch; }
 }
+
+
+
+
+
+/* صف أفقي للمستويات */
+.levels-row {
+  display: grid;
+  grid-auto-flow: column;                 /* صف أفقي */
+  grid-auto-columns: minmax(180px, 1fr);  /* كل مستوى عرض مرن مع حد أدنى جميل */
+  gap: 12px;
+  align-items: start;
+  overflow-x: auto;                       /* شريط أفقي لو المستويات كثيرة */
+  padding-inline-end: 4px;                /* مساحة صغيرة للتمرير */
+}
+
+/* أجعل حقول الماتيريال لا تأخذ 100% داخل الصف */
+.levels-row .level-ff.mat-mdc-form-field {
+  width: auto;              /* يلغي 100% الافتراضية */
+  min-width: 180px;         /* لا تصغر أكثر من اللازم */
+}
+
+/* زر المسح يثبت بحجم صغير */
+.levels-row .clear-btn {
+  align-self: start;
+  margin-inline-start: 4px;
+}
+
+/* اختياري: تصغير قائمة الـ mat-select */
+::ng-deep .panel-sm .mat-mdc-select-panel {
+  max-height: 280px;
+}

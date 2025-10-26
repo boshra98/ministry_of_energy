@@ -105,7 +105,7 @@ export type EmployeeForm = FormGroup<{
     decisionAttribute:  FormControl<string>;
     workDate: FormControl<Date | null>;
     placeLevels: FormArray<FormControl<string>>;
-  placeActionWork: FormControl<string | null>;   // 👈 بدّلها إلى nullable
+    placeActionWork: FormControl<string | null>;   // 👈 بدّلها إلى nullable
     dateActionWork: FormControl<Date | null>;
     appointmentType: FormControl<string>;
     jobCategory: FormControl<string>;

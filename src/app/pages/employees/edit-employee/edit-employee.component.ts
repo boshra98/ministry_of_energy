@@ -41,7 +41,7 @@ import {
 import {
   employeeToForm,
   formToNewEmployee,
-  fillWorkplaceLevelsFromPath,
+  
 } from '../../../shared/mappers/employee.mapper';
 import { EmployeeDocumentsComponent } from "../employee-documents/employee-documents.component";
 import { EmploymentChangeTabComponent } from "../employment-change-tab/employment-change-tab.component";
@@ -135,29 +135,21 @@ private destroy$ = new Subject<void>();
 }
 
   get workdetails() { return this.form.get('workdetails') as FormGroup; }
-  get level1Code(): string | null { return this.workdetails.get('level1Code')?.value ?? null; }
-  get level2Code(): string | null { return this.workdetails.get('level2Code')?.value ?? null; }
-  get level3Code(): string | null { return this.workdetails.get('level3Code')?.value ?? null; }
-
-  get level2List() {
-    const n1 = this.departments.find(d => d.code === this.level1Code);
-    return n1?.subs ?? [];
-  }
-  get level3List() {
-    const n2 = this.level2List.find(d => d.code === this.level2Code);
-    return n2?.subs ?? [];
-  }
-  get level4List() {
-    const n3 = this.level3List.find(d => d.code === this.level3Code);
-    return n3?.subs ?? [];
-  }
+ 
 
   // — Getters شائعة الاستخدام في القالب (اختياري) —
   get basic() { return this.form.get('basic') as FormGroup; }
   get details() { return this.form.get('details') as FormGroup; }
   get personals() { return this.form.get('personals') as FormGroup; }
   get communication() { return this.form.get('communication') as FormGroup; }
+get placeActionWorkCtrl() {
+  return this.workdetails.get('placeActionWork') as FormControl<string | null>;
+}
 
+
+  get placeLevels() { 
+  return this.workdetails.get('placeLevels') as FormArray<FormControl<string>>; 
+}
   get birthDateCtrl() { return this.basic.get('birthDate') as FormControl<Date | null>; }
   get workDateCtrl() { return this.workdetails.get('workDate') as FormControl<Date | null>; }
   get dateActionWorkCtrl() { return this.workdetails.get('dateActionWork') as FormControl<Date | null>; }
@@ -200,11 +192,69 @@ addQualification(): void {
 removeQualification(i: number): void {
   if (this.qualifications.length > 1) this.qualifications.removeAt(i);
 }
-duplicateQualification(i: number): void {
-  const v = this.qualifications.at(i).value;
-  const g = createQualificationGroup();
-  g.patchValue(v);
-  this.qualifications.push(g);
+
+
+onLevelChange(i: number): void {
+  // قصّ المستويات الأعمق
+  while (this.placeLevels.length > i + 1) {
+    this.placeLevels.removeAt(this.placeLevels.length - 1);
+  }
+
+  // إن وُجد أبناء للمستوى التالي ومعك اختيار حالي → أضف مستوى جديد فارغ
+  const selected = this.placeLevels.at(i).value;
+  const optionsNext = this.getOptionsForLevel(i + 1);
+  if (selected && optionsNext.length) {
+    this.placeLevels.push(this.fb.control<string>('')
+);
+  }
+
+  // حدّث placeActionWork كسلسلة
+  const path = (this.placeLevels.value as string[]).filter(Boolean).join('|') || null;
+  this.placeActionWorkCtrl.setValue(path);
+}
+
+getOptionsForLevel(i: number): OrgNode[] {
+  let list = this.departments; // جذور
+  for (let k = 0; k < i; k++) {
+    const code = this.placeLevels.at(k).value;
+    list = this.childrenOf(list, code);
+  }
+  return list ?? [];
+}
+private childrenOf(nodes: OrgNode[] | undefined, code: string | null | undefined): OrgNode[] {
+  if (!nodes || !code) return [];
+  const hit = nodes.find(n => n.code === code);
+  return hit?.subs ?? [];
+}
+
+clearPlaceLevels() {
+  this.placeLevels.clear();
+  this.placeLevels.push(this.fb.control<string>('')); // مستوى أول فارغ
+  this.workdetails.get('placeActionWork')?.setValue(null);
+}
+private setPlaceLevelsFromPath(path?: string | null) {
+  const fa = this.placeLevels;
+  fa.clear();
+
+  const codes = (path ? String(path)
+    .split(/[|/>.]/)     // يدعم | أو / أو >
+    .map(s => s.trim())
+    .filter(Boolean) : []);
+
+  if (codes.length === 0) {
+    fa.push(this.fb.control<string>('')
+);
+  } else {
+    codes.forEach(c => 
+fa.push(this.fb.control<string>(c))
+    
+    );
+    // (اختياري) لو تحب تمكين التعمّق مباشرة:
+    // fa.push(this.fb.control<string>('', { nonNullable: true }));
+  }
+
+  // أبقِ النص متزامنًا
+  this.placeActionWorkCtrl.setValue(codes.length ? codes.join('|') : null, { emitEvent: false });
 }
 
 
@@ -229,16 +279,7 @@ this.org.tree$
     // جلب الجنسيات وترتيبها
    
 
-    // تنظيف المستويات عند تغيّر الأعلى
-    this.workdetails.get('level1Code')?.valueChanges.subscribe(() => {
-      this.workdetails.patchValue({ level2Code: '', level3Code: '', level4Code: '' }, { emitEvent: false });
-    });
-    this.workdetails.get('level2Code')?.valueChanges.subscribe(() => {
-      this.workdetails.patchValue({ level3Code: '', level4Code: '' }, { emitEvent: false });
-    });
-    this.workdetails.get('level3Code')?.valueChanges.subscribe(() => {
-      this.workdetails.patchValue({ level4Code: '' }, { emitEvent: false });
-    });
+   
 
     // قراءة :id وتعبئة النموذج
     this.route.paramMap.subscribe(pm => {
@@ -314,9 +355,10 @@ this.org.tree$
   private patchForm(emp: Employee): void {
     // يملأ كل الحقول (Date|null وغيرها) من الموديل
     employeeToForm(emp, this.form);
+      this.setPlaceLevelsFromPath(emp.placeActionWork);   //  ضرورية هنا
+
 
     // يملأ مستويات الشجرة من placeActionWork المخزنة
-    fillWorkplaceLevelsFromPath(this.form, emp.placeActionWork);
 
     // نظافة
     this.form.markAsPristine();

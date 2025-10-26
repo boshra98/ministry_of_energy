@@ -39,7 +39,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { LookupService } from '../../../services/lookup.service';
 
 import { createEmployeeForm, EmployeeForm  , createQualificationGroup} from '../../../shared/types/employee-form.type';
-import { employeeToForm, fillWorkplaceLevelsFromPath, formToNewEmployee } from '../../../shared/mappers/employee.mapper';
+import { employeeToForm,  formToNewEmployee } from '../../../shared/mappers/employee.mapper';
 import { EmployeeDocumentsComponent } from '../employee-documents/employee-documents.component';
 import { OrgTreeService } from '../../../services/org-tree.service';
 
