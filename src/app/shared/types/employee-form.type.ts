@@ -104,12 +104,8 @@ export type EmployeeForm = FormGroup<{
     decisionStart: FormControl<string>;
     decisionAttribute:  FormControl<string>;
     workDate: FormControl<Date | null>;
-    level1Code: FormControl<string>;
-    level2Code: FormControl<string>;
-    level3Code: FormControl<string | null>;
-    level4Code: FormControl<string | null>;
-
-    placeActionWork: FormControl<string>;
+    placeLevels: FormArray<FormControl<string>>;
+  placeActionWork: FormControl<string | null>;   // 👈 بدّلها إلى nullable
     dateActionWork: FormControl<Date | null>;
     appointmentType: FormControl<string>;
     jobCategory: FormControl<string>;
@@ -184,6 +180,7 @@ export function createEmployeeForm(fb: NonNullableFormBuilder): EmployeeForm {
       qualifications: fb.array([ createQualificationGroup() ]),
     }),
 
+
     workdetails: fb.group({
 
      jobTitle:                 fb.control(''),
@@ -191,12 +188,10 @@ export function createEmployeeForm(fb: NonNullableFormBuilder): EmployeeForm {
       decisionStart: fb.control(''),
       decisionAttribute: fb.control(''),
       workDate:      fb.control<Date | null>(null, { validators: [Validators.required] }),
-      level1Code:    fb.control('', { validators: [Validators.required] }),
-      level2Code:    fb.control('', { validators: [Validators.required] }),
-      level3Code:    fb.control<string | null>(null),
-      level4Code:    fb.control<string | null>(null),
 
-      placeActionWork: fb.control(''),
+       placeActionWork: fb.control<string | null>(null),
+    placeLevels:     fb.array<FormControl<string>>([ fb.control<string>('') ]),
+      
       dateActionWork:  fb.control<Date | null>(null, { validators: [Validators.required] }),
       // appointmentType: fb.control('', { validators: [Validators.pattern(NAME_RX)] }),
       appointmentType: fb.control('', { validators: [Validators.required] }),

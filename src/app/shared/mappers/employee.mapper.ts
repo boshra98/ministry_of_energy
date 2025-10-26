@@ -42,7 +42,6 @@ export function formToNewEmployee(form: EmployeeForm): NewEmployee {
   const { basic, personals, communication, details, workdetails, currentworkdetails } = form.getRawValue();
 
   // استبعد مفاتيح مستويات الشجرة
-  const { level1Code, level2Code, level3Code, level4Code, ...workRest } = workdetails;
 
   // حرّر qualifications من الـ FormArray إلى JSON بسيط
   const fa = (form.get('details.qualifications') as FormArray) ?? new FormArray([]);

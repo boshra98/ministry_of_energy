@@ -119,7 +119,6 @@ private destroy$ = new Subject<void>();
 
 
 
-
 private findByCode(list: OrgNode[], code?: string | null): OrgNode | null {
   if (!code) return null;
   return list.find(n => n.code === code) ?? null;
@@ -179,31 +178,7 @@ onWorkPick(e: any) {
 
 
 
-get level1Code(): string | null {
-  return this.workdetails.get('level1Code')?.value ?? null;
-}
-get level2Code(): string | null {
-  return this.workdetails.get('level2Code')?.value ?? null;
-}
-get level3Code(): string | null {
-  return this.workdetails.get('level3Code')?.value ?? null;
-}
 
-// اللوائح المتسلسلة
-get level2List(): OrgNode[] {
-  const n1 = this.findByCode(this.departments, this.level1Code);
-  return n1?.subs ?? [];
-}
-
-get level3List(): OrgNode[] {
-  const n2 = this.findByCode(this.level2List, this.level2Code);
-  return n2?.subs ?? [];
-}
-
-get level4List(): OrgNode[] {
-  const n3 = this.findByCode(this.level3List, this.level3Code);
-  return n3?.subs ?? [];
-}
 
 trackByValue = (_: number, it: { value: string }) => it.value;
 
@@ -224,30 +199,43 @@ trackByIndex = (i: number) => i;
 
 
 
+
+
+
+
+
+
 ngOnInit(): void {
-
-
-this.org.tree$
+  // 1) استلم شجرة الأقسام الحية
+  this.org.tree$
     .pipe(takeUntil(this.destroy$))
     .subscribe(tree => {
       this.departments = tree ?? [];
-      this.orgTree = tree ?? [];
-      this.cdr?.markForCheck(); // لو OnPush
+      this.orgTree     = tree ?? [];
+
+      // 2) إن كنا في وضع التعديل وتم تحميل الموظف مسبقًا عبر this.route
+      if (this.editingId) {
+        const emp = this.findEmployee(this.editingId);
+        if (emp) {
+          this.patchForm(emp); // هذا يستدعي setPlaceLevelsFromPath ويملأ المستويات
+        }
+      } else {
+        // وضع الإضافة: ابدأ بمستوى أول فارغ
+        if (this.placeLevels.length === 0) {
+          this.placeLevels.push(this.fb.control<string>(''));
+        }
+      }
+
+      this.cdr.markForCheck();
     });
 
-  this.workdetails.get('level1Code')?.valueChanges.subscribe(() => {
-    this.workdetails.patchValue({ level2Code: '', level3Code: '', level4Code: '' }, { emitEvent: false });
-  });
-  this.workdetails.get('level2Code')?.valueChanges.subscribe(() => {
-    this.workdetails.patchValue({ level3Code: '', level4Code: '' }, { emitEvent: false });
-  });
-  this.workdetails.get('level3Code')?.valueChanges.subscribe(() => {
-    this.workdetails.patchValue({ level4Code: '' }, { emitEvent: false });
-  });
+  // لا تستعمل this.data?.emp هنا (لا يوجد MAT_DIALOG_DATA في صفحة الإضافة)
+}
+
 
     // this.refreshNationalities();
 
-}
+
 
 ngOnDestroy(): void {
   this.destroy$.next();
@@ -307,6 +295,8 @@ get workDateCtrl()        { return this.workdetails.get('workDate')   as FormCon
 get placeLevels() { 
   return this.workdetails.get('placeLevels') as FormArray<FormControl<string>>; 
 }
+
+ 
 get placeActionWorkCtrl()       { return this.workdetails.get('placeActionWork')       as FormControl<string>; }
 // get mainDeptCodeCtrl() { return this.workdetails.get('mainDeptCode') as FormControl<string>; }
 // get subDeptCodeCtrl()  { return this.workdetails.get('subDeptCode')  as FormControl<string>; }
