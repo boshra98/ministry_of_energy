@@ -30,6 +30,12 @@
     .logo { width: 105%; height: 105%; object-fit: contain; }
   }
 
+  .nav-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+} 
+
   .titles {
     .country  { font-weight: 800; color: #0f5132; }
     .ministry { font-weight: 700; color: #1d6e3e; }
@@ -37,6 +43,8 @@
   }
 
   .doc-meta { text-align: left; font-size: 13px; color: #204d36; }
+
+  
 }
 
 /* ===== عنوان المستند ===== */

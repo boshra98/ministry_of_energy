@@ -402,6 +402,12 @@
 
     <mat-divider></mat-divider>
 
+   <button mat-menu-item (click)="actions.openEmploymentChanges(e)">
+  <mat-icon>sync_alt</mat-icon>
+  <span> اضافة تبدل وظيفي</span>
+</button>
+    <mat-divider></mat-divider>
+
     <!-- حذف -->
     <button mat-menu-item (click)="confirmRemove(e)">
       <mat-icon>delete</mat-icon>

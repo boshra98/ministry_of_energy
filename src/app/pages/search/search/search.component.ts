@@ -33,6 +33,10 @@ import { LookupOption } from '../../../models/lookup.models';
 import { OrgTreeService } from '../../../services/org-tree.service';
 import { MatDialog } from '@angular/material/dialog';
 import { PlaceTreeDialogComponent } from '../../../components/place-tree-dialog/place-tree-dialog.component';
+import { EmployeeActionsService } from '../../../services/employee-actions.service';
+import { SelectionModel } from '@angular/cdk/collections';
+import { MatCheckbox } from "@angular/material/checkbox";
+
 type SearchMode = 'base' | 'current';
 
 @Component({
@@ -43,13 +47,14 @@ type SearchMode = 'base' | 'current';
     // UI
     MatCardModule, MatTableModule, MatSortModule, MatPaginatorModule,
     MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule,
-    MatSelectModule, ReactiveFormsModule, MatChipsModule,MatMenuModule,
-  MatDividerModule,MatSelect,
-    MatDatepickerModule, MatNativeDateModule, MatButtonToggleModule,MatMenuModule,
+    MatSelectModule, ReactiveFormsModule, MatChipsModule, MatMenuModule,
+    MatDividerModule, MatSelect,
+    MatDatepickerModule, MatNativeDateModule, MatButtonToggleModule, MatMenuModule,
     // Pipes
     OrgNamePipe,
     MatDivider,
-    MatMenu
+    MatMenu,
+    
 ],
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
@@ -71,6 +76,55 @@ private port = inject(EMPLOYMENT_CHANGES_PORT);
   private route = inject(ActivatedRoute);
 private org = inject(OrgTreeService);
 private dialog = inject(MatDialog);
+
+readonly actions = inject(EmployeeActionsService);
+
+browseEmployee(e: Employee) { this.actions.browse(e); }
+editEmployee(e: Employee)   { this.actions.edit(e); }
+// openEmploymentChanges(e: Employee) { this.actions.openEmploymentChanges(e); }
+
+openChanges(e: Employee) {
+  this.actions.openEmploymentChanges(e);
+}
+
+
+selection = new SelectionModel<Employee>(true, []); // allowMultiSelect=true
+
+isAllSelected() {
+  const numSelected = this.selection.selected.length;
+  const numRows = this.dataSource.data.length; // أو visibleRows.length لو بدك الصفحة الحالية فقط
+  return numSelected === numRows && numRows > 0;
+}
+
+masterToggle() {
+  if (this.isAllSelected()) {
+    this.selection.clear();
+  } else {
+    this.dataSource.data.forEach(r => this.selection.select(r));
+  }
+}
+
+checkboxLabel(row?: Employee): string {
+  if (!row) return this.isAllSelected() ? 'deselect all' : 'select all';
+  return this.selection.isSelected(row) ? `deselect ${row.id}` : `select ${row.id}`;
+}
+
+
+
+
+
+
+
+
+//   public browseEmployee(emp: Employee) {
+//     this.router.navigate(['/employees/browse', emp.id]);
+//   }
+
+ 
+
+// editEmployee(e: Employee) {
+//   this.router.navigate(['/employees/edit', e.id]);
+// }
 
 
   private readonly STORAGE_KEY = 'emp_search_filters_v1';
@@ -125,6 +179,8 @@ private dialog = inject(MatDialog);
   // نموذج الفلاتر
   showFilters = true;
   filtersForm!: FormGroup;
+
+  
 
   // الأعمدة الديناميكية
   columnPicker = new FormControl<ColId[]>([]);
@@ -1058,15 +1114,6 @@ openPlaceTreeDialog(select?: MatSelect) {
     return null;
   }
 
-  public browseEmployee(emp: Employee) {
-    this.router.navigate(['/employees/browse', emp.id]);
-  }
-
- 
-
-editEmployee(e: Employee) {
-  this.router.navigate(['/employees/edit', e.id]);
-}
 
 confirmRemove(e: Employee) {
   const ok = confirm(`هل تريد حذف ${e.firstName} ${e.lastName}؟`);

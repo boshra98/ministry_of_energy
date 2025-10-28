@@ -287,7 +287,9 @@ get orgOpts() { return { tree: this.orgTree, mode: 'path' as const, sep: ' | ' }
   notFound = false;
   photoUrl?: string;
 
+readonly Tabs = { info: 0, documents: 1, changes: 2 } as const;
 
+selectedIndex: number = this.Tabs.info;  // مشان نخليه رقم عادي مهم
 
   
 
@@ -306,7 +308,13 @@ get orgOpts() { return { tree: this.orgTree, mode: 'path' as const, sep: ' | ' }
 
   ngOnInit(): void {
     this.init(); // نفّذ التهيئة غير المتزامنة
-
+    // this.route.queryParamMap.subscribe(q => {
+    //   const tab = q.get('tab');
+    //   this.selectedIndex =
+    //     tab === 'changes'   ? this.Tabs.changes :
+    //     tab === 'documents' ? this.Tabs.documents :
+    //                           this.Tabs.info;
+    // });
     this.org.tree$
   .pipe(takeUntil(this.destroy$))
   .subscribe(tree => {

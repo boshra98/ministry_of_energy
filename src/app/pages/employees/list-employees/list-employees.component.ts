@@ -30,6 +30,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { DEPARTMENTS, OrgNode } from '../../../models/department';
 import { MatDivider } from "@angular/material/divider";
 import { LookupOption } from '../../../models/lookup.models';
+import { EmployeeActionsService } from '../../../services/employee-actions.service';
 
 @Component({
   standalone: true,
@@ -172,6 +173,15 @@ goHome() {
   genderMap   = new Map<string, string>();
   jobTitleMap = new Map<string, string>();
 
+readonly actions = inject(EmployeeActionsService);
+
+browseEmployee(e: Employee) { this.actions.browse(e); }
+editEmployee(e: Employee)   { this.actions.edit(e); }
+// openEmploymentChanges(e: Employee) { this.actions.openEmploymentChanges(e); }
+
+openChanges(e: Employee) {
+  this.actions.openEmploymentChanges(e);
+}
   ngOnInit(): void {
     // فلترة
     this.dataSource.filterPredicate = (data, filter) => {

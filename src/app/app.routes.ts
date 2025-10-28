@@ -23,6 +23,7 @@ export const routes: Routes = [
         .then(m => m.AddEmployeeComponent),
     title: 'إضافة موظف'
   },
+  
   {
     path: 'employees',
     loadComponent: () =>
@@ -94,11 +95,7 @@ export const routes: Routes = [
   title: 'مرفقات الموظف'
 },
 
-{
-  path: 'employees/:id/changes',
-  loadComponent: () => import('./pages/employees/employment-change-tab/employment-change-tab.component')
-    .then(m => m.EmploymentChangeTabComponent)
-} ,
+
 
 
 

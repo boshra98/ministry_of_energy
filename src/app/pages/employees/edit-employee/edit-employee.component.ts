@@ -62,7 +62,6 @@ import { OrgNode } from '../../../pipes/org-name.pipe';
   styleUrls: ['./edit-employee.component.scss'],
   imports: [
     CommonModule,
-    RouterLink,
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
@@ -262,11 +261,24 @@ fa.push(this.fb.control<string>(c))
 trackByValue = (_: number, it: { value: string }) => it.value;
 
   
+readonly Tabs = { info: 0, documents: 1, changes: 2 } as const;
+
+selectedIndex: number = this.Tabs.info;  // مشان نخليه رقم عادي مهم
+
+    // —— تنقّل —— //
+  goHome() { this.router.navigate(['']); }
+  back()   { this.router.navigate(['/employees']); }
 
 
   ngOnInit(): void {
         this.init(); // نفّذ التهيئة غير المتزامنة
-
+ this.route.queryParamMap.subscribe(q => {
+      const tab = q.get('tab');
+      this.selectedIndex =
+        tab === 'changes'   ? this.Tabs.changes :
+        tab === 'documents' ? this.Tabs.documents :
+                              this.Tabs.info;
+    });
 
 this.org.tree$
     .pipe(takeUntil(this.destroy$))

@@ -108,12 +108,7 @@ levels: OrgNode[][] = [];
     newAppointmentType: [''],
     newSalary: [null as number | null],
 
-    // مستويات المكان
-    // placeL1: [null as string | null,],
-    // placeL2: [null as string | null],
-    // placeL3: [null as string | null],
-    // placeL4: [null as string | null],
-
+   
     // الكود النهائي (أعمق مستوى) — يتحدّث تلقائيًا
     newPlaceCode: [''],
 

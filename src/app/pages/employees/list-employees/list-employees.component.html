@@ -104,24 +104,31 @@
     <!-- القائمة -->
     <mat-menu #actionsMenu="matMenu" xPosition="before" yPosition="below">
       <!-- عرض -->
-      <button mat-menu-item [routerLink]="['/employees/browse', e.id]" aria-label="عرض">
-        <mat-icon>visibility</mat-icon>
-        <span>عرض</span>
-      </button>
+      <!-- عرض -->
+    <button mat-menu-item (click)="browseEmployee(e)">
+      <mat-icon>visibility</mat-icon>
+      <span>عرض</span>
+    </button>
 
-      <!-- تعديل -->
-      <button mat-menu-item [routerLink]="['/employees/edit', e.id]" aria-label="تعديل">
-        <mat-icon>edit</mat-icon>
-        <span>تعديل</span>
-      </button>
+    <!-- تعديل -->
+    <button mat-menu-item (click)="editEmployee(e)">
+      <mat-icon>edit</mat-icon>
+      <span>تعديل</span>
+    </button>
 
-      <mat-divider></mat-divider>
+    <mat-divider></mat-divider>
 
-      <!-- حذف -->
-      <button mat-menu-item (click)="confirmRemove(e)" aria-label="حذف" class="warn">
-        <mat-icon>delete</mat-icon>
-        <span>حذف</span>
-      </button>
+   <button mat-menu-item (click)="actions.openEmploymentChanges(e)">
+  <mat-icon>sync_alt</mat-icon>
+  <span> اضافة تبدل وظيفي</span>
+</button>
+    <mat-divider></mat-divider>
+
+    <!-- حذف -->
+    <button mat-menu-item (click)="confirmRemove(e)">
+      <mat-icon>delete</mat-icon>
+      <span>حذف</span>
+    </button>
     </mat-menu>
   </td>
 </ng-container>

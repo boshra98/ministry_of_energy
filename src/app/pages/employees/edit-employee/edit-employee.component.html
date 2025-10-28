@@ -9,9 +9,21 @@
       </div>
       <div class="doc-meta">
         <div>نموذج: <strong>تعديل بيانات موظف</strong></div>
+         <div class="nav-buttons">
+    <button mat-stroked-button color="primary" (click)="back()">
+      <mat-icon>list</mat-icon>
+      السجل
+    </button>
+
+    <button mat-flat-button color="primary" (click)="goHome()">
+      <mat-icon>home</mat-icon>
+      الرئيسية
+    </button>
+  </div>
       </div>
+      
     </div>
-<mat-tab-group class="gov-tabs" dynamicHeight>
+<mat-tab-group class="gov-tabs" dynamicHeight  [(selectedIndex)]="selectedIndex">
 
   <!-- تبويب البيانات -->
   <mat-tab label=" تعديل البيانات"> 
@@ -22,9 +34,7 @@
 
     <div class="doc-title">
       <h2>تعديل بيانات الموظف</h2>
-      <a mat-stroked-button [routerLink]="['/employees']">
-        <mat-icon>arrow_back</mat-icon> رجوع للسجل
-      </a>
+      
     </div>
 
     <!-- حالات -->
@@ -612,12 +622,21 @@
           </app-employment-changes-tab>
         </mat-tab> -->
 
-
+<!-- 
         <mat-tab label= " اضافة تبدلات وظيفية ">
     <div class="tab-pad" *ngIf="employeeInitial">
+      
       <app-employment-changes-tab
-
         [employee]="employeeInitial">
+        (snapshotChange)="onSnapshotChange($event)">
+      </app-employment-changes-tab>
+    </div>
+  </mat-tab> -->
+
+  <mat-tab label="إضافة تبدلات وظيفية">
+    <div class="tab-pad" *ngIf="employeeInitial">
+      <app-employment-changes-tab
+        [employee]="employeeInitial"
         (snapshotChange)="onSnapshotChange($event)">
       </app-employment-changes-tab>
     </div>
