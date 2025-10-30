@@ -325,8 +325,46 @@
     </div>
 
     <div class="table-wrap">
+      <div class="bulk-bar" *ngIf="selection.hasValue()">
+    <div>المحدّد: {{ selection.selected.length }}</div>
+
+    <div class="actions">
+      <button mat-stroked-button color="primary" (click)="openBulkChanges('SALARY_INCREASE')">
+        <mat-icon>trending_up</mat-icon> زيادة راتب
+      </button>
+
+      <button mat-stroked-button color="primary" (click)="openBulkChanges('PROMOTION')">
+        <mat-icon>upgrade</mat-icon> ترقية
+      </button>
+
+      <button mat-stroked-button color="primary" (click)="openBulkChanges('INTERNAL_MOVE')">
+        <mat-icon>sync_alt</mat-icon> نقل داخلي
+      </button>
+    </div>
+  </div>
+
       
   <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z2">
+<ng-container matColumnDef="select">
+    <th mat-header-cell *matHeaderCellDef>
+      <mat-checkbox
+        (change)="masterToggle()"
+        [checked]="isAllSelected()"
+        [indeterminate]="selection.hasValue() && !isAllSelected()"
+        [aria-label]="checkboxLabel()">
+      </mat-checkbox>
+    </th>
+
+    <td mat-cell *matCellDef="let row">
+      <mat-checkbox
+        (click)="$event.stopPropagation()"
+        (change)="$event ? selection.toggle(row) : null"
+        [checked]="selection.isSelected(row)"
+        [aria-label]="checkboxLabel(row)">
+      </mat-checkbox>
+    </td>
+  </ng-container>
+
   <ng-container *ngFor="let c of allColumns" [matColumnDef]="c.id">
     <th mat-header-cell *matHeaderCellDef
         mat-sort-header
@@ -427,9 +465,14 @@
   <tr class="mat-row" *matNoDataRow>
     <td class="mat-cell" [attr.colspan]="displayedColumns.length">لا توجد نتائج مطابقة.</td>
   </tr>
+
+  
 </table>
 
+
+
     </div>
+
 
     <div class="footer">
       <div>خاتم الإدارة</div>

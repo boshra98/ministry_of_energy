@@ -1,0 +1,119 @@
+:host { display: block; }
+
+.bulk-wrap {
+  .header-strip {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    margin-bottom: .5rem;
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .25rem .6rem;
+      border-radius: 999px;
+      font-size: .82rem;
+      line-height: 1;
+      background: #f3f4f6;
+      color: #1f2937;
+
+      mat-icon { font-size: 18px; height: 18px; width: 18px; }
+
+      &.count { background: #eef2ff; color: #3730a3; }
+      &.SALARY_INCREASE { background: #ecfdf5; color: #065f46; }
+      &.PROMOTION       { background: #fef3c7; color: #92400e; }
+      &.INTERNAL_MOVE   { background: #eff6ff; color: #1e40af; }
+    }
+  }
+
+  .block {
+    padding: .75rem 0;
+
+    .block-title {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      margin-bottom: .5rem;
+
+      mat-icon { font-size: 20px; }
+      h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+    }
+
+    .grid {
+      display: grid;
+      gap: .6rem;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+    }
+  }
+
+  .path-preview {
+    grid-column: 1 / -1;
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .85rem;
+    color: #374151;
+    padding: .35rem .6rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: .5rem;
+
+    mat-icon { font-size: 18px; }
+  }
+}
+
+/* كثافة صغيرة للحقول والأزرار */
+.dense {
+  --_ff-size: 12px;
+  --_control-h: 36px;
+  --_pad-v: .2rem;
+
+  .mat-mdc-form-field {
+    font-size: var(--_ff-size);
+
+    .mdc-text-field, .mdc-select__anchor {
+      min-height: var(--_control-h);
+      height: var(--_control-h);
+    }
+
+    .mat-mdc-form-field-infix {
+      padding-top: var(--_pad-v);
+      padding-bottom: var(--_pad-v);
+    }
+
+    .mat-mdc-text-field-wrapper,
+    .mdc-text-field__input {
+      font-size: var(--_ff-size);
+    }
+  }
+
+  .mat-mdc-form-field-subscript-wrapper {
+    line-height: 1.1;
+  }
+
+  .mat-mdc-button-base {
+    --mdc-typography-button-font-size: 12px;
+    height: 34px;
+    line-height: 34px;
+    padding: 0 .75rem;
+  }
+}
+
+/* استجابة */
+@media (max-width: 1200px) {
+  .bulk-wrap .block .grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+}
+@media (max-width: 720px) {
+  .bulk-wrap .block .grid { grid-template-columns: 1fr; }
+}
+
+/* شريط الأفعال السفلي */
+.actions-bar {
+  padding-top: .25rem;
+  border-top: 1px solid #eee;
+}

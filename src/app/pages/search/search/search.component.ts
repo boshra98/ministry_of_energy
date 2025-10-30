@@ -36,6 +36,8 @@ import { PlaceTreeDialogComponent } from '../../../components/place-tree-dialog/
 import { EmployeeActionsService } from '../../../services/employee-actions.service';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatCheckbox } from "@angular/material/checkbox";
+import { EmploymentChangeType } from '../../../models/employment-change';
+import { BulkChangeDialogComponent } from '../../../components/bulk-change-dialog/bulk-change-dialog.component';
 
 type SearchMode = 'base' | 'current';
 
@@ -54,7 +56,7 @@ type SearchMode = 'base' | 'current';
     OrgNamePipe,
     MatDivider,
     MatMenu,
-    
+    MatCheckbox
 ],
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
@@ -881,13 +883,43 @@ public fieldOf(
 
     return true;
   }  
+openBulkChanges(type: EmploymentChangeType) {
+  const ids = this.selection.selected.map(e => String(e.id));
+  if (!ids.length) return;
+
+  this.dialog.open(BulkChangeDialogComponent, {
+    width: '760px',
+    data: { type, employeeIds: ids, filters: this.filtersForm.getRawValue() } // لو بدك تعرض معلومات إضافية
+  }).afterClosed().subscribe(res => {
+    if (res?.ok) {
+      this.selection.clear();
+      // this.reload(); // أعد تحميل النتائج بعد التطبيق
+    }
+  });
+}
 
 
-  get displayedColumns(): string[] {
+
+
+//   get displayedColumns(): string[] {
+//   const picked = new Set(this.columnPicker.value ?? []);
+//   return this.allColumns
+//     .filter(c => c.always || (c.selectable && picked.has(c.id)))
+//     .map(c => c.id);
+// }
+// خيار تفعيل التحديد الجماعي (تظهر أعمدة select عند تفعيله)
+
+
+enableBulk = true; // أو تربطه بزر/سويتش
+
+get displayedColumns(): string[] {
   const picked = new Set(this.columnPicker.value ?? []);
-  return this.allColumns
+  const cols = this.allColumns
     .filter(c => c.always || (c.selectable && picked.has(c.id)))
     .map(c => c.id);
+
+  // أضف عمود الاختيار في البداية عند الحاجة
+  return this.enableBulk ? ['select', ...cols] : cols;
 }
 
 public selectAllColumns() {

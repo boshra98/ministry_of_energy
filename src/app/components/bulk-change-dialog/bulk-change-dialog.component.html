@@ -1,0 +1,164 @@
+<h2 mat-dialog-title>
+  تطبيق تغيير جماعي ({{ data.employeeIds.length }} موظف)
+</h2>
+
+<div mat-dialog-content [formGroup]="form" dir="rtl" class="bulk-wrap dense">
+  <!-- شارة النوع وعدّاد -->
+  <div class="header-strip">
+    <div class="pill type" [ngClass]="t">
+      <mat-icon aria-hidden="true">
+        {{ t === 'SALARY_INCREASE' ? 'trending_up' : t === 'PROMOTION' ? 'upgrade' : 'sync_alt' }}
+      </mat-icon>
+      <span>
+        {{ t === 'SALARY_INCREASE' ? 'زيادة راتب' : t === 'PROMOTION' ? 'ترقية' : 'نقل داخلي' }}
+      </span>
+    </div>
+    <div class="pill count">
+      <mat-icon>group</mat-icon>
+      <span>{{ data.employeeIds.length }} محدّد</span>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- القسم 1: بيانات القرار -->
+  <section class="block">
+    <div class="block-title">
+      <mat-icon>gavel</mat-icon>
+      <h3>بيانات القرار</h3>
+    </div>
+    <div class="grid">
+      <mat-form-field appearance="outline">
+        <mat-label>تاريخ النفاذ</mat-label>
+        <input matInput [matDatepicker]="dp" formControlName="effectiveFrom">
+        <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+        <mat-datepicker #dp></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>رقم القرار</mat-label>
+        <input matInput formControlName="decisionNumber">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>تاريخ القرار</mat-label>
+        <input matInput [matDatepicker]="dp2" formControlName="decisionDate">
+        <mat-datepicker-toggle matSuffix [for]="dp2"></mat-datepicker-toggle>
+        <mat-datepicker #dp2></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="col-span-2">
+        <mat-label>السبب</mat-label>
+        <input matInput formControlName="reason">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>قرار الحالة الحالية (نص/رقم)</mat-label>
+        <input matInput formControlName="newdecisionappointment" placeholder="مثال: القرار 123/2025">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>تاريخ قرار الحالة الحالية</mat-label>
+        <input matInput [matDatepicker]="dp3" formControlName="newdecisiondate">
+        <mat-datepicker-toggle matSuffix [for]="dp3"></mat-datepicker-toggle>
+        <mat-datepicker #dp3></mat-datepicker>
+      </mat-form-field>
+    </div>
+  </section>
+
+  <!-- القسم 2: تفاصيل التغيير -->
+  <ng-container *ngIf="t === 'SALARY_INCREASE'">
+    <section class="block">
+      <div class="block-title">
+        <mat-icon>payments</mat-icon>
+        <h3>تفاصيل الزيادة</h3>
+      </div>
+      <div class="grid">
+        <mat-form-field appearance="outline">
+          <mat-label>الراتب الجديد</mat-label>
+          <input matInput type="number" formControlName="newSalary">
+        </mat-form-field>
+      </div>
+    </section>
+  </ng-container>
+
+  <ng-container *ngIf="t === 'PROMOTION'">
+    <section class="block">
+      <div class="block-title">
+        <mat-icon>military_tech</mat-icon>
+        <h3>تفاصيل الترقية</h3>
+      </div>
+      <div class="grid">
+        <mat-form-field appearance="outline">
+          <mat-label>المسمى الوظيفي الجديد</mat-label>
+          <mat-select formControlName="newJobTitle">
+            <mat-option *ngFor="let o of jobTitleOpts; trackBy: trackByValue" [value]="o.value">
+              {{ o.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>الفئة الوظيفية</mat-label>
+          <mat-select formControlName="newJobCategory">
+            <mat-option *ngFor="let o of jobCategoryOpts; trackBy: trackByValue" [value]="o.value">
+              {{ o.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>الصفة الوظيفية</mat-label>
+          <mat-select formControlName="newJobAttribute">
+            <mat-option *ngFor="let o of jobAttributeOpts; trackBy: trackByValue" [value]="o.value">
+              {{ o.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>نوع التعيين</mat-label>
+          <mat-select formControlName="newAppointmentType">
+            <mat-option *ngFor="let o of appointmentTypesOpts; trackBy: trackByValue" [value]="o.value">
+              {{ o.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </section>
+  </ng-container>
+
+  <!-- القسم 3: المكان -->
+  <ng-container *ngIf="t === 'INTERNAL_MOVE'">
+    <section class="block">
+      <div class="block-title">
+        <mat-icon>account_tree</mat-icon>
+        <h3>المكان</h3>
+      </div>
+
+      <div class="grid">
+        <ng-container *ngFor="let level of levels; let i = index">
+          <mat-form-field appearance="outline">
+            <mat-label>المستوى {{ i + 1 }}</mat-label>
+            <mat-select [value]="path[i] || null" (selectionChange)="onPickLevel(i, $event.value)">
+              <mat-option *ngFor="let n of level" [value]="n.code">{{ n.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+
+        <!-- عرض سريع للمسار -->
+        <div class="path-preview" *ngIf="path?.length">
+          <mat-icon>route</mat-icon>
+          <span>{{ path.join(' / ') }}</span>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</div>
+
+<div mat-dialog-actions align="end" class="actions-bar">
+  <button mat-stroked-button (click)="cancel()">إلغاء</button>
+  <button mat-flat-button color="primary" (click)="save()" [disabled]="form.invalid || saving">
+    {{ saving ? 'جارٍ التنفيذ…' : 'تطبيق' }}
+  </button>
+</div>

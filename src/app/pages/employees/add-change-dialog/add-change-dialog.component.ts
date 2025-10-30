@@ -79,7 +79,7 @@ export class AddChangeDialogComponent implements OnInit {
   //org tree
 
   // orgTree: OrgNode[] = DEPARTMENTS;
-  orgTree: OrgNode[] = [];
+orgTree: OrgNode[] = [];
 path: string[] = [];                  // المسار المختار (كود لكل مستوى)
 levels: OrgNode[][] = []; 
   // خيارات مستويات السلسلة
@@ -368,7 +368,7 @@ async save() {
     newdecisiondate: v.newdecisiondate ?? undefined,
   };
 
-  // ✅ أرسل المكان فقط في حالة INTERNAL_MOVE
+  // أرسل المكان فقط في حالة INTERNAL_MOVE
   if (v.type === 'INTERNAL_MOVE') {
     const deepest = this.path.length ? this.path[this.path.length - 1] : undefined;
     payload.placeActionWork = this.path.length ? [...this.path] : undefined; // مصفوفة الأكواد كاملة
@@ -378,7 +378,7 @@ async save() {
   try {
     await this.port.create(payload);
 
-    // ✅ أعِد Snapshot محدث للأب
+    //  أعِد Snapshot محدث للأب
     const changes = await this.port.list(empId);
     // ملاحظة: لو عندك employeeInitial في الأب، إرسال this.data.emp هنا كقاعدة أولى مناسب
     const snapshot = deriveCurrentState(this.data.emp, changes);
@@ -394,16 +394,6 @@ async save() {
   cancel() {
      this.ref.close(false);
    }
-  // private flattenOrgs(nodes: OrgNode[], acc: Array<{ code: string; name: string }>) {
-  //   for (const n of nodes) {
-  //     if (n.code) acc.push({ code: n.code, name: n.name });
-  //     if (n.subs?.length) this.flattenOrgs(n.subs, acc);
-  //   }
-  // }
-  
-
-  
-
 
 
 }
