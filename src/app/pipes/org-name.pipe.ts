@@ -10,6 +10,8 @@ export interface OrgNode { code: string; name: string; subs?: OrgNode[]; }
 type Mode = 'leaf' | 'path';
 type Opts = { tree?: OrgNode[]; mode?: Mode; sep?: string };
 
+//pure  من اجل المرجع في الشجرة
+//هذا يعني أنها لن تُعاد إلا إذا تغيّر مرجع (reference) الشجرة.
 @Pipe({ name: 'orgName', standalone: true, pure: true })
 export class OrgNamePipe implements PipeTransform {
   transform(codePath: string | null | undefined, opts: Opts = {}): string {

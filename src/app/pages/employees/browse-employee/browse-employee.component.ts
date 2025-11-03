@@ -607,9 +607,16 @@ get appointmentTypeLabel_current(): string {
   const v = this.pickAppointmentTypeCurrent(this.Ecur);
   return this.asLabel(v, this.appointmentTypesMap);
 }
+// get place_current(): string | string[] {
+//   return this.pickPlaceCurrent(this.Ecur) ?? '—';
+// }  
+
 get place_current(): string | string[] {
-  return this.pickPlaceCurrent(this.Ecur) ?? '—';
+  return this.pickPlaceCurrent(this.Ecur) 
+      ?? this.pickPlaceInitial(this.E0)   // ← fallback مهم
+      ?? '—';
 }
+
 get educationLabel(): string {
   return this.asLabel(this.educationValue, this.educationMap);
 }
